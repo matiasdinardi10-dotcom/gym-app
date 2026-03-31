@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rutinas</title>
+<style>
+  :root {
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --color-text-primary: #111;
+    --color-text-secondary: #666;
+    --color-background-primary: #fff;
+    --color-background-secondary: #f5f5f5;
+    --color-border-primary: #aaa;
+    --color-border-secondary: #ccc;
+    --color-border-tertiary: #e8e8e8;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); background: #f9f9f9; }
+  .app { max-width: 420px; margin: 0 auto; padding: 1rem; min-height: 100vh; }
+
+  .tab-bar { display: flex; gap: 6px; margin-bottom: 1.25rem; background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 4px; }
+  .tab { flex: 1; padding: 7px; border: none; background: transparent; font-size: 13px; color: var(--color-text-secondary); border-radius: 6px; cursor: pointer; font-family: var(--font-sans); }
+  .tab.active { background: var(--color-background-primary); color: var(--color-text-primary); font-weight: 500; border: 0.5px solid var(--color-border-tertiary); }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .section { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+  .section-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); margin-bottom: 0.75rem; }
+
+  .client-selector { width: 100%; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 14px; background: var(--color-background-secondary); color: var(--color-text-primary); font-family: var(--font-sans); margin-bottom: 1rem; }
+
+  .exercise-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 0.85rem 1rem; margin-bottom: 0.6rem; }
+  .exercise-card.done { border-color: #5DCAA5; background: #E1F5EE18; }
+  .ex-header { display: flex; align-items: center; gap: 10px; }
+  .ex-check { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--color-border-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; background: transparent; }
+  .ex-check.checked { background: #1D9E75; border-color: #1D9E75; color: white; }
+  .ex-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); flex: 1; }
+  .ex-expand { font-size: 18px; color: var(--color-text-secondary); cursor: pointer; background: none; border: none; padding: 0 4px; }
+  .ex-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; margin-left: 32px; align-items: center; }
+  .tag { font-size: 11px; padding: 3px 8px; border-radius: 20px; background: var(--color-background-secondary); color: var(--color-text-secondary); }
+  .yt-link { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 3px 8px; border-radius: 20px; background: #FEF2F2; color: #C0392B; text-decoration: none; border: 0.5px solid #FECACA; }
+  .ex-details { margin-top: 10px; margin-left: 32px; display: none; }
+  .ex-details.open { display: block; }
+  .ex-note { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 8px; padding: 6px 8px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); }
+  .feedback-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .feedback-area { width: 100%; padding: 8px; font-size: 13px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-family: var(--font-sans); resize: none; min-height: 60px; }
+
+  .progress-summary { display: flex; align-items: center; gap: 12px; }
+  .prog-circle { width: 54px; height: 54px; flex-shrink: 0; }
+  .prog-text { font-size: 13px; color: var(--color-text-secondary); }
+  .prog-count { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+
+  .add-form input, .add-form select, .add-form textarea { width: 100%; margin-bottom: 0.6rem; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 14px; background: var(--color-background-secondary); color: var(--color-text-primary); font-family: var(--font-sans); }
+  .add-form input:focus, .add-form select:focus, .add-form textarea:focus { outline: none; border-color: #1D9E75; }
+  .add-form textarea { resize: none; min-height: 55px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .row2 input { margin-bottom: 0; }
+
+  .btn-green { width: 100%; padding: 0.75rem; border-radius: var(--border-radius-md); border: 0.5px solid #1D9E75; background: transparent; font-size: 14px; color: #0F6E56; cursor: pointer; font-family: var(--font-sans); margin-top: 0.25rem; }
+  .btn-green:hover { background: #E1F5EE; }
+  .btn-remove { font-size: 13px; color: var(--color-text-secondary); background: none; border: none; cursor: pointer; padding: 0 4px; }
+
+  .feedback-item { padding: 0.75rem 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .feedback-item:last-child { border-bottom: none; }
+  .fb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .fb-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .fb-date { font-size: 11px; color: var(--color-text-secondary); }
+  .fb-ex { font-size: 12px; color: #0F6E56; margin-bottom: 3px; }
+  .fb-msg { font-size: 13px; color: var(--color-text-secondary); }
+
+  .empty { text-align: center; padding: 2rem; font-size: 13px; color: var(--color-text-secondary); }
+  .loading { text-align: center; padding: 1rem; font-size: 13px; color: var(--color-text-secondary); }
+
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #1D9E75; color: white; padding: 0.6rem 1.2rem; border-radius: var(--border-radius-md); font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 99; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+  .toast.error { background: #993C1D; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('cliente')">Vista cliente</button>
+    <button class="tab" onclick="switchTab('entrenador')">Armar rutina</button>
+    <button class="tab" onclick="switchTab('feedback')">Devoluciones</button>
+  </div>
+
+  <!-- VISTA CLIENTE -->
+  <div class="view active" id="view-cliente">
+    <select class="client-selector" id="sel-cliente" onchange="loadClientRoutine(this.value)"></select>
+    <div class="section" style="margin-bottom:0.75rem;">
+      <div class="progress-summary">
+        <svg class="prog-circle" viewBox="0 0 54 54">
+          <circle cx="27" cy="27" r="22" fill="none" stroke="var(--color-background-secondary)" stroke-width="5"/>
+          <circle id="prog-arc" cx="27" cy="27" r="22" fill="none" stroke="#1D9E75" stroke-width="5" stroke-linecap="round" stroke-dasharray="138.2" stroke-dashoffset="138.2" transform="rotate(-90 27 27)" style="transition:stroke-dashoffset 0.4s"/>
+        </svg>
+        <div>
+          <div class="prog-count"><span id="prog-done">0</span>/<span id="prog-total">0</span> ejercicios</div>
+          <div class="prog-text">completados hoy</div>
+        </div>
+      </div>
+    </div>
+    <div id="exercise-list"><div class="loading">Cargando ejercicios…</div></div>
+    <button class="btn-green" style="margin-top:0.5rem" onclick="saveSession()">Guardar sesión del día</button>
+  </div>
+
+  <!-- ARMAR RUTINA -->
+  <div class="view" id="view-entrenador">
+    <div class="section">
+      <div class="section-title">Agregar ejercicio</div>
+      <div class="add-form">
+        <select id="f-client"></select>
+        <input type="text" id="f-name" placeholder="Nombre del ejercicio" />
+        <div class="row2" style="margin-bottom:0.6rem">
+          <input type="text" id="f-series" placeholder="Series x rep (ej: 3x12)" />
+          <input type="text" id="f-peso" placeholder="Peso (ej: 20 kg)" />
+        </div>
+        <input type="text" id="f-tiempo" placeholder="Tiempo / duración (ej: 30 min)" />
+        <textarea id="f-nota" placeholder="Indicaciones especiales..."></textarea>
+        <input type="text" id="f-yt" placeholder="▶ Link de YouTube (opcional)" />
+        <button class="btn-green" onclick="addExercise()">+ Agregar ejercicio</button>
+      </div>
+    </div>
+    <div id="trainer-list"><div class="loading">Cargando…</div></div>
+  </div>
+
+  <!-- DEVOLUCIONES -->
+  <div class="view" id="view-feedback">
+    <div class="section">
+      <div class="section-title">Devoluciones recientes</div>
+      <div id="feedback-list"><div class="loading">Cargando…</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// SUPABASE
+// ============================================================
+const SUPABASE_URL = 'https://chbrespqluwlmzwhxjgi.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-Jzgkul7Gt4p_dQEnrTXww_6n31yt_D';
+const H = {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_KEY
+};
+
+async function dbGet(table, params = '') {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, { headers: H });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function dbPost(table, body) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST', headers: { ...H, 'Prefer': 'return=representation' }, body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function dbPatch(table, id, body) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH', headers: H, body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(await r.text());
+}
+async function dbDelete(table, id) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'DELETE', headers: H
+  });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+// ============================================================
+// ESTADO
+// ============================================================
+let clientes = [];
+let ejercicios = [];
+let openDetails = {};
+let currentClientId = null;
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  try {
+    clientes = await dbGet('clientes', 'order=nombre.asc');
+    if (!clientes.length) {
+      document.getElementById('exercise-list').innerHTML = '<div class="empty">Primero agregá clientes en el módulo Mis Clientes.</div>';
+      return;
+    }
+    const opts = clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+    document.getElementById('sel-cliente').innerHTML = opts;
+    document.getElementById('f-client').innerHTML = opts;
+    currentClientId = clientes[0].id;
+    await loadEjercicios();
+  } catch(e) {
+    showToast('Error al conectar', true);
+  }
+}
+
+// ============================================================
+// EJERCICIOS
+// ============================================================
+async function loadEjercicios() {
+  ejercicios = await dbGet('ejercicios', 'order=id.asc');
+  renderClientRoutine();
+}
+
+async function loadClientRoutine(clientId) {
+  currentClientId = parseInt(clientId);
+  openDetails = {};
+  renderClientRoutine();
+}
+
+function getClientEjercicios(clientId) {
+  // Ejercicios que pertenecen a rutinas del cliente
+  // Por simplicidad: ejercicios donde la rutina tiene ese cliente_id
+  return ejercicios.filter(e => e._clientId == clientId);
+}
+
+function renderClientRoutine() {
+  const exs = ejercicios.filter(e => String(e._clientId) === String(currentClientId));
+  const done = exs.filter(e => e.completado).length;
+  document.getElementById('prog-done').textContent = done;
+  document.getElementById('prog-total').textContent = exs.length;
+  const pct = exs.length ? done / exs.length : 0;
+  const circ = 2 * Math.PI * 22;
+  document.getElementById('prog-arc').setAttribute('stroke-dashoffset', (circ * (1 - pct)).toFixed(1));
+
+  if (!exs.length) {
+    document.getElementById('exercise-list').innerHTML = '<div class="empty">No hay ejercicios asignados a este cliente aún.</div>';
+    return;
+  }
+
+  document.getElementById('exercise-list').innerHTML = exs.map((ex, i) => {
+    const tags = [ex.series ? ex.series + ' reps' : '', ex.peso, ex.tiempo].filter(Boolean);
+    return `<div class="exercise-card ${ex.completado ? 'done' : ''}">
+      <div class="ex-header">
+        <div class="ex-check ${ex.completado ? 'checked' : ''}" onclick="toggleDone(${ex.id})">
+          ${ex.completado ? '✓' : ''}
+        </div>
+        <span class="ex-name">${ex.nombre}</span>
+        <button class="ex-expand" onclick="toggleDetail(${ex.id})">${openDetails[ex.id] ? '−' : '+'}</button>
+      </div>
+      <div class="ex-tags">
+        ${tags.map(t => `<span class="tag">${t}</span>`).join('')}
+        ${ex.link_youtube ? `<a class="yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>` : ''}
+      </div>
+      <div class="ex-details ${openDetails[ex.id] ? 'open' : ''}">
+        ${ex.nota ? `<div class="ex-note">${ex.nota}</div>` : ''}
+        <div class="feedback-label">¿Cómo te fue con este ejercicio?</div>
+        <textarea class="feedback-area" placeholder="Ej: Me costó la última serie..." onchange="saveFeedbackText(${ex.id}, this.value)">${ex.devolucion || ''}</textarea>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function toggleDone(id) {
+  const ex = ejercicios.find(e => e.id === id);
+  if (!ex) return;
+  const newVal = !ex.completado;
+  ex.completado = newVal;
+  if (newVal) openDetails[id] = true;
+  renderClientRoutine();
+  try { await dbPatch('ejercicios', id, { completado: newVal }); }
+  catch(e) { showToast('Error al guardar', true); }
+}
+
+function toggleDetail(id) {
+  openDetails[id] = !openDetails[id];
+  renderClientRoutine();
+}
+
+async function saveFeedbackText(id, val) {
+  const ex = ejercicios.find(e => e.id === id);
+  if (ex) ex.devolucion = val;
+  try { await dbPatch('ejercicios', id, { devolucion: val }); }
+  catch(e) { /* silencioso */ }
+}
+
+async function saveSession() {
+  showToast('Sesión guardada ✓');
+}
+
+// ============================================================
+// ARMAR RUTINA
+// ============================================================
+async function renderTrainerList() {
+  if (!ejercicios.length) {
+    document.getElementById('trainer-list').innerHTML = '<div class="empty">No hay ejercicios aún.</div>';
+    return;
+  }
+  const byClient = {};
+  clientes.forEach(c => { byClient[c.id] = { nombre: c.nombre, exs: [] }; });
+  ejercicios.forEach(e => { if (byClient[e._clientId]) byClient[e._clientId].exs.push(e); });
+
+  document.getElementById('trainer-list').innerHTML = Object.entries(byClient).map(([cid, { nombre, exs }]) =>
+    exs.length ? `<div class="section">
+      <div class="section-title">${nombre}</div>
+      ${exs.map(ex => `<div class="exercise-card" style="margin-bottom:0.5rem;">
+        <div class="ex-header">
+          <span class="ex-name">${ex.nombre}</span>
+          <button class="btn-remove" onclick="removeEx(${ex.id})">✕</button>
+        </div>
+        <div class="ex-tags">
+          ${[ex.series ? ex.series+' reps':'', ex.peso, ex.tiempo].filter(Boolean).map(t=>`<span class="tag">${t}</span>`).join('')}
+          ${ex.link_youtube ? `<a class="yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>` : ''}
+        </div>
+        ${ex.nota ? `<div style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;">${ex.nota}</div>` : ''}
+      </div>`).join('')}
+    </div>` : ''
+  ).join('');
+}
+
+async function addExercise() {
+  const cliente_id = document.getElementById('f-client').value;
+  const nombre = document.getElementById('f-name').value.trim();
+  if (!nombre) { showToast('Escribí el nombre del ejercicio', true); return; }
+
+  // Primero creamos o buscamos una rutina para este cliente
+  let rutina = null;
+  try {
+    const rutinas = await dbGet('rutinas', `cliente_id=eq.${cliente_id}&limit=1`);
+    if (rutinas.length) {
+      rutina = rutinas[0];
+    } else {
+      const cl = clientes.find(c => c.id == cliente_id);
+      const nuevas = await dbPost('rutinas', { cliente_id, nombre: 'Rutina de ' + (cl ? cl.nombre : ''), fecha: new Date().toISOString().split('T')[0] });
+      rutina = nuevas[0];
+    }
+  } catch(e) { showToast('Error al crear rutina', true); return; }
+
+  let yt = document.getElementById('f-yt').value.trim();
+  if (yt && !yt.startsWith('http')) yt = 'https://' + yt;
+
+  const body = {
+    rutina_id: rutina.id,
+    nombre,
+    series: document.getElementById('f-series').value.trim() || null,
+    peso: document.getElementById('f-peso').value.trim() || null,
+    tiempo: document.getElementById('f-tiempo').value.trim() || null,
+    nota: document.getElementById('f-nota').value.trim() || null,
+    link_youtube: yt || null,
+    completado: false,
+    devolucion: null
+  };
+
+  try {
+    const res = await dbPost('ejercicios', body);
+    const nuevo = res[0];
+    nuevo._clientId = parseInt(cliente_id);
+    ejercicios.push(nuevo);
+    ['f-name','f-series','f-peso','f-tiempo','f-nota','f-yt'].forEach(id => document.getElementById(id).value = '');
+    const cl = clientes.find(c => c.id == cliente_id);
+    showToast('Ejercicio agregado a ' + (cl ? cl.nombre : ''));
+    renderTrainerList();
+  } catch(e) { showToast('Error al guardar ejercicio', true); }
+}
+
+async function removeEx(id) {
+  if (!confirm('¿Eliminar este ejercicio?')) return;
+  try {
+    await dbDelete('ejercicios', id);
+    ejercicios = ejercicios.filter(e => e.id !== id);
+    renderTrainerList();
+    showToast('Ejercicio eliminado');
+  } catch(e) { showToast('Error al eliminar', true); }
+}
+
+// ============================================================
+// DEVOLUCIONES
+// ============================================================
+function renderFeedbacks() {
+  const withFeedback = ejercicios.filter(e => e.devolucion && e.devolucion.trim());
+  const el = document.getElementById('feedback-list');
+  if (!withFeedback.length) {
+    el.innerHTML = '<div class="empty">Cuando tus clientes dejen comentarios en sus ejercicios, van a aparecer acá.</div>';
+    return;
+  }
+  el.innerHTML = withFeedback.map(e => {
+    const cl = clientes.find(c => String(c.id) === String(e._clientId));
+    return `<div class="feedback-item">
+      <div class="fb-header"><span class="fb-name">${cl ? cl.nombre : '—'}</span></div>
+      <div class="fb-ex">${e.nombre}</div>
+      <div class="fb-msg">${e.devolucion}</div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// UI
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const tabs = ['cliente','entrenador','feedback'];
+  document.querySelectorAll('.tab')[tabs.indexOf(tab)].classList.add('active');
+  document.getElementById('view-' + tab).classList.add('active');
+  if (tab === 'feedback') renderFeedbacks();
+  if (tab === 'entrenador') renderTrainerList();
+}
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', isError);
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ============================================================
+// ENRIQUECER EJERCICIOS CON CLIENT_ID
+// ============================================================
+async function enrichEjercicios() {
+  // Cargar rutinas para mapear rutina_id -> cliente_id
+  const rutinas = await dbGet('rutinas', '');
+  const rutinaMap = {};
+  rutinas.forEach(r => { rutinaMap[r.id] = r.cliente_id; });
+  ejercicios.forEach(e => { e._clientId = rutinaMap[e.rutina_id] || null; });
+}
+
+async function loadAll() {
+  await init();
+  if (!clientes.length) return;
+  ejercicios = await dbGet('ejercicios', 'order=id.asc');
+  await enrichEjercicios();
+  renderClientRoutine();
+}
+
+loadAll();
+</script>
+</body>
+</html>
