@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mis Clientes</title>
+<style>
+  :root {
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --color-text-primary: #111;
+    --color-text-secondary: #666;
+    --color-background-primary: #fff;
+    --color-background-secondary: #f5f5f5;
+    --color-border-primary: #aaa;
+    --color-border-secondary: #ccc;
+    --color-border-tertiary: #e8e8e8;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); background: #f9f9f9; }
+  .app { max-width: 420px; margin: 0 auto; padding: 1rem; min-height: 100vh; background: #f9f9f9; }
+
+  /* HEADER */
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .header h1 { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+  .header span { font-size: 13px; color: var(--color-text-secondary); }
+
+  /* SEARCH */
+  .search { width: 100%; margin-bottom: 1rem; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 14px; background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .search:focus { outline: none; border-color: var(--color-border-primary); }
+
+  /* CARDS */
+  .client-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 0.75rem; cursor: pointer; transition: border-color 0.15s; }
+  .client-card:hover { border-color: var(--color-border-secondary); }
+  .client-row { display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 14px; flex-shrink: 0; }
+  .av-teal { background: #E1F5EE; color: #0F6E56; }
+  .av-blue { background: #E6F1FB; color: #185FA5; }
+  .av-coral { background: #FAECE7; color: #993C1D; }
+  .av-purple { background: #EEEDFE; color: #534AB7; }
+  .av-amber { background: #FAEEDA; color: #854F0B; }
+  .client-info { flex: 1; }
+  .client-name { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+  .client-sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+  .badge { font-size: 11px; padding: 3px 9px; border-radius: 20px; }
+  .badge-activo { background: #EAF3DE; color: #3B6D11; }
+  .badge-nuevo { background: #E6F1FB; color: #185FA5; }
+  .arrow { font-size: 16px; color: var(--color-text-secondary); }
+
+  /* BUTTONS */
+  .btn-add { width: 100%; padding: 0.75rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; font-size: 14px; color: var(--color-text-secondary); cursor: pointer; margin-top: 0.5rem; }
+  .btn-add:hover { background: var(--color-background-secondary); }
+  .btn-primary { width: 100%; padding: 0.7rem; border-radius: var(--border-radius-md); border: none; background: #1D9E75; color: white; font-size: 14px; cursor: pointer; margin-top: 0.5rem; }
+  .btn-primary:hover { background: #0F6E56; }
+  .btn-danger { padding: 0.5rem 1rem; border-radius: var(--border-radius-md); border: 0.5px solid #993C1D; background: transparent; color: #993C1D; font-size: 13px; cursor: pointer; }
+
+  /* VIEWS */
+  .detail { display: none; }
+  .detail.active { display: block; }
+  .list.hidden { display: none; }
+
+  /* DETAIL */
+  .back-btn { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--color-text-secondary); cursor: pointer; margin-bottom: 1.25rem; background: none; border: none; padding: 0; }
+  .back-btn:hover { color: var(--color-text-primary); }
+  .profile-header { display: flex; align-items: center; gap: 14px; margin-bottom: 1.5rem; }
+  .avatar-lg { width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 18px; flex-shrink: 0; }
+  .profile-name { font-size: 19px; font-weight: 500; color: var(--color-text-primary); }
+  .profile-goal { font-size: 13px; color: var(--color-text-secondary); margin-top: 3px; }
+
+  .section { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+  .section-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); margin-bottom: 0.75rem; }
+  .field-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .field-row:last-child { border-bottom: none; }
+  .field-label { font-size: 13px; color: var(--color-text-secondary); }
+  .field-value { font-size: 13px; color: var(--color-text-primary); font-weight: 500; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 16px 16px 0 0; padding: 1.5rem; width: 100%; max-width: 420px; }
+  .modal h2 { font-size: 17px; font-weight: 500; margin-bottom: 1.25rem; }
+  .form-field { margin-bottom: 0.75rem; }
+  .form-field label { display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .form-field input, .form-field select { width: 100%; padding: 0.6rem 0.75rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 14px; background: var(--color-background-secondary); color: var(--color-text-primary); font-family: var(--font-sans); }
+  .form-field input:focus, .form-field select:focus { outline: none; border-color: #1D9E75; }
+  .modal-btns { display: flex; gap: 8px; margin-top: 1rem; }
+  .btn-cancel { flex: 1; padding: 0.7rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; font-size: 14px; cursor: pointer; }
+
+  /* LOADING / EMPTY */
+  .loading { text-align: center; padding: 2rem; color: var(--color-text-secondary); font-size: 14px; }
+  .empty { text-align: center; padding: 2rem; color: var(--color-text-secondary); font-size: 14px; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #1D9E75; color: white; padding: 0.6rem 1.2rem; border-radius: var(--border-radius-md); font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+  .toast.error { background: #993C1D; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- LISTA -->
+  <div class="list" id="listView">
+    <div class="header">
+      <h1>Mis clientes</h1>
+      <span id="clientCount">—</span>
+    </div>
+    <input class="search" type="text" placeholder="Buscar cliente..." id="searchInput" oninput="filterClients()" />
+    <div id="clientList"><div class="loading">Cargando clientes…</div></div>
+    <button class="btn-add" onclick="openModal()">+ Agregar cliente</button>
+  </div>
+
+  <!-- DETALLE -->
+  <div class="detail" id="detailView">
+    <button class="back-btn" onclick="showList()">← Volver</button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- MODAL AGREGAR / EDITAR -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Agregar cliente</h2>
+    <div class="form-field"><label>Nombre completo</label><input id="f-nombre" placeholder="Ej: Juan Pérez" /></div>
+    <div class="form-field"><label>Edad</label><input id="f-edad" type="number" placeholder="Ej: 30" /></div>
+    <div class="form-field"><label>Contacto (teléfono)</label><input id="f-contacto" placeholder="+598 99 000 000" /></div>
+    <div class="form-field"><label>Objetivo</label><input id="f-objetivo" placeholder="Ej: Bajar de peso" /></div>
+    <div class="form-field">
+      <label>Estado</label>
+      <select id="f-estado">
+        <option value="activo">Activo</option>
+        <option value="nuevo">Nuevo</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" style="flex:2" onclick="saveClient()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIGURACIÓN SUPABASE
+// ============================================================
+const SUPABASE_URL = 'https://chbrespqluwlmzwhxjgi.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoYnJlc3BxbHV3bG16d2h4amdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5OTY2NzUsImV4cCI6MjA5MDU3MjY3NX0.5K5OPvjPRtjacOa1K3-hPYvtLY8R0fJyrC9Eqw1N-2E';
+
+const HEADERS = {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_KEY
+};
+
+// ============================================================
+// API HELPERS
+// ============================================================
+async function apiGet(table, params = '') {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, { headers: HEADERS });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function apiPost(table, body) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: { ...HEADERS, 'Prefer': 'return=representation' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function apiPatch(table, id, body) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: { ...HEADERS, 'Prefer': 'return=representation' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function apiDelete(table, id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: HEADERS
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+
+// ============================================================
+// ESTADO
+// ============================================================
+let allClients = [];
+let filtered = [];
+let editingId = null;
+const avClasses = ['av-teal','av-blue','av-coral','av-purple','av-amber'];
+
+function getAvClass(name) {
+  let hash = 0;
+  for (let c of name) hash += c.charCodeAt(0);
+  return avClasses[hash % avClasses.length];
+}
+
+function getInitials(name) {
+  return name.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+}
+
+// ============================================================
+// CARGAR CLIENTES
+// ============================================================
+async function loadClients() {
+  try {
+    allClients = await apiGet('clientes', 'order=nombre.asc');
+    filtered = [...allClients];
+    renderList();
+  } catch (e) {
+    document.getElementById('clientList').innerHTML = '<div class="empty">Error al cargar clientes.<br>Verificá tu conexión.</div>';
+    showToast('Error al conectar con la base de datos', true);
+  }
+}
+
+// ============================================================
+// RENDERIZAR LISTA
+// ============================================================
+function renderList() {
+  const activos = allClients.filter(c => c.estado === 'activo').length;
+  document.getElementById('clientCount').textContent = `${activos} activo${activos !== 1 ? 's' : ''}`;
+
+  if (!filtered.length) {
+    document.getElementById('clientList').innerHTML = '<div class="empty">No hay clientes aún.<br>Agregá el primero con el botón de abajo.</div>';
+    return;
+  }
+
+  document.getElementById('clientList').innerHTML = filtered.map(c => `
+    <div class="client-card" onclick="showDetail(${c.id})">
+      <div class="client-row">
+        <div class="avatar ${getAvClass(c.nombre)}">${getInitials(c.nombre)}</div>
+        <div class="client-info">
+          <div class="client-name">${c.nombre}</div>
+          <div class="client-sub">${c.objetivo || '—'} · ${c.edad ? c.edad + ' años' : '—'}</div>
+        </div>
+        <span class="badge badge-${c.estado}">${c.estado === 'activo' ? 'Activo' : 'Nuevo'}</span>
+        <span class="arrow">›</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterClients() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  filtered = allClients.filter(c =>
+    c.nombre.toLowerCase().includes(q) ||
+    (c.objetivo || '').toLowerCase().includes(q)
+  );
+  renderList();
+}
+
+// ============================================================
+// DETALLE
+// ============================================================
+function showDetail(id) {
+  const c = allClients.find(x => x.id === id);
+  if (!c) return;
+
+  document.getElementById('detailContent').innerHTML = `
+    <div class="profile-header">
+      <div class="avatar-lg ${getAvClass(c.nombre)}">${getInitials(c.nombre)}</div>
+      <div>
+        <div class="profile-name">${c.nombre}</div>
+        <div class="profile-goal">${c.objetivo || '—'}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Datos personales</div>
+      <div class="field-row"><span class="field-label">Edad</span><span class="field-value">${c.edad ? c.edad + ' años' : '—'}</span></div>
+      <div class="field-row"><span class="field-label">Contacto</span><span class="field-value">${c.contacto || '—'}</span></div>
+      <div class="field-row"><span class="field-label">Estado</span><span class="field-value"><span class="badge badge-${c.estado}">${c.estado === 'activo' ? 'Activo' : 'Nuevo'}</span></span></div>
+      <div class="field-row"><span class="field-label">Alta</span><span class="field-value">${c.fecha_alta ? c.fecha_alta.split('-').reverse().join('/') : '—'}</span></div>
+    </div>
+
+    <div class="section" style="display:flex;gap:8px;">
+      <button class="btn-primary" style="flex:2;margin:0" onclick="openEditModal(${c.id})">✏️ Editar</button>
+      <button class="btn-danger" onclick="deleteClient(${c.id})">Eliminar</button>
+    </div>
+  `;
+
+  document.getElementById('listView').classList.add('hidden');
+  document.getElementById('detailView').classList.add('active');
+}
+
+function showList() {
+  document.getElementById('listView').classList.remove('hidden');
+  document.getElementById('detailView').classList.remove('active');
+}
+
+// ============================================================
+// MODAL AGREGAR / EDITAR
+// ============================================================
+function openModal() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'Agregar cliente';
+  document.getElementById('f-nombre').value = '';
+  document.getElementById('f-edad').value = '';
+  document.getElementById('f-contacto').value = '';
+  document.getElementById('f-objetivo').value = '';
+  document.getElementById('f-estado').value = 'nuevo';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function openEditModal(id) {
+  const c = allClients.find(x => x.id === id);
+  if (!c) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = 'Editar cliente';
+  document.getElementById('f-nombre').value = c.nombre || '';
+  document.getElementById('f-edad').value = c.edad || '';
+  document.getElementById('f-contacto').value = c.contacto || '';
+  document.getElementById('f-objetivo').value = c.objetivo || '';
+  document.getElementById('f-estado').value = c.estado || 'activo';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+async function saveClient() {
+  const nombre = document.getElementById('f-nombre').value.trim();
+  if (!nombre) { showToast('El nombre es obligatorio', true); return; }
+
+  const data = {
+    nombre,
+    edad: parseInt(document.getElementById('f-edad').value) || null,
+    contacto: document.getElementById('f-contacto').value.trim() || null,
+    objetivo: document.getElementById('f-objetivo').value.trim() || null,
+    estado: document.getElementById('f-estado').value,
+    fecha_alta: editingId ? undefined : new Date().toISOString().split('T')[0]
+  };
+
+  try {
+    if (editingId) {
+      await apiPatch('clientes', editingId, data);
+      showToast('Cliente actualizado');
+    } else {
+      await apiPost('clientes', data);
+      showToast('Cliente agregado');
+    }
+    closeModal();
+    showList();
+    await loadClients();
+  } catch (e) {
+    showToast('Error al guardar', true);
+  }
+}
+
+// ============================================================
+// ELIMINAR
+// ============================================================
+async function deleteClient(id) {
+  if (!confirm('¿Eliminar este cliente? Esta acción no se puede deshacer.')) return;
+  try {
+    await apiDelete('clientes', id);
+    showToast('Cliente eliminado');
+    showList();
+    await loadClients();
+  } catch (e) {
+    showToast('Error al eliminar', true);
+  }
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', isError);
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadClients();
+</script>
+</body>
+</html>
