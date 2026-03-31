@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cobros y Turnos</title>
+<style>
+  :root {
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --color-text-primary: #111;
+    --color-text-secondary: #666;
+    --color-background-primary: #fff;
+    --color-background-secondary: #f5f5f5;
+    --color-border-primary: #aaa;
+    --color-border-secondary: #ccc;
+    --color-border-tertiary: #e8e8e8;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); background: #f9f9f9; }
+  .app { max-width: 420px; margin: 0 auto; padding: 1rem; min-height: 100vh; }
+
+  .tab-bar { display: flex; gap: 6px; margin-bottom: 1.25rem; background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 4px; }
+  .tab { flex: 1; padding: 7px; border: none; background: transparent; font-size: 13px; color: var(--color-text-secondary); border-radius: 6px; cursor: pointer; font-family: var(--font-sans); }
+  .tab.active { background: var(--color-background-primary); color: var(--color-text-primary); font-weight: 500; border: 0.5px solid var(--color-border-tertiary); }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .section { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+  .section-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); margin-bottom: 0.75rem; }
+
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0.75rem; }
+  .metric { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 0.75rem 1rem; }
+  .metric-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .metric-value { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+
+  .badge { font-size: 11px; padding: 3px 9px; border-radius: 20px; }
+  .badge-pagado { background: #EAF3DE; color: #3B6D11; }
+  .badge-pendiente { background: #FAEEDA; color: #854F0B; }
+
+  .payment-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .payment-row:last-child { border-bottom: none; }
+  .pay-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+  .av-teal { background: #E1F5EE; color: #0F6E56; }
+  .av-blue { background: #E6F1FB; color: #185FA5; }
+  .av-coral { background: #FAECE7; color: #993C1D; }
+  .av-purple { background: #EEEDFE; color: #534AB7; }
+  .av-amber { background: #FAEEDA; color: #854F0B; }
+  .pay-info { flex: 1; min-width: 0; }
+  .pay-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pay-detail { font-size: 11px; color: var(--color-text-secondary); margin-top: 1px; }
+  .pay-amount { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-right: 8px; white-space: nowrap; }
+  .btn-small { font-size: 11px; padding: 4px 10px; border-radius: var(--border-radius-md); border: 0.5px solid #1D9E75; background: transparent; cursor: pointer; color: #0F6E56; font-family: var(--font-sans); white-space: nowrap; }
+  .btn-small:hover { background: #E1F5EE; }
+
+  .add-form input, .add-form select { width: 100%; margin-bottom: 0.6rem; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 14px; background: var(--color-background-secondary); color: var(--color-text-primary); font-family: var(--font-sans); }
+  .add-form input:focus, .add-form select:focus { outline: none; border-color: #1D9E75; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0.6rem; }
+  .row2 input, .row2 select { margin-bottom: 0; }
+  .btn-green { width: 100%; padding: 0.75rem; border-radius: var(--border-radius-md); border: 0.5px solid #1D9E75; background: transparent; font-size: 14px; color: #0F6E56; cursor: pointer; font-family: var(--font-sans); }
+  .btn-green:hover { background: #E1F5EE; }
+
+  /* CALENDARIO */
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+  .cal-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+  .cal-nav { background: none; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); width: 28px; height: 28px; cursor: pointer; color: var(--color-text-secondary); font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .cal-nav:hover { background: var(--color-background-secondary); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-day-name { text-align: center; font-size: 10px; color: var(--color-text-secondary); padding: 4px 0; }
+  .cal-day { text-align: center; font-size: 12px; padding: 6px 2px; border-radius: var(--border-radius-md); color: var(--color-text-secondary); }
+  .cal-day.has-session { font-weight: 500; background: #E1F5EE; color: #0F6E56; }
+  .cal-day.today { border: 0.5px solid var(--color-border-secondary); color: var(--color-text-primary); }
+  .cal-day.empty { opacity: 0; }
+
+  .session-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .session-item:last-child { border-bottom: none; }
+  .session-dot { width: 8px; height: 8px; border-radius: 50%; background: #1D9E75; flex-shrink: 0; }
+  .session-info { flex: 1; font-size: 13px; color: var(--color-text-primary); }
+  .session-time { font-size: 11px; color: var(--color-text-secondary); }
+  .session-delete { background: none; border: none; color: var(--color-text-secondary); cursor: pointer; font-size: 14px; padding: 0 4px; }
+
+  .empty-msg { font-size: 13px; color: var(--color-text-secondary); text-align: center; padding: 1rem 0; }
+  .loading { text-align: center; padding: 1rem; color: var(--color-text-secondary); font-size: 13px; }
+
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #1D9E75; color: white; padding: 0.6rem 1.2rem; border-radius: var(--border-radius-md); font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 99; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+  .toast.error { background: #993C1D; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('cobros')">Cobros</button>
+    <button class="tab" onclick="switchTab('turnos')">Turnos</button>
+  </div>
+
+  <!-- COBROS -->
+  <div class="view active" id="view-cobros">
+    <div class="metrics" id="cobros-summary">
+      <div class="metric"><div class="metric-label">Cobrado este mes</div><div class="metric-value">$—</div></div>
+      <div class="metric"><div class="metric-label">Por cobrar</div><div class="metric-value">$—</div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Estado de pagos</div>
+      <div id="payment-list"><div class="loading">Cargando…</div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Registrar cobro</div>
+      <div class="add-form">
+        <select id="c-client"></select>
+        <div class="row2">
+          <input type="number" id="c-monto" placeholder="Monto ($)" />
+          <select id="c-medio">
+            <option value="Transferencia">Transferencia</option>
+            <option value="Efectivo">Efectivo</option>
+          </select>
+        </div>
+        <div class="row2">
+          <input type="text" id="c-mes" placeholder="Concepto (ej: Mayo)" />
+          <input type="date" id="c-fecha" />
+        </div>
+        <div class="row2">
+          <select id="c-estado">
+            <option value="pagado">Pagado</option>
+            <option value="pendiente">Pendiente</option>
+          </select>
+        </div>
+        <button class="btn-green" onclick="addCobro()">+ Registrar cobro</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Historial</div>
+      <div id="cobros-history"><div class="loading">Cargando…</div></div>
+    </div>
+  </div>
+
+  <!-- TURNOS -->
+  <div class="view" id="view-turnos">
+    <div class="section">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+        <span class="cal-title" id="cal-title"></span>
+        <button class="cal-nav" onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Próximas sesiones</div>
+      <div id="session-list"><div class="loading">Cargando…</div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Agendar sesión</div>
+      <div class="add-form">
+        <select id="t-client"></select>
+        <div class="row2">
+          <input type="date" id="t-fecha" />
+          <input type="time" id="t-hora" />
+        </div>
+        <input type="text" id="t-nota" placeholder="Nota (opcional)" style="margin-bottom:0.6rem" />
+        <button class="btn-green" onclick="addTurno()">+ Agendar sesión</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// SUPABASE
+// ============================================================
+const SUPABASE_URL = 'https://chbrespqluwlmzwhxjgi.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-Jzgkul7Gt4p_dQEnrTXww_6n31yt_D';
+const H = {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_KEY
+};
+
+async function dbGet(table, params = '') {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, { headers: H });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function dbPost(table, body) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST', headers: { ...H, 'Prefer': 'return=representation' }, body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function dbPatch(table, id, body) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH', headers: { ...H, 'Prefer': 'return=representation' }, body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function dbDelete(table, id) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'DELETE', headers: H
+  });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+// ============================================================
+// ESTADO
+// ============================================================
+let clientes = [];
+let cobros = [];
+let sesiones = [];
+const avClasses = ['av-teal','av-blue','av-coral','av-purple','av-amber'];
+const today = new Date();
+let calMonth = today.getMonth();
+let calYear = today.getFullYear();
+
+function getAvClass(name) {
+  let h = 0; for (let c of name) h += c.charCodeAt(0);
+  return avClasses[h % avClasses.length];
+}
+function getInitials(name) {
+  return name.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  try {
+    clientes = await dbGet('clientes', 'order=nombre.asc');
+    populateClientSelects();
+    await Promise.all([loadCobros(), loadSesiones()]);
+  } catch(e) {
+    showToast('Error al conectar', true);
+  }
+}
+
+function populateClientSelects() {
+  const opts = clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+  document.getElementById('c-client').innerHTML = opts;
+  document.getElementById('t-client').innerHTML = opts;
+}
+
+// ============================================================
+// COBROS
+// ============================================================
+async function loadCobros() {
+  cobros = await dbGet('cobros', 'order=fecha_pago.desc');
+  renderCobros();
+}
+
+function renderCobros() {
+  const now = new Date();
+  const mesActual = now.getMonth();
+  const anioActual = now.getFullYear();
+
+  const cobradoMes = cobros
+    .filter(c => c.estado === 'pagado' && c.fecha_pago && new Date(c.fecha_pago).getMonth() === mesActual && new Date(c.fecha_pago).getFullYear() === anioActual)
+    .reduce((s, c) => s + (c.monto || 0), 0);
+  const porCobrar = cobros.filter(c => c.estado === 'pendiente').reduce((s, c) => s + (c.monto || 0), 0);
+
+  document.getElementById('cobros-summary').innerHTML = `
+    <div class="metric"><div class="metric-label">Cobrado este mes</div><div class="metric-value">$${cobradoMes.toLocaleString()}</div></div>
+    <div class="metric"><div class="metric-label">Por cobrar</div><div class="metric-value" style="color:${porCobrar > 0 ? '#854F0B' : 'inherit'}"}>$${porCobrar.toLocaleString()}</div></div>`;
+
+  // último cobro por cliente
+  const byClient = {};
+  cobros.forEach(c => { if (!byClient[c.cliente_id]) byClient[c.cliente_id] = c; });
+  const rows = Object.values(byClient);
+
+  if (!rows.length) {
+    document.getElementById('payment-list').innerHTML = '<div class="empty-msg">Sin cobros registrados</div>';
+  } else {
+    document.getElementById('payment-list').innerHTML = rows.map(c => {
+      const cl = clientes.find(x => x.id === c.cliente_id);
+      const name = cl ? cl.nombre : '—';
+      return `<div class="payment-row">
+        <div class="pay-avatar ${getAvClass(name)}">${getInitials(name)}</div>
+        <div class="pay-info">
+          <div class="pay-name">${name}</div>
+          <div class="pay-detail">${c.mes || '—'} · ${c.medio_pago || '—'}</div>
+        </div>
+        <span class="pay-amount">$${(c.monto||0).toLocaleString()}</span>
+        <span class="badge badge-${c.estado}">${c.estado === 'pagado' ? 'Pagado' : 'Pendiente'}</span>
+        ${c.estado === 'pendiente' ? `<button class="btn-small" onclick="confirmarPago(${c.id})">Confirmar</button>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  if (!cobros.length) {
+    document.getElementById('cobros-history').innerHTML = '<div class="empty-msg">Sin historial aún</div>';
+  } else {
+    document.getElementById('cobros-history').innerHTML = cobros.slice(0, 10).map(c => {
+      const cl = clientes.find(x => x.id === c.cliente_id);
+      const name = cl ? cl.nombre : '—';
+      return `<div class="payment-row">
+        <div class="pay-avatar ${getAvClass(name)}" style="width:28px;height:28px;font-size:10px;">${getInitials(name)}</div>
+        <div class="pay-info">
+          <div class="pay-name" style="font-size:12px;">${name} · ${c.mes || '—'}</div>
+          <div class="pay-detail">${c.fecha_pago ? c.fecha_pago.split('-').reverse().join('/') : '—'} · ${c.medio_pago || '—'}</div>
+        </div>
+        <span class="pay-amount" style="font-size:13px;">$${(c.monto||0).toLocaleString()}</span>
+        <span class="badge badge-${c.estado}">${c.estado === 'pagado' ? 'Pagado' : 'Pendiente'}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+async function confirmarPago(id) {
+  try {
+    await dbPatch('cobros', id, { estado: 'pagado', fecha_pago: new Date().toISOString().split('T')[0] });
+    showToast('Pago confirmado ✓');
+    await loadCobros();
+  } catch(e) { showToast('Error al confirmar', true); }
+}
+
+async function addCobro() {
+  const cliente_id = document.getElementById('c-client').value;
+  const monto = parseFloat(document.getElementById('c-monto').value);
+  const medio_pago = document.getElementById('c-medio').value;
+  const mes = document.getElementById('c-mes').value.trim();
+  const fecha_pago = document.getElementById('c-fecha').value;
+  const estado = document.getElementById('c-estado').value;
+  if (!monto || !mes || !fecha_pago) { showToast('Completá todos los campos', true); return; }
+  try {
+    await dbPost('cobros', { cliente_id, monto, medio_pago, mes, fecha_pago, estado });
+    document.getElementById('c-monto').value = '';
+    document.getElementById('c-mes').value = '';
+    showToast('Cobro registrado ✓');
+    await loadCobros();
+  } catch(e) { showToast('Error al guardar', true); }
+}
+
+// ============================================================
+// SESIONES
+// ============================================================
+async function loadSesiones() {
+  sesiones = await dbGet('sesiones', 'order=fecha.asc');
+  renderCal();
+}
+
+function renderCal() {
+  const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('cal-title').textContent = months[calMonth] + ' ' + calYear;
+  const days = ['Lu','Ma','Mi','Ju','Vi','Sa','Do'];
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const offset = firstDay === 0 ? 6 : firstDay - 1;
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const now = new Date();
+
+  const sessionDays = new Set(sesiones
+    .filter(t => { const d = new Date(t.fecha + 'T00:00:00'); return d.getFullYear() === calYear && d.getMonth() === calMonth; })
+    .map(t => parseInt(t.fecha.split('-')[2])));
+
+  let html = days.map(d => `<div class="cal-day-name">${d}</div>`).join('');
+  for (let i = 0; i < offset; i++) html += '<div class="cal-day empty">·</div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = now.getFullYear() === calYear && now.getMonth() === calMonth && now.getDate() === d;
+    const hasSess = sessionDays.has(d);
+    html += `<div class="cal-day ${hasSess ? 'has-session' : ''} ${isToday ? 'today' : ''}">${d}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+  renderSessions();
+}
+
+function renderSessions() {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const upcoming = sesiones
+    .filter(t => new Date(t.fecha + 'T00:00:00') >= now)
+    .slice(0, 8);
+
+  if (!upcoming.length) {
+    document.getElementById('session-list').innerHTML = '<div class="empty-msg">No hay sesiones próximas</div>';
+    return;
+  }
+  document.getElementById('session-list').innerHTML = upcoming.map(t => {
+    const cl = clientes.find(x => x.id === t.cliente_id);
+    const name = cl ? cl.nombre : '—';
+    const d = new Date(t.fecha + 'T00:00:00');
+    const label = d.toLocaleDateString('es-UY', { weekday: 'short', day: 'numeric', month: 'short' });
+    return `<div class="session-item">
+      <div class="session-dot"></div>
+      <div class="session-info">
+        <span style="font-weight:500">${name}</span>${t.notas ? ` · <span style="color:var(--color-text-secondary)">${t.notas}</span>` : ''}
+        <div class="session-time">${label} a las ${t.hora || '—'}</div>
+      </div>
+      <button class="session-delete" onclick="deleteSesion(${t.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCal();
+}
+
+async function addTurno() {
+  const cliente_id = document.getElementById('t-client').value;
+  const fecha = document.getElementById('t-fecha').value;
+  const hora = document.getElementById('t-hora').value;
+  const notas = document.getElementById('t-nota').value.trim();
+  if (!fecha || !hora) { showToast('Elegí fecha y hora', true); return; }
+  try {
+    await dbPost('sesiones', { cliente_id, fecha, hora, notas: notas || null });
+    document.getElementById('t-nota').value = '';
+    showToast('Sesión agendada ✓');
+    await loadSesiones();
+  } catch(e) { showToast('Error al agendar', true); }
+}
+
+async function deleteSesion(id) {
+  if (!confirm('¿Eliminar esta sesión?')) return;
+  try {
+    await dbDelete('sesiones', id);
+    showToast('Sesión eliminada');
+    await loadSesiones();
+  } catch(e) { showToast('Error al eliminar', true); }
+}
+
+// ============================================================
+// UI
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const idx = tab === 'cobros' ? 0 : 1;
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  document.getElementById('view-' + tab).classList.add('active');
+}
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', isError);
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+document.getElementById('c-fecha').value = new Date().toISOString().split('T')[0];
+document.getElementById('t-fecha').value = new Date().toISOString().split('T')[0];
+init();
+</script>
+</body>
+</html>
