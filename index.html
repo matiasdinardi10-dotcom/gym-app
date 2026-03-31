@@ -147,7 +147,7 @@
 // CONFIGURACIÓN SUPABASE
 // ============================================================
 const SUPABASE_URL = 'https://chbrespqluwlmzwhxjgi.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoYnJlc3BxbHV3bG16d2h4amdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5OTY2NzUsImV4cCI6MjA5MDU3MjY3NX0.5K5OPvjPRtjacOa1K3-hPYvtLY8R0fJyrC9Eqw1N-2E';
+const SUPABASE_KEY = 'sb_publishable_-Jzgkul7Gt4p_dQEnrTXww_6n31yt_D';
 
 const HEADERS = {
   'Content-Type': 'application/json',
@@ -219,8 +219,9 @@ async function loadClients() {
     filtered = [...allClients];
     renderList();
   } catch (e) {
-    document.getElementById('clientList').innerHTML = '<div class="empty">Error al cargar clientes.<br>Verificá tu conexión.</div>';
-    showToast('Error al conectar con la base de datos', true);
+    document.getElementById('clientList').innerHTML = `<div class="empty">Error: ${e.message}<br><small>Abrí la consola del navegador (F12) para más detalles.</small></div>`;
+    showToast('Error al conectar', true);
+    console.error('Supabase error:', e);
   }
 }
 
@@ -355,7 +356,8 @@ async function saveClient() {
     showList();
     await loadClients();
   } catch (e) {
-    showToast('Error al guardar', true);
+    showToast('Error: ' + e.message.slice(0, 60), true);
+    console.error('Save error:', e);
   }
 }
 
