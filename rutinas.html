@@ -324,15 +324,16 @@ async function addExercise() {
   // Primero creamos o buscamos una rutina para este cliente
   let rutina = null;
   try {
-    const rutinas = await dbGet('rutinas', `cliente_id=eq.${cliente_id}&limit=1`);
+    const cid = parseInt(cliente_id);
+    const rutinas = await dbGet('rutinas', `cliente_id=eq.${cid}&limit=1`);
     if (rutinas.length) {
       rutina = rutinas[0];
     } else {
       const cl = clientes.find(c => c.id == cliente_id);
-      const nuevas = await dbPost('rutinas', { cliente_id, nombre: 'Rutina de ' + (cl ? cl.nombre : ''), fecha: new Date().toISOString().split('T')[0] });
+      const nuevas = await dbPost('rutinas', { cliente_id: cid, nombre: 'Rutina de ' + (cl ? cl.nombre : ''), fecha: new Date().toISOString().split('T')[0] });
       rutina = nuevas[0];
     }
-  } catch(e) { showToast('Error al crear rutina', true); return; }
+  } catch(e) { showToast('Error: ' + e.message.slice(0,80), true); return; }
 
   let yt = document.getElementById('f-yt').value.trim();
   if (yt && !yt.startsWith('http')) yt = 'https://' + yt;
@@ -358,7 +359,7 @@ async function addExercise() {
     const cl = clientes.find(c => c.id == cliente_id);
     showToast('Ejercicio agregado a ' + (cl ? cl.nombre : ''));
     renderTrainerList();
-  } catch(e) { showToast('Error al guardar ejercicio', true); }
+  } catch(e) { showToast('Error: ' + e.message.slice(0,80), true); }
 }
 
 async function removeEx(id) {
