@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -21,21 +22,33 @@
   body { font-family: var(--font-sans); background: #f9f9f9; }
   .app { max-width: 420px; margin: 0 auto; padding: 1rem; min-height: 100vh; }
 
-  .tab-bar { display: flex; gap: 6px; margin-bottom: 1.25rem; background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 4px; }
-  .tab { flex: 1; padding: 7px; border: none; background: transparent; font-size: 13px; color: var(--color-text-secondary); border-radius: 6px; cursor: pointer; font-family: var(--font-sans); }
+  .tab-bar { display: flex; gap: 4px; margin-bottom: 1.25rem; background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 4px; }
+  .tab { flex: 1; padding: 6px 4px; border: none; background: transparent; font-size: 12px; color: var(--color-text-secondary); border-radius: 6px; cursor: pointer; font-family: var(--font-sans); }
   .tab.active { background: var(--color-background-primary); color: var(--color-text-primary); font-weight: 500; border: 0.5px solid var(--color-border-tertiary); }
   .view { display: none; }
   .view.active { display: block; }
-
   .section { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
   .section-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); margin-bottom: 0.75rem; }
-
   .client-selector { width: 100%; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 14px; background: var(--color-background-secondary); color: var(--color-text-primary); font-family: var(--font-sans); margin-bottom: 1rem; }
 
+  .streak-badge { display: inline-flex; align-items: center; gap: 4px; background: #E1F5EE; color: #0F6E56; font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 20px; margin-bottom: 0.75rem; }
+
+  .cal-strip { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 1rem; scrollbar-width: none; }
+  .cal-strip::-webkit-scrollbar { display: none; }
+  .cal-day-btn { flex-shrink: 0; width: 44px; text-align: center; border-radius: var(--border-radius-md); padding: 6px 0; cursor: pointer; border: 0.5px solid var(--color-border-tertiary); background: var(--color-background-primary); }
+  .cal-day-btn .day-name { font-size: 10px; color: var(--color-text-secondary); }
+  .cal-day-btn .day-num { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+  .cal-day-btn.today { border-color: #1D9E75; }
+  .cal-day-btn.today .day-num { color: #1D9E75; }
+  .cal-day-btn.has-log { background: #E1F5EE; border-color: #5DCAA5; }
+  .cal-day-btn.has-log .day-num { color: #0F6E56; }
+  .cal-day-btn.selected { background: #1D9E75 !important; border-color: #1D9E75 !important; }
+  .cal-day-btn.selected .day-name, .cal-day-btn.selected .day-num { color: white !important; }
+
   .exercise-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 0.85rem 1rem; margin-bottom: 0.6rem; }
-  .exercise-card.done { border-color: #5DCAA5; background: #E1F5EE18; }
+  .exercise-card.done { border-color: #5DCAA5; background: #f0faf6; }
   .ex-header { display: flex; align-items: center; gap: 10px; }
-  .ex-check { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--color-border-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; background: transparent; }
+  .ex-check { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--color-border-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; background: transparent; font-size: 13px; }
   .ex-check.checked { background: #1D9E75; border-color: #1D9E75; color: white; }
   .ex-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); flex: 1; }
   .ex-expand { font-size: 18px; color: var(--color-text-secondary); cursor: pointer; background: none; border: none; padding: 0 4px; }
@@ -45,35 +58,44 @@
   .ex-details { margin-top: 10px; margin-left: 32px; display: none; }
   .ex-details.open { display: block; }
   .ex-note { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 8px; padding: 6px 8px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); }
-  .feedback-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
-  .feedback-area { width: 100%; padding: 8px; font-size: 13px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-family: var(--font-sans); resize: none; min-height: 60px; }
+
+  .log-prev { font-size: 11px; color: #0F6E56; background: #E1F5EE; padding: 4px 8px; border-radius: var(--border-radius-md); margin-bottom: 8px; }
+  .log-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+  .log-input { padding: 6px 8px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 13px; background: var(--color-background-secondary); color: var(--color-text-primary); font-family: var(--font-sans); width: 100%; }
+  .log-input:focus { outline: none; border-color: #1D9E75; }
+  .log-input-full { grid-column: 1/-1; }
+  .feedback-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; margin-top: 6px; }
+  .feedback-area { width: 100%; padding: 8px; font-size: 13px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-family: var(--font-sans); resize: none; min-height: 50px; }
 
   .progress-summary { display: flex; align-items: center; gap: 12px; }
   .prog-circle { width: 54px; height: 54px; flex-shrink: 0; }
-  .prog-text { font-size: 13px; color: var(--color-text-secondary); }
   .prog-count { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+  .prog-text { font-size: 13px; color: var(--color-text-secondary); }
+
+  .log-entry { padding: 0.6rem 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .log-entry:last-child { border-bottom: none; }
+  .log-entry-date { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 600; text-transform: capitalize; }
+  .log-entry-ex { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+  .log-entry-name { color: var(--color-text-primary); font-weight: 500; }
+  .log-entry-load { color: #0F6E56; font-size: 12px; }
 
   .add-form input, .add-form select, .add-form textarea { width: 100%; margin-bottom: 0.6rem; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 14px; background: var(--color-background-secondary); color: var(--color-text-primary); font-family: var(--font-sans); }
-  .add-form input:focus, .add-form select:focus, .add-form textarea:focus { outline: none; border-color: #1D9E75; }
+  .add-form input:focus, .add-form select:focus { outline: none; border-color: #1D9E75; }
   .add-form textarea { resize: none; min-height: 55px; }
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0.6rem; }
   .row2 input { margin-bottom: 0; }
-
   .btn-green { width: 100%; padding: 0.75rem; border-radius: var(--border-radius-md); border: 0.5px solid #1D9E75; background: transparent; font-size: 14px; color: #0F6E56; cursor: pointer; font-family: var(--font-sans); margin-top: 0.25rem; }
   .btn-green:hover { background: #E1F5EE; }
   .btn-remove { font-size: 13px; color: var(--color-text-secondary); background: none; border: none; cursor: pointer; padding: 0 4px; }
 
   .feedback-item { padding: 0.75rem 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
   .feedback-item:last-child { border-bottom: none; }
-  .fb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-  .fb-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
-  .fb-date { font-size: 11px; color: var(--color-text-secondary); }
+  .fb-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .fb-name { font-size: 13px; font-weight: 500; }
   .fb-ex { font-size: 12px; color: #0F6E56; margin-bottom: 3px; }
   .fb-msg { font-size: 13px; color: var(--color-text-secondary); }
-
   .empty { text-align: center; padding: 2rem; font-size: 13px; color: var(--color-text-secondary); }
   .loading { text-align: center; padding: 1rem; font-size: 13px; color: var(--color-text-secondary); }
-
   .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #1D9E75; color: white; padding: 0.6rem 1.2rem; border-radius: var(--border-radius-md); font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 99; white-space: nowrap; }
   .toast.show { opacity: 1; }
   .toast.error { background: #993C1D; }
@@ -82,14 +104,17 @@
 <body>
 <div class="app">
   <div class="tab-bar">
-    <button class="tab active" onclick="switchTab('cliente')">Vista cliente</button>
-    <button class="tab" onclick="switchTab('entrenador')">Armar rutina</button>
-    <button class="tab" onclick="switchTab('feedback')">Devoluciones</button>
+    <button class="tab active" onclick="switchTab('cliente')">Sesión</button>
+    <button class="tab" onclick="switchTab('historial')">Historial</button>
+    <button class="tab" onclick="switchTab('entrenador')">Rutina</button>
+    <button class="tab" onclick="switchTab('feedback')">Comentarios</button>
   </div>
 
-  <!-- VISTA CLIENTE -->
+  <!-- SESIÓN -->
   <div class="view active" id="view-cliente">
-    <select class="client-selector" id="sel-cliente" onchange="loadClientRoutine(this.value)"></select>
+    <select class="client-selector" id="sel-cliente" onchange="onClientChange(this.value)"></select>
+    <div id="streak-wrap"></div>
+    <div class="cal-strip" id="cal-strip"></div>
     <div class="section" style="margin-bottom:0.75rem;">
       <div class="progress-summary">
         <svg class="prog-circle" viewBox="0 0 54 54">
@@ -98,12 +123,18 @@
         </svg>
         <div>
           <div class="prog-count"><span id="prog-done">0</span>/<span id="prog-total">0</span> ejercicios</div>
-          <div class="prog-text">completados hoy</div>
+          <div class="prog-text" id="prog-fecha">hoy</div>
         </div>
       </div>
     </div>
-    <div id="exercise-list"><div class="loading">Cargando ejercicios…</div></div>
-    <button class="btn-green" style="margin-top:0.5rem" onclick="saveSession()">Guardar sesión del día</button>
+    <div id="exercise-list"><div class="loading">Cargando…</div></div>
+    <button class="btn-green" style="margin-top:0.5rem" onclick="saveSession()">💾 Guardar sesión</button>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div class="view" id="view-historial">
+    <select class="client-selector" id="sel-historial" onchange="loadHistorial(this.value)"></select>
+    <div id="historial-content"><div class="loading">Cargando…</div></div>
   </div>
 
   <!-- ARMAR RUTINA -->
@@ -113,7 +144,7 @@
       <div class="add-form">
         <select id="f-client"></select>
         <input type="text" id="f-name" placeholder="Nombre del ejercicio" />
-        <div class="row2" style="margin-bottom:0.6rem">
+        <div class="row2">
           <input type="text" id="f-series" placeholder="Series x rep (ej: 3x12)" />
           <input type="text" id="f-peso" placeholder="Peso (ej: 20 kg)" />
         </div>
@@ -126,310 +157,248 @@
     <div id="trainer-list"><div class="loading">Cargando…</div></div>
   </div>
 
-  <!-- DEVOLUCIONES -->
+  <!-- COMENTARIOS -->
   <div class="view" id="view-feedback">
     <div class="section">
-      <div class="section-title">Devoluciones recientes</div>
+      <div class="section-title">Comentarios de clientes</div>
       <div id="feedback-list"><div class="loading">Cargando…</div></div>
     </div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-// ============================================================
-// SUPABASE
-// ============================================================
 const SUPABASE_URL = 'https://chbrespqluwlmzwhxjgi.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_-Jzgkul7Gt4p_dQEnrTXww_6n31yt_D';
-const H = {
-  'Content-Type': 'application/json',
-  'apikey': SUPABASE_KEY,
-  'Authorization': 'Bearer ' + SUPABASE_KEY
-};
+const H = { 'Content-Type':'application/json', 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY };
 
-async function dbGet(table, params = '') {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, { headers: H });
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
-}
-async function dbPost(table, body) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method: 'POST', headers: { ...H, 'Prefer': 'return=representation' }, body: JSON.stringify(body)
-  });
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
-}
-async function dbPatch(table, id, body) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method: 'PATCH', headers: H, body: JSON.stringify(body)
-  });
-  if (!r.ok) throw new Error(await r.text());
-}
-async function dbDelete(table, id) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method: 'DELETE', headers: H
-  });
-  if (!r.ok) throw new Error(await r.text());
-}
+async function dbGet(t,p='') { const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}?${p}`,{headers:H}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+async function dbPost(t,b) { const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}`,{method:'POST',headers:{...H,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+async function dbPatch(t,id,b) { const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); }
+async function dbDelete(t,id) { const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}?id=eq.${id}`,{method:'DELETE',headers:H}); if(!r.ok) throw new Error(await r.text()); }
 
-// ============================================================
-// ESTADO
-// ============================================================
-let clientes = [];
-let ejercicios = [];
-let openDetails = {};
-let currentClientId = null;
+let clientes=[], ejercicios=[], logs=[], openDetails={};
+let currentClientId=null;
+const todayStr = new Date().toISOString().split('T')[0];
+let selectedDate = todayStr;
+const DAYS = ['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
 
-// ============================================================
-// INIT
-// ============================================================
-async function init() {
+async function loadAll() {
   try {
-    clientes = await dbGet('clientes', 'order=nombre.asc');
-    if (!clientes.length) {
-      document.getElementById('exercise-list').innerHTML = '<div class="empty">Primero agregá clientes en el módulo Mis Clientes.</div>';
-      return;
-    }
-    const opts = clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
-    document.getElementById('sel-cliente').innerHTML = opts;
-    document.getElementById('f-client').innerHTML = opts;
+    clientes = await dbGet('clientes','order=nombre.asc');
+    if (!clientes.length) { document.getElementById('exercise-list').innerHTML='<div class="empty">Primero agregá clientes en Mis Clientes.</div>'; return; }
+    const opts = clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+    ['sel-cliente','f-client','sel-historial'].forEach(id=>document.getElementById(id).innerHTML=opts);
     currentClientId = clientes[0].id;
     await loadEjercicios();
-  } catch(e) {
-    showToast('Error al conectar', true);
-  }
+    await loadLogs();
+    buildCalStrip();
+    renderClientRoutine();
+  } catch(e) { showToast('Error al conectar',true); console.error(e); }
 }
 
-// ============================================================
-// EJERCICIOS
-// ============================================================
 async function loadEjercicios() {
-  ejercicios = await dbGet('ejercicios', 'order=id.asc');
-  renderClientRoutine();
+  const raw = await dbGet('ejercicios','order=id.asc');
+  const rutinas = await dbGet('rutinas','');
+  const rm = {}; rutinas.forEach(r=>{ rm[r.id]=r.cliente_id; });
+  ejercicios = raw.map(e=>({...e, _clientId: rm[e.rutina_id]||null}));
 }
 
-async function loadClientRoutine(clientId) {
-  currentClientId = parseInt(clientId);
-  openDetails = {};
-  renderClientRoutine();
+async function loadLogs() {
+  logs = await dbGet('logs_entrenamiento','order=fecha.desc');
 }
 
-function getClientEjercicios(clientId) {
-  // Ejercicios que pertenecen a rutinas del cliente
-  // Por simplicidad: ejercicios donde la rutina tiene ese cliente_id
-  return ejercicios.filter(e => e._clientId == clientId);
+function buildCalStrip() {
+  const logDates = new Set(logs.filter(l=>l.cliente_id==currentClientId).map(l=>l.fecha));
+  const today = new Date();
+  let html='';
+  for (let i=-7;i<=6;i++) {
+    const d=new Date(today); d.setDate(today.getDate()+i);
+    const ds=d.toISOString().split('T')[0];
+    const cls=[
+      ds===todayStr?'today':'',
+      logDates.has(ds)?'has-log':'',
+      ds===selectedDate?'selected':''
+    ].filter(Boolean).join(' ');
+    html+=`<div class="cal-day-btn ${cls}" onclick="selectDate('${ds}')">
+      <div class="day-name">${DAYS[d.getDay()]}</div>
+      <div class="day-num">${d.getDate()}</div>
+    </div>`;
+  }
+  document.getElementById('cal-strip').innerHTML=html;
+
+  // Streak
+  let streak=0; const d=new Date(today);
+  while(true){ const ds=d.toISOString().split('T')[0]; if(logDates.has(ds)){streak++;d.setDate(d.getDate()-1);}else break; }
+  document.getElementById('streak-wrap').innerHTML = streak>0?`<div class="streak-badge">🔥 Racha: ${streak} día${streak>1?'s':''}</div>`:'';
+}
+
+function selectDate(ds) { selectedDate=ds; buildCalStrip(); renderClientRoutine(); }
+
+async function onClientChange(id) {
+  currentClientId=parseInt(id); openDetails={};
+  await loadLogs(); buildCalStrip(); renderClientRoutine();
 }
 
 function renderClientRoutine() {
-  const exs = ejercicios.filter(e => String(e._clientId) === String(currentClientId));
-  const done = exs.filter(e => e.completado).length;
-  document.getElementById('prog-done').textContent = done;
-  document.getElementById('prog-total').textContent = exs.length;
-  const pct = exs.length ? done / exs.length : 0;
-  const circ = 2 * Math.PI * 22;
-  document.getElementById('prog-arc').setAttribute('stroke-dashoffset', (circ * (1 - pct)).toFixed(1));
+  const exs=ejercicios.filter(e=>String(e._clientId)===String(currentClientId));
+  const done=exs.filter(e=>e.completado).length;
+  document.getElementById('prog-done').textContent=done;
+  document.getElementById('prog-total').textContent=exs.length;
+  document.getElementById('prog-arc').setAttribute('stroke-dashoffset',(138.2*(1-( exs.length?done/exs.length:0))).toFixed(1));
+  const isToday=selectedDate===todayStr;
+  document.getElementById('prog-fecha').textContent=isToday?'hoy':new Date(selectedDate+'T00:00:00').toLocaleDateString('es-UY',{weekday:'short',day:'numeric',month:'short'});
 
-  if (!exs.length) {
-    document.getElementById('exercise-list').innerHTML = '<div class="empty">No hay ejercicios asignados a este cliente aún.</div>';
-    return;
-  }
+  const dayLogs=logs.filter(l=>l.cliente_id==currentClientId&&l.fecha===selectedDate);
+  const logByEx={}; dayLogs.forEach(l=>{logByEx[l.ejercicio_id]=l;});
 
-  document.getElementById('exercise-list').innerHTML = exs.map((ex, i) => {
-    const tags = [ex.series ? ex.series + ' reps' : '', ex.peso, ex.tiempo].filter(Boolean);
-    return `<div class="exercise-card ${ex.completado ? 'done' : ''}">
+  if(!exs.length){document.getElementById('exercise-list').innerHTML='<div class="empty">No hay ejercicios asignados aún.<br>Agregá uno en "Rutina".</div>';return;}
+
+  document.getElementById('exercise-list').innerHTML=exs.map(ex=>{
+    const tags=[ex.series?ex.series+' reps':'',ex.peso,ex.tiempo].filter(Boolean);
+    const log=logByEx[ex.id];
+    const prevLog=logs.find(l=>l.ejercicio_id===ex.id&&l.fecha<selectedDate&&l.cliente_id==currentClientId);
+    return `<div class="exercise-card ${ex.completado?'done':''}">
       <div class="ex-header">
-        <div class="ex-check ${ex.completado ? 'checked' : ''}" onclick="toggleDone(${ex.id})">
-          ${ex.completado ? '✓' : ''}
-        </div>
+        <div class="ex-check ${ex.completado?'checked':''}" onclick="toggleDone(${ex.id})">${ex.completado?'✓':''}</div>
         <span class="ex-name">${ex.nombre}</span>
-        <button class="ex-expand" onclick="toggleDetail(${ex.id})">${openDetails[ex.id] ? '−' : '+'}</button>
+        <button class="ex-expand" onclick="toggleDetail(${ex.id})">${openDetails[ex.id]?'−':'+'}</button>
       </div>
       <div class="ex-tags">
-        ${tags.map(t => `<span class="tag">${t}</span>`).join('')}
-        ${ex.link_youtube ? `<a class="yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>` : ''}
+        ${tags.map(t=>`<span class="tag">${t}</span>`).join('')}
+        ${ex.link_youtube?`<a class="yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>`:''}
       </div>
-      <div class="ex-details ${openDetails[ex.id] ? 'open' : ''}">
-        ${ex.nota ? `<div class="ex-note">${ex.nota}</div>` : ''}
-        <div class="feedback-label">¿Cómo te fue con este ejercicio?</div>
-        <textarea class="feedback-area" placeholder="Ej: Me costó la última serie..." onchange="saveFeedbackText(${ex.id}, this.value)">${ex.devolucion || ''}</textarea>
+      <div class="ex-details ${openDetails[ex.id]?'open':''}">
+        ${ex.nota?`<div class="ex-note">${ex.nota}</div>`:''}
+        ${prevLog?`<div class="log-prev">📊 Última vez: ${[prevLog.series_realizadas,prevLog.peso_usado,prevLog.rpe].filter(Boolean).join(' · ')}</div>`:''}
+        <div class="feedback-label">Cargas de hoy</div>
+        <div class="log-inputs">
+          <input class="log-input" id="log-series-${ex.id}" placeholder="Ej: 3x10" value="${log&&log.series_realizadas||''}" />
+          <input class="log-input" id="log-peso-${ex.id}" placeholder="Ej: 25kg" value="${log&&log.peso_usado||''}" />
+          <input class="log-input log-input-full" id="log-rpe-${ex.id}" placeholder="RPE / sensación (ej: RPE 7)" value="${log&&log.rpe||''}" />
+        </div>
+        <div class="feedback-label">Comentario</div>
+        <textarea class="feedback-area" id="fb-${ex.id}" placeholder="¿Cómo te fue?">${ex.devolucion||''}</textarea>
       </div>
     </div>`;
   }).join('');
 }
 
 async function toggleDone(id) {
-  const ex = ejercicios.find(e => e.id === id);
-  if (!ex) return;
-  const newVal = !ex.completado;
-  ex.completado = newVal;
-  if (newVal) openDetails[id] = true;
+  const ex=ejercicios.find(e=>e.id===id); if(!ex) return;
+  ex.completado=!ex.completado;
+  if(ex.completado) openDetails[id]=true;
   renderClientRoutine();
-  try { await dbPatch('ejercicios', id, { completado: newVal }); }
-  catch(e) { showToast('Error al guardar', true); }
+  try{await dbPatch('ejercicios',id,{completado:ex.completado});}catch(e){}
 }
 
-function toggleDetail(id) {
-  openDetails[id] = !openDetails[id];
-  renderClientRoutine();
-}
-
-async function saveFeedbackText(id, val) {
-  const ex = ejercicios.find(e => e.id === id);
-  if (ex) ex.devolucion = val;
-  try { await dbPatch('ejercicios', id, { devolucion: val }); }
-  catch(e) { /* silencioso */ }
-}
+function toggleDetail(id){openDetails[id]=!openDetails[id];renderClientRoutine();}
 
 async function saveSession() {
-  showToast('Sesión guardada ✓');
-}
-
-// ============================================================
-// ARMAR RUTINA
-// ============================================================
-async function renderTrainerList() {
-  if (!ejercicios.length) {
-    document.getElementById('trainer-list').innerHTML = '<div class="empty">No hay ejercicios aún.</div>';
-    return;
-  }
-  const byClient = {};
-  clientes.forEach(c => { byClient[c.id] = { nombre: c.nombre, exs: [] }; });
-  ejercicios.forEach(e => { if (byClient[e._clientId]) byClient[e._clientId].exs.push(e); });
-
-  document.getElementById('trainer-list').innerHTML = Object.entries(byClient).map(([cid, { nombre, exs }]) =>
-    exs.length ? `<div class="section">
-      <div class="section-title">${nombre}</div>
-      ${exs.map(ex => `<div class="exercise-card" style="margin-bottom:0.5rem;">
-        <div class="ex-header">
-          <span class="ex-name">${ex.nombre}</span>
-          <button class="btn-remove" onclick="removeEx(${ex.id})">✕</button>
-        </div>
-        <div class="ex-tags">
-          ${[ex.series ? ex.series+' reps':'', ex.peso, ex.tiempo].filter(Boolean).map(t=>`<span class="tag">${t}</span>`).join('')}
-          ${ex.link_youtube ? `<a class="yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>` : ''}
-        </div>
-        ${ex.nota ? `<div style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;">${ex.nota}</div>` : ''}
-      </div>`).join('')}
-    </div>` : ''
-  ).join('');
-}
-
-async function addExercise() {
-  const cliente_id = document.getElementById('f-client').value;
-  const nombre = document.getElementById('f-name').value.trim();
-  if (!nombre) { showToast('Escribí el nombre del ejercicio', true); return; }
-
-  // Primero creamos o buscamos una rutina para este cliente
-  let rutina = null;
-  try {
-    const cid = parseInt(cliente_id);
-    const rutinas = await dbGet('rutinas', `cliente_id=eq.${cid}&limit=1`);
-    if (rutinas.length) {
-      rutina = rutinas[0];
-    } else {
-      const cl = clientes.find(c => c.id == cliente_id);
-      const nuevas = await dbPost('rutinas', { cliente_id: cid, nombre: 'Rutina de ' + (cl ? cl.nombre : ''), fecha: new Date().toISOString().split('T')[0] });
-      rutina = nuevas[0];
+  const exs=ejercicios.filter(e=>String(e._clientId)===String(currentClientId)&&e.completado);
+  if(!exs.length){showToast('Marcá al menos un ejercicio como completado',true);return;}
+  let saved=0;
+  for(const ex of exs){
+    const series=document.getElementById('log-series-'+ex.id)?.value.trim();
+    const peso=document.getElementById('log-peso-'+ex.id)?.value.trim();
+    const rpe=document.getElementById('log-rpe-'+ex.id)?.value.trim();
+    const fb=document.getElementById('fb-'+ex.id)?.value.trim();
+    if(fb!==ex.devolucion){ex.devolucion=fb;try{await dbPatch('ejercicios',ex.id,{devolucion:fb});}catch(e){}}
+    if(series||peso||rpe){
+      try{
+        const existing=logs.find(l=>l.ejercicio_id===ex.id&&l.fecha===selectedDate);
+        if(existing){await dbPatch('logs_entrenamiento',existing.id,{series_realizadas:series,peso_usado:peso,rpe});}
+        else{await dbPost('logs_entrenamiento',{cliente_id:parseInt(currentClientId),ejercicio_id:ex.id,fecha:selectedDate,series_realizadas:series||null,peso_usado:peso||null,rpe:rpe||null});}
+        saved++;
+      }catch(e){console.error(e);}
     }
-  } catch(e) { showToast('Error: ' + e.message.slice(0,80), true); return; }
-
-  let yt = document.getElementById('f-yt').value.trim();
-  if (yt && !yt.startsWith('http')) yt = 'https://' + yt;
-
-  const body = {
-    rutina_id: rutina.id,
-    nombre,
-    series: document.getElementById('f-series').value.trim() || null,
-    peso: document.getElementById('f-peso').value.trim() || null,
-    tiempo: document.getElementById('f-tiempo').value.trim() || null,
-    nota: document.getElementById('f-nota').value.trim() || null,
-    link_youtube: yt || null,
-    completado: false,
-    devolucion: null
-  };
-
-  try {
-    const res = await dbPost('ejercicios', body);
-    const nuevo = res[0];
-    nuevo._clientId = parseInt(cliente_id);
-    ejercicios.push(nuevo);
-    ['f-name','f-series','f-peso','f-tiempo','f-nota','f-yt'].forEach(id => document.getElementById(id).value = '');
-    const cl = clientes.find(c => c.id == cliente_id);
-    showToast('Ejercicio agregado a ' + (cl ? cl.nombre : ''));
-    renderTrainerList();
-  } catch(e) { showToast('Error: ' + e.message.slice(0,80), true); }
-}
-
-async function removeEx(id) {
-  if (!confirm('¿Eliminar este ejercicio?')) return;
-  try {
-    await dbDelete('ejercicios', id);
-    ejercicios = ejercicios.filter(e => e.id !== id);
-    renderTrainerList();
-    showToast('Ejercicio eliminado');
-  } catch(e) { showToast('Error al eliminar', true); }
-}
-
-// ============================================================
-// DEVOLUCIONES
-// ============================================================
-function renderFeedbacks() {
-  const withFeedback = ejercicios.filter(e => e.devolucion && e.devolucion.trim());
-  const el = document.getElementById('feedback-list');
-  if (!withFeedback.length) {
-    el.innerHTML = '<div class="empty">Cuando tus clientes dejen comentarios en sus ejercicios, van a aparecer acá.</div>';
-    return;
   }
-  el.innerHTML = withFeedback.map(e => {
-    const cl = clientes.find(c => String(c.id) === String(e._clientId));
-    return `<div class="feedback-item">
-      <div class="fb-header"><span class="fb-name">${cl ? cl.nombre : '—'}</span></div>
-      <div class="fb-ex">${e.nombre}</div>
-      <div class="fb-msg">${e.devolucion}</div>
+  await loadLogs(); buildCalStrip();
+  showToast(`Sesión guardada${saved>0?' · '+saved+' cargas registradas':''} ✓`);
+}
+
+async function loadHistorial(clientId){
+  const cid=parseInt(clientId);
+  const clientLogs=logs.filter(l=>l.cliente_id===cid);
+  if(!clientLogs.length){document.getElementById('historial-content').innerHTML='<div class="empty">No hay registros de entrenamiento aún.</div>';return;}
+  const byDate={};
+  clientLogs.forEach(l=>{if(!byDate[l.fecha])byDate[l.fecha]=[];byDate[l.fecha].push(l);});
+  document.getElementById('historial-content').innerHTML=Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).map(([fecha,entries])=>{
+    const label=new Date(fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
+    return `<div class="section">
+      <div class="log-entry-date">📅 ${label}</div>
+      ${entries.map(e=>{
+        const ex=ejercicios.find(x=>x.id===e.ejercicio_id);
+        const load=[e.series_realizadas,e.peso_usado,e.rpe].filter(Boolean).join(' · ');
+        return `<div class="log-entry"><div class="log-entry-ex"><span class="log-entry-name">${ex?ex.nombre:'—'}</span><span class="log-entry-load">${load||'—'}</span></div></div>`;
+      }).join('')}
     </div>`;
   }).join('');
 }
 
-// ============================================================
-// UI
-// ============================================================
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  const tabs = ['cliente','entrenador','feedback'];
+async function renderTrainerList(){
+  if(!ejercicios.length){document.getElementById('trainer-list').innerHTML='<div class="empty">No hay ejercicios aún.</div>';return;}
+  const byClient={};
+  clientes.forEach(c=>{byClient[c.id]={nombre:c.nombre,exs:[]};});
+  ejercicios.forEach(e=>{if(e._clientId&&byClient[e._clientId])byClient[e._clientId].exs.push(e);});
+  document.getElementById('trainer-list').innerHTML=Object.entries(byClient).map(([cid,{nombre,exs}])=>
+    exs.length?`<div class="section"><div class="section-title">${nombre}</div>${exs.map(ex=>`<div class="exercise-card" style="margin-bottom:0.5rem;">
+      <div class="ex-header"><span class="ex-name">${ex.nombre}</span><button class="btn-remove" onclick="removeEx(${ex.id})">✕</button></div>
+      <div class="ex-tags">${[ex.series?ex.series+' reps':'',ex.peso,ex.tiempo].filter(Boolean).map(t=>`<span class="tag">${t}</span>`).join('')}${ex.link_youtube?`<a class="yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>`:''}</div>
+      ${ex.nota?`<div style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;">${ex.nota}</div>`:''}
+    </div>`).join('')}</div>`:''
+  ).join('');
+}
+
+async function addExercise(){
+  const cliente_id=document.getElementById('f-client').value;
+  const nombre=document.getElementById('f-name').value.trim();
+  if(!nombre){showToast('Escribí el nombre del ejercicio',true);return;}
+  const cid=parseInt(cliente_id);
+  let rutina=null;
+  try{
+    const rutinas=await dbGet('rutinas',`cliente_id=eq.${cid}&limit=1`);
+    if(rutinas.length){rutina=rutinas[0];}
+    else{const cl=clientes.find(c=>c.id==cid);const n=await dbPost('rutinas',{cliente_id:cid,nombre:'Rutina de '+(cl?cl.nombre:''),fecha:todayStr});rutina=n[0];}
+  }catch(e){showToast('Error: '+e.message.slice(0,80),true);return;}
+  let yt=document.getElementById('f-yt').value.trim();
+  if(yt&&!yt.startsWith('http'))yt='https://'+yt;
+  try{
+    const res=await dbPost('ejercicios',{rutina_id:rutina.id,nombre,series:document.getElementById('f-series').value.trim()||null,peso:document.getElementById('f-peso').value.trim()||null,tiempo:document.getElementById('f-tiempo').value.trim()||null,nota:document.getElementById('f-nota').value.trim()||null,link_youtube:yt||null,completado:false,devolucion:null});
+    const nuevo=res[0]; nuevo._clientId=cid; ejercicios.push(nuevo);
+    ['f-name','f-series','f-peso','f-tiempo','f-nota','f-yt'].forEach(id=>document.getElementById(id).value='');
+    const cl=clientes.find(c=>c.id==cid);
+    showToast('Ejercicio agregado a '+(cl?cl.nombre:''));
+    renderTrainerList();
+  }catch(e){showToast('Error: '+e.message.slice(0,80),true);}
+}
+
+async function removeEx(id){
+  if(!confirm('¿Eliminar este ejercicio?'))return;
+  try{await dbDelete('ejercicios',id);ejercicios=ejercicios.filter(e=>e.id!==id);renderTrainerList();showToast('Ejercicio eliminado');}
+  catch(e){showToast('Error al eliminar',true);}
+}
+
+function renderFeedbacks(){
+  const withFb=ejercicios.filter(e=>e.devolucion&&e.devolucion.trim());
+  const el=document.getElementById('feedback-list');
+  if(!withFb.length){el.innerHTML='<div class="empty">Cuando tus clientes dejen comentarios, van a aparecer acá.</div>';return;}
+  el.innerHTML=withFb.map(e=>{const cl=clientes.find(c=>String(c.id)===String(e._clientId));return`<div class="feedback-item"><div class="fb-header"><span class="fb-name">${cl?cl.nombre:'—'}</span></div><div class="fb-ex">${e.nombre}</div><div class="fb-msg">${e.devolucion}</div></div>`;}).join('');
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const tabs=['cliente','historial','entrenador','feedback'];
   document.querySelectorAll('.tab')[tabs.indexOf(tab)].classList.add('active');
-  document.getElementById('view-' + tab).classList.add('active');
-  if (tab === 'feedback') renderFeedbacks();
-  if (tab === 'entrenador') renderTrainerList();
+  document.getElementById('view-'+tab).classList.add('active');
+  if(tab==='feedback')renderFeedbacks();
+  if(tab==='entrenador')renderTrainerList();
+  if(tab==='historial')loadHistorial(document.getElementById('sel-historial').value);
 }
 
-function showToast(msg, isError = false) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.toggle('error', isError);
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-// ============================================================
-// ENRIQUECER EJERCICIOS CON CLIENT_ID
-// ============================================================
-async function enrichEjercicios() {
-  // Cargar rutinas para mapear rutina_id -> cliente_id
-  const rutinas = await dbGet('rutinas', '');
-  const rutinaMap = {};
-  rutinas.forEach(r => { rutinaMap[r.id] = r.cliente_id; });
-  ejercicios.forEach(e => { e._clientId = rutinaMap[e.rutina_id] || null; });
-}
-
-async function loadAll() {
-  await init();
-  if (!clientes.length) return;
-  ejercicios = await dbGet('ejercicios', 'order=id.asc');
-  await enrichEjercicios();
-  renderClientRoutine();
+function showToast(msg,isError=false){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('error',isError);t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
 }
 
 loadAll();
