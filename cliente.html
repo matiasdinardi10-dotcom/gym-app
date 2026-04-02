@@ -370,36 +370,67 @@ function renderHome() {
     return;
   }
 
+  exs.forEach(ex => {
+    if (!sessionState[ex.id]) sessionState[ex.id] = { status: null, comment: '', series: [], attachments: [] };
+  });
+  sessionExs = exs;
+
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const done = exs.filter(e => sessionState[e.id]?.status === 'done').length;
+  const missed = exs.filter(e => sessionState[e.id]?.status === 'missed').length;
+
   const exItems = exs.map((ex, i) => {
     const tags = [ex.series ? ex.series + ' reps' : '', ex.peso, ex.tiempo].filter(Boolean).join(' · ');
     const st = sessionState[ex.id];
-    const dotClass = st ? (st.status === 'done' ? 'dot-done' : 'dot-missed') : 'dot-pending';
-    return `<div class="ex-preview">
+    const dotClass = st?.status === 'done' ? 'dot-done' : (st?.status === 'missed' ? 'dot-missed' : 'dot-pending');
+    const statusText = st?.status === 'done' ? '✓' : (st?.status === 'missed' ? '✕' : '›');
+    const cardStyle = st?.status === 'done' ? 'border-color:#5DCAA5;background:#f0faf6' : (st?.status === 'missed' ? 'border-color:#f5a0a0;background:#fff8f8' : '');
+    const comment = st?.comment || '';
+    return `<div class="ex-preview" style="cursor:pointer;${cardStyle}" onclick="openExercise(${i})">
       <div class="ex-letter">${letters[i] || (i+1)}</div>
       <div class="ex-preview-info">
         <div class="ex-preview-name">${ex.nombre}</div>
         ${tags ? `<div class="ex-preview-tags">${tags}</div>` : ''}
+        ${comment ? `<div style="font-size:11px;color:var(--text2);margin-top:2px;font-style:italic">"${comment.slice(0,40)}${comment.length>40?'…':''}"</div>` : ''}
       </div>
-      <div class="ex-status-dot ${dotClass}"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div class="ex-status-dot ${dotClass}"></div>
+        <span style="font-size:12px;color:var(--text2)">${statusText}</span>
+      </div>
     </div>`;
   }).join('');
 
-  const hasPending = exs.some(e => !sessionState[e.id]);
+  const allMarked = done + missed === exs.length;
   el.innerHTML = `
-    <div class="day-title">${dateLabel} · ${exs.length} ejercicio${exs.length !== 1 ? 's' : ''}</div>
+    <div class="day-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem">
+      <span>${dateLabel}</span>
+      <span style="font-size:12px;color:var(--text2)">${done}/${exs.length} hechos</span>
+    </div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:1rem">Tocá un ejercicio para abrirlo 👇</div>
     ${exItems}
-    <button class="btn-start" onclick="startSession()" ${!isToday && !Object.keys(sessionState).length ? '' : ''}>
-      ${Object.keys(sessionState).length > 0 ? '▶ Continuar sesión' : '▶ Iniciar sesión'}
-    </button>`;
+    ${allMarked ? `<button class="btn-start" style="background:var(--orange);margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>` : ''}
+    <button class="btn-save-session" style="margin-top:0.5rem" onclick="saveFinalSession()">💾 Guardar sesión</button>`;
 }
 
 // ── SESSION ────────────────────────────────────
+function openExercise(idx) {
+  sessionIdx = idx;
+  document.getElementById('view-home').style.display = 'none';
+  document.getElementById('view-session').style.display = 'block';
+  document.getElementById('view-summary').style.display = 'none';
+  renderCard();
+  window.scrollTo(0, 0);
+}
+
+function showSummaryFromHome() {
+  document.getElementById('view-home').style.display = 'none';
+  showSummary();
+}
+
 function startSession() {
   sessionExs = ejercicios.filter(e => e.fecha_sesion === selectedDate);
   if (!sessionExs.length) return;
   sessionIdx = 0;
-  // Inicializar estado para cada ejercicio
   sessionExs.forEach(ex => {
     if (!sessionState[ex.id]) sessionState[ex.id] = { status: null, comment: '', series: [], attachments: [] };
   });
@@ -570,6 +601,8 @@ function navSession(dir) {
 
 function exitSession() {
   saveCurrentCard();
+  document.getElementById('view-session').style.display = 'none';
+  document.getElementById('view-summary').style.display = 'none';
   showHome();
 }
 
@@ -635,6 +668,9 @@ function showSummary() {
 }
 
 async function saveFinalSession() {
+  // Can be called from home or summary
+  document.getElementById('view-home').style.display = 'none';
+  document.getElementById('view-summary').style.display = 'block';
   const btn = document.getElementById('btn-save-session');
   btn.disabled = true; btn.textContent = 'Guardando…';
 
