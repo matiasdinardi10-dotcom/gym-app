@@ -21,25 +21,31 @@
   .app { max-width: 420px; margin: 0 auto; padding: 1rem; min-height: 100vh; }
 
   .tab-bar { display: flex; gap: 4px; margin-bottom: 1.25rem; background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 4px; }
-  .tab { flex: 1; padding: 6px 4px; border: none; background: transparent; font-size: 12px; color: var(--color-text-secondary); border-radius: 6px; cursor: pointer; font-family: var(--font-sans); }
+  .tab { flex: 1; padding: 6px 4px; border: none; background: transparent; font-size: 11px; color: var(--color-text-secondary); border-radius: 6px; cursor: pointer; font-family: var(--font-sans); }
   .tab.active { background: var(--color-background-primary); color: var(--color-text-primary); font-weight: 500; border: 0.5px solid var(--color-border-tertiary); }
   .view { display: none; }
   .view.active { display: block; }
-
   .section { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
   .section-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); margin-bottom: 0.75rem; }
 
   select, input, textarea { font-family: var(--font-sans); }
-  .client-selector, .add-form select, .add-form input, .add-form textarea {
-    width: 100%; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-md);
-    border: 0.5px solid var(--color-border-secondary); font-size: 14px;
-    background: var(--color-background-secondary); color: var(--color-text-primary); margin-bottom: 0.6rem;
-  }
-  .add-form input:focus, .add-form select:focus, .add-form textarea:focus { outline: none; border-color: #1D9E75; }
-  .add-form textarea { resize: none; min-height: 55px; margin-bottom: 0.6rem; }
-  .client-selector { margin-bottom: 1rem; }
+  .client-selector { width: 100%; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 14px; background: var(--color-background-secondary); color: var(--color-text-primary); margin-bottom: 1rem; }
+  .form-input { width: 100%; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 14px; background: var(--color-background-secondary); color: var(--color-text-primary); margin-bottom: 0.6rem; font-family: var(--font-sans); }
+  .form-input:focus { outline: none; border-color: #1D9E75; }
+  textarea.form-input { resize: none; min-height: 55px; }
 
-  /* CALENDAR STRIP */
+  /* AUTOCOMPLETE */
+  .autocomplete-wrap { position: relative; margin-bottom: 0.6rem; }
+  .autocomplete-wrap input { width: 100%; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 14px; background: var(--color-background-secondary); color: var(--color-text-primary); font-family: var(--font-sans); }
+  .autocomplete-wrap input:focus { outline: none; border-color: #1D9E75; }
+  .autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); z-index: 50; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .autocomplete-item { padding: 10px 14px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+  .autocomplete-item:hover { background: #f0faf6; }
+  .autocomplete-item .yt-badge { font-size: 10px; background: #FEF2F2; color: #C0392B; padding: 2px 6px; border-radius: 10px; }
+  .yt-preview { display: flex; align-items: center; gap: 8px; background: #FEF2F2; border-radius: var(--border-radius-md); padding: 8px 10px; margin-bottom: 0.6rem; font-size: 12px; color: #C0392B; }
+  .yt-preview a { color: #C0392B; text-decoration: none; font-weight: 500; }
+
+  /* CALENDAR */
   .cal-strip { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 1rem; scrollbar-width: none; }
   .cal-strip::-webkit-scrollbar { display: none; }
   .cal-day-btn { flex-shrink: 0; width: 44px; text-align: center; border-radius: var(--border-radius-md); padding: 6px 0; cursor: pointer; border: 0.5px solid var(--color-border-tertiary); background: var(--color-background-primary); }
@@ -52,12 +58,7 @@
   .cal-day-btn.selected { background: #1D9E75 !important; border-color: #1D9E75 !important; }
   .cal-day-btn.selected .day-name, .cal-day-btn.selected .day-num { color: white !important; }
 
-  /* DATE HEADER */
-  .date-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
-  .date-label { font-size: 16px; font-weight: 500; color: var(--color-text-primary); text-transform: capitalize; }
-  .btn-add-session { font-size: 12px; padding: 5px 12px; border-radius: var(--border-radius-md); border: 0.5px solid #1D9E75; background: transparent; color: #0F6E56; cursor: pointer; }
-
-  /* EXERCISE CARDS */
+  /* EXERCISES */
   .exercise-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 0.85rem 1rem; margin-bottom: 0.6rem; }
   .exercise-card.done { border-color: #5DCAA5; background: #f0faf6; }
   .ex-header { display: flex; align-items: center; gap: 10px; }
@@ -72,7 +73,6 @@
   .ex-details { margin-top: 10px; margin-left: 32px; display: none; }
   .ex-details.open { display: block; }
   .ex-note { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 8px; padding: 6px 8px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); }
-
   .log-prev { font-size: 11px; color: #0F6E56; background: #E1F5EE; padding: 4px 8px; border-radius: var(--border-radius-md); margin-bottom: 8px; }
   .log-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
   .log-input { padding: 6px 8px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 13px; background: var(--color-background-secondary); color: var(--color-text-primary); font-family: var(--font-sans); width: 100%; }
@@ -87,25 +87,32 @@
   .prog-text { font-size: 12px; color: var(--color-text-secondary); }
 
   /* HISTORIAL */
-  .log-block { margin-bottom: 0.75rem; }
-  .log-block-date { font-size: 11px; font-weight: 600; color: var(--color-text-secondary); text-transform: capitalize; margin-bottom: 0.5rem; }
+  .log-block-date { font-size: 11px; font-weight: 600; color: var(--color-text-secondary); text-transform: capitalize; margin-bottom: 6px; }
   .log-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
   .log-row:last-child { border-bottom: none; }
   .log-ex-name { color: var(--color-text-primary); font-weight: 500; }
   .log-ex-load { color: #0F6E56; font-size: 12px; }
 
-  /* ADD EXERCISE MODAL */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: flex-end; justify-content: center; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: white; border-radius: 16px 16px 0 0; padding: 1.5rem; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto; }
-  .modal h2 { font-size: 16px; font-weight: 500; margin-bottom: 1rem; }
+  /* BIBLIOTECA */
+  .bib-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .bib-item:last-child { border-bottom: none; }
+  .bib-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); flex: 1; }
+  .bib-yt { font-size: 11px; color: #C0392B; }
+  .bib-delete { background: none; border: none; color: var(--color-text-secondary); cursor: pointer; font-size: 14px; }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0.6rem; }
   .row2 input { margin-bottom: 0; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 16px 16px 0 0; padding: 1.5rem; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
+  .modal h2 { font-size: 16px; font-weight: 500; margin-bottom: 1rem; }
 
   .btn-green { width: 100%; padding: 0.75rem; border-radius: var(--border-radius-md); border: 0.5px solid #1D9E75; background: transparent; font-size: 14px; color: #0F6E56; cursor: pointer; margin-top: 0.25rem; }
   .btn-green:hover { background: #E1F5EE; }
   .btn-cancel { width: 100%; padding: 0.7rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; font-size: 14px; cursor: pointer; margin-top: 0.5rem; }
   .btn-save { width: 100%; padding: 0.75rem; border-radius: var(--border-radius-md); border: none; background: #1D9E75; color: white; font-size: 14px; cursor: pointer; margin-top: 0.5rem; }
+  .btn-add-session { font-size: 12px; padding: 5px 12px; border-radius: var(--border-radius-md); border: 0.5px solid #1D9E75; background: transparent; color: #0F6E56; cursor: pointer; white-space: nowrap; }
 
   .empty { text-align: center; padding: 2rem; font-size: 13px; color: var(--color-text-secondary); }
   .loading { text-align: center; padding: 1rem; font-size: 13px; color: var(--color-text-secondary); }
@@ -119,14 +126,14 @@
   <div class="tab-bar">
     <button class="tab active" onclick="switchTab('sesion')">Sesión</button>
     <button class="tab" onclick="switchTab('historial')">Historial</button>
+    <button class="tab" onclick="switchTab('biblioteca')">Biblioteca</button>
     <button class="tab" onclick="switchTab('feedback')">Comentarios</button>
   </div>
 
-  <!-- SESIÓN DEL DÍA -->
+  <!-- SESIÓN -->
   <div class="view active" id="view-sesion">
     <select class="client-selector" id="sel-cliente" onchange="onClientChange(this.value)"></select>
     <div class="cal-strip" id="cal-strip"></div>
-
     <div class="section" style="margin-bottom:0.75rem;">
       <div class="progress-summary">
         <svg class="prog-circle" viewBox="0 0 54 54">
@@ -137,10 +144,9 @@
           <div class="prog-count"><span id="prog-done">0</span>/<span id="prog-total">0</span> ejercicios</div>
           <div class="prog-text" id="prog-fecha">hoy</div>
         </div>
-        <button class="btn-add-session" onclick="openModal()">+ Agregar ejercicio</button>
+        <button class="btn-add-session" onclick="openModal()">+ Agregar</button>
       </div>
     </div>
-
     <div id="exercise-list"><div class="loading">Cargando…</div></div>
     <button class="btn-save" style="margin-top:0.5rem" onclick="saveSession()">💾 Guardar sesión</button>
   </div>
@@ -149,6 +155,20 @@
   <div class="view" id="view-historial">
     <select class="client-selector" id="sel-historial" onchange="loadHistorial(this.value)"></select>
     <div id="historial-content"><div class="loading">Cargando…</div></div>
+  </div>
+
+  <!-- BIBLIOTECA -->
+  <div class="view" id="view-biblioteca">
+    <div class="section">
+      <div class="section-title">Agregar a la biblioteca</div>
+      <input class="form-input" id="bib-nombre" placeholder="Nombre del ejercicio (ej: Sentadilla)" />
+      <input class="form-input" id="bib-yt" placeholder="▶ Link de YouTube" />
+      <button class="btn-green" onclick="addToBiblioteca()">+ Guardar en biblioteca</button>
+    </div>
+    <div class="section">
+      <div class="section-title">Mis ejercicios guardados</div>
+      <div id="bib-list"><div class="loading">Cargando…</div></div>
+    </div>
   </div>
 
   <!-- COMENTARIOS -->
@@ -164,17 +184,25 @@
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <h2>Agregar ejercicio</h2>
-    <div class="add-form">
-      <input type="text" id="f-name" placeholder="Nombre del ejercicio" />
-      <div class="row2">
-        <input type="text" id="f-series" placeholder="Series x rep (ej: 3x12)" />
-        <input type="text" id="f-peso" placeholder="Peso (ej: 20 kg)" />
-      </div>
-      <input type="text" id="f-tiempo" placeholder="Tiempo / duración (ej: 30 min)" />
-      <textarea id="f-nota" placeholder="Indicaciones especiales..."></textarea>
-      <input type="text" id="f-yt" placeholder="▶ Link de YouTube (opcional)" />
+
+    <!-- AUTOCOMPLETE -->
+    <div class="autocomplete-wrap">
+      <input type="text" id="f-name" placeholder="Nombre del ejercicio" oninput="onNameInput(this.value)" autocomplete="off" />
+      <div class="autocomplete-list" id="autocomplete-list" style="display:none"></div>
     </div>
-    <button class="btn-green" onclick="addExercise()">+ Agregar</button>
+
+    <!-- PREVIEW YOUTUBE si se autocompletó -->
+    <div id="yt-preview" style="display:none"></div>
+
+    <div class="row2">
+      <input class="form-input" style="margin:0" type="text" id="f-series" placeholder="Series x rep (ej: 3x12)" />
+      <input class="form-input" style="margin:0" type="text" id="f-peso" placeholder="Peso (ej: 20 kg)" />
+    </div>
+    <input class="form-input" style="margin-top:0.6rem" type="text" id="f-tiempo" placeholder="Tiempo (ej: 30 min)" />
+    <textarea class="form-input" id="f-nota" placeholder="Indicaciones especiales..."></textarea>
+    <input class="form-input" type="text" id="f-yt" placeholder="▶ Link YouTube (se completa solo si está en biblioteca)" />
+
+    <button class="btn-green" onclick="addExercise()">+ Agregar a la sesión</button>
     <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
   </div>
 </div>
@@ -191,7 +219,7 @@ async function dbPost(t,b){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}`,{m
 async function dbPatch(t,id,b){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());}
 async function dbDelete(t,id){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}?id=eq.${id}`,{method:'DELETE',headers:H});if(!r.ok)throw new Error(await r.text());}
 
-let clientes=[], ejercicios=[], logs=[], openDetails={};
+let clientes=[], ejercicios=[], logs=[], biblioteca=[], openDetails={};
 let currentClientId=null;
 const todayStr=new Date().toISOString().split('T')[0];
 let selectedDate=todayStr;
@@ -199,7 +227,10 @@ const DAYS=['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
 
 async function loadAll(){
   try{
-    clientes=await dbGet('clientes','order=nombre.asc');
+    [clientes, biblioteca] = await Promise.all([
+      dbGet('clientes','order=nombre.asc'),
+      dbGet('biblioteca_ejercicios','order=nombre.asc')
+    ]);
     if(!clientes.length){document.getElementById('exercise-list').innerHTML='<div class="empty">Primero agregá clientes en Mis Clientes.</div>';return;}
     const opts=clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
     ['sel-cliente','sel-historial'].forEach(id=>document.getElementById(id).innerHTML=opts);
@@ -208,11 +239,11 @@ async function loadAll(){
     await loadLogs();
     buildCalStrip();
     renderDayExercises();
+    renderBiblioteca();
   }catch(e){showToast('Error al conectar',true);console.error(e);}
 }
 
 async function loadEjercicios(){
-  // Cargar todos los ejercicios del cliente actual con fecha_sesion
   const rutinas=await dbGet('rutinas','');
   const rm={};rutinas.forEach(r=>{rm[r.id]=r.cliente_id;});
   const raw=await dbGet('ejercicios','order=id.asc');
@@ -223,23 +254,45 @@ async function loadLogs(){
   logs=await dbGet('logs_entrenamiento','order=fecha.desc');
 }
 
+// ── AUTOCOMPLETE ──────────────────────────────────────
+function onNameInput(val){
+  const list=document.getElementById('autocomplete-list');
+  document.getElementById('yt-preview').style.display='none';
+  if(!val.trim()||val.length<2){list.style.display='none';return;}
+  const matches=biblioteca.filter(b=>b.nombre.toLowerCase().includes(val.toLowerCase()));
+  if(!matches.length){list.style.display='none';return;}
+  list.innerHTML=matches.map(b=>`
+    <div class="autocomplete-item" onclick="selectExercise('${b.nombre.replace(/'/g,"\\'")}','${(b.link_youtube||'').replace(/'/g,"\\'")}')">
+      <span>${b.nombre}</span>
+      ${b.link_youtube?'<span class="yt-badge">▶ Video</span>':''}
+    </div>`).join('');
+  list.style.display='block';
+}
+
+function selectExercise(nombre, yt){
+  document.getElementById('f-name').value=nombre;
+  document.getElementById('f-yt').value=yt||'';
+  document.getElementById('autocomplete-list').style.display='none';
+  if(yt){
+    document.getElementById('yt-preview').innerHTML=`<div class="yt-preview">▶ Video vinculado: <a href="${yt}" target="_blank">${nombre}</a></div>`;
+    document.getElementById('yt-preview').style.display='block';
+  }
+}
+
+// Cerrar autocomplete al tocar afuera
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.autocomplete-wrap'))document.getElementById('autocomplete-list').style.display='none';
+});
+
 // ── CALENDAR ──────────────────────────────────────────
 function buildCalStrip(){
-  // Días que tienen ejercicios para este cliente
-  const sessionDates=new Set(
-    ejercicios.filter(e=>String(e._clientId)===String(currentClientId)&&e.fecha_sesion)
-      .map(e=>e.fecha_sesion)
-  );
-  const today=new Date();
-  let html='';
+  const sessionDates=new Set(ejercicios.filter(e=>String(e._clientId)===String(currentClientId)&&e.fecha_sesion).map(e=>e.fecha_sesion));
+  const today=new Date();let html='';
   for(let i=-7;i<=6;i++){
     const d=new Date(today);d.setDate(today.getDate()+i);
     const ds=d.toISOString().split('T')[0];
     const cls=[ds===todayStr?'today':'',sessionDates.has(ds)?'has-session':'',ds===selectedDate?'selected':''].filter(Boolean).join(' ');
-    html+=`<div class="cal-day-btn ${cls}" onclick="selectDate('${ds}')">
-      <div class="day-name">${DAYS[d.getDay()]}</div>
-      <div class="day-num">${d.getDate()}</div>
-    </div>`;
+    html+=`<div class="cal-day-btn ${cls}" onclick="selectDate('${ds}')"><div class="day-name">${DAYS[d.getDay()]}</div><div class="day-num">${d.getDate()}</div></div>`;
   }
   document.getElementById('cal-strip').innerHTML=html;
 }
@@ -253,23 +306,18 @@ async function onClientChange(id){
 
 // ── SESIÓN DEL DÍA ────────────────────────────────────
 function renderDayExercises(){
-  // Solo ejercicios de este cliente Y esta fecha
   const exs=ejercicios.filter(e=>String(e._clientId)===String(currentClientId)&&e.fecha_sesion===selectedDate);
   const done=exs.filter(e=>e.completado).length;
   document.getElementById('prog-done').textContent=done;
   document.getElementById('prog-total').textContent=exs.length;
   document.getElementById('prog-arc').setAttribute('stroke-dashoffset',(138.2*(1-(exs.length?done/exs.length:0))).toFixed(1));
-
   const isToday=selectedDate===todayStr;
   document.getElementById('prog-fecha').textContent=isToday?'hoy':new Date(selectedDate+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
 
   const dayLogs=logs.filter(l=>l.cliente_id==currentClientId&&l.fecha===selectedDate);
   const logByEx={};dayLogs.forEach(l=>{logByEx[l.ejercicio_id]=l;});
 
-  if(!exs.length){
-    document.getElementById('exercise-list').innerHTML=`<div class="empty">No hay ejercicios para este día.<br>Tocá "+ Agregar ejercicio" para empezar.</div>`;
-    return;
-  }
+  if(!exs.length){document.getElementById('exercise-list').innerHTML='<div class="empty">No hay ejercicios para este día.<br>Tocá "+ Agregar" para comenzar.</div>';return;}
 
   document.getElementById('exercise-list').innerHTML=exs.map(ex=>{
     const tags=[ex.series?ex.series+' reps':'',ex.peso,ex.tiempo].filter(Boolean);
@@ -293,7 +341,7 @@ function renderDayExercises(){
         <div class="log-inputs">
           <input class="log-input" id="log-series-${ex.id}" placeholder="Ej: 3x10" value="${log&&log.series_realizadas||''}" />
           <input class="log-input" id="log-peso-${ex.id}" placeholder="Ej: 25kg" value="${log&&log.peso_usado||''}" />
-          <input class="log-input log-input-full" id="log-rpe-${ex.id}" placeholder="RPE / sensación (ej: RPE 7)" value="${log&&log.rpe||''}" />
+          <input class="log-input log-input-full" id="log-rpe-${ex.id}" placeholder="RPE / sensación" value="${log&&log.rpe||''}" />
         </div>
         <div class="feedback-label">Comentario</div>
         <textarea class="feedback-area" id="fb-${ex.id}" placeholder="¿Cómo te fue?">${ex.devolucion||''}</textarea>
@@ -308,21 +356,17 @@ async function toggleDone(id){
   renderDayExercises();
   try{await dbPatch('ejercicios',id,{completado:ex.completado});}catch(e){}
 }
-
 function toggleDetail(id){openDetails[id]=!openDetails[id];renderDayExercises();}
 
 async function removeEx(id){
   if(!confirm('¿Eliminar este ejercicio?'))return;
-  try{
-    await dbDelete('ejercicios',id);
-    ejercicios=ejercicios.filter(e=>e.id!==id);
-    buildCalStrip();renderDayExercises();showToast('Ejercicio eliminado');
-  }catch(e){showToast('Error al eliminar',true);}
+  try{await dbDelete('ejercicios',id);ejercicios=ejercicios.filter(e=>e.id!==id);buildCalStrip();renderDayExercises();showToast('Eliminado');}
+  catch(e){showToast('Error al eliminar',true);}
 }
 
 async function saveSession(){
   const exs=ejercicios.filter(e=>String(e._clientId)===String(currentClientId)&&e.fecha_sesion===selectedDate&&e.completado);
-  if(!exs.length){showToast('Marcá al menos un ejercicio como completado',true);return;}
+  if(!exs.length){showToast('Marcá al menos un ejercicio',true);return;}
   let saved=0;
   for(const ex of exs){
     const series=document.getElementById('log-series-'+ex.id)?.value.trim();
@@ -344,24 +388,26 @@ async function saveSession(){
 }
 
 // ── MODAL ─────────────────────────────────────────────
-function openModal(){document.getElementById('modalOverlay').classList.add('open');}
-function closeModal(){document.getElementById('modalOverlay').classList.remove('open');['f-name','f-series','f-peso','f-tiempo','f-nota','f-yt'].forEach(id=>document.getElementById(id).value='');}
+function openModal(){
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('autocomplete-list').style.display='none';
+  document.getElementById('yt-preview').style.display='none';
+}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  ['f-name','f-series','f-peso','f-tiempo','f-nota','f-yt'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('yt-preview').style.display='none';
+}
 
 async function addExercise(){
   const nombre=document.getElementById('f-name').value.trim();
   if(!nombre){showToast('Escribí el nombre del ejercicio',true);return;}
   const cid=parseInt(currentClientId);
-
-  // Buscar o crear rutina para este cliente
   let rutina=null;
   try{
     const rutinas=await dbGet('rutinas',`cliente_id=eq.${cid}&limit=1`);
     if(rutinas.length){rutina=rutinas[0];}
-    else{
-      const cl=clientes.find(c=>c.id==cid);
-      const n=await dbPost('rutinas',{cliente_id:cid,nombre:'Rutina de '+(cl?cl.nombre:''),fecha:todayStr});
-      rutina=n[0];
-    }
+    else{const cl=clientes.find(c=>c.id==cid);const n=await dbPost('rutinas',{cliente_id:cid,nombre:'Rutina de '+(cl?cl.nombre:''),fecha:todayStr});rutina=n[0];}
   }catch(e){showToast('Error: '+e.message.slice(0,80),true);return;}
 
   let yt=document.getElementById('f-yt').value.trim();
@@ -369,42 +415,68 @@ async function addExercise(){
 
   try{
     const res=await dbPost('ejercicios',{
-      rutina_id:rutina.id,
-      nombre,
+      rutina_id:rutina.id,nombre,
       series:document.getElementById('f-series').value.trim()||null,
       peso:document.getElementById('f-peso').value.trim()||null,
       tiempo:document.getElementById('f-tiempo').value.trim()||null,
       nota:document.getElementById('f-nota').value.trim()||null,
       link_youtube:yt||null,
-      completado:false,
-      devolucion:null,
-      fecha_sesion:selectedDate  // ← fecha del día seleccionado
+      completado:false,devolucion:null,
+      fecha_sesion:selectedDate
     });
-    const nuevo=res[0];nuevo._clientId=cid;
-    ejercicios.push(nuevo);
-    closeModal();
-    buildCalStrip();renderDayExercises();
+    const nuevo=res[0];nuevo._clientId=cid;ejercicios.push(nuevo);
+    closeModal();buildCalStrip();renderDayExercises();
     showToast('Ejercicio agregado ✓');
   }catch(e){showToast('Error: '+e.message.slice(0,80),true);}
+}
+
+// ── BIBLIOTECA ────────────────────────────────────────
+async function addToBiblioteca(){
+  const nombre=document.getElementById('bib-nombre').value.trim();
+  if(!nombre){showToast('Escribí el nombre del ejercicio',true);return;}
+  let yt=document.getElementById('bib-yt').value.trim();
+  if(yt&&!yt.startsWith('http'))yt='https://'+yt;
+  try{
+    const res=await dbPost('biblioteca_ejercicios',{nombre,link_youtube:yt||null});
+    biblioteca.push(res[0]);
+    document.getElementById('bib-nombre').value='';
+    document.getElementById('bib-yt').value='';
+    renderBiblioteca();
+    showToast(nombre+' guardado en biblioteca ✓');
+  }catch(e){showToast('Error al guardar',true);}
+}
+
+function renderBiblioteca(){
+  if(!biblioteca.length){document.getElementById('bib-list').innerHTML='<div class="empty">Tu biblioteca está vacía.<br>Agregá ejercicios con sus videos arriba.</div>';return;}
+  document.getElementById('bib-list').innerHTML=biblioteca.map(b=>`
+    <div class="bib-item">
+      <div>
+        <div class="bib-name">${b.nombre}</div>
+        ${b.link_youtube?`<div class="bib-yt"><a href="${b.link_youtube}" target="_blank" style="color:#C0392B;text-decoration:none">▶ Ver video</a></div>`:''}
+      </div>
+      <button class="bib-delete" onclick="deleteBib(${b.id})">✕</button>
+    </div>`).join('');
+}
+
+async function deleteBib(id){
+  if(!confirm('¿Eliminar de la biblioteca?'))return;
+  try{await dbDelete('biblioteca_ejercicios',id);biblioteca=biblioteca.filter(b=>b.id!==id);renderBiblioteca();showToast('Eliminado');}
+  catch(e){showToast('Error',true);}
 }
 
 // ── HISTORIAL ─────────────────────────────────────────
 async function loadHistorial(clientId){
   const cid=parseInt(clientId);
   const clientLogs=logs.filter(l=>l.cliente_id===cid);
-  if(!clientLogs.length){document.getElementById('historial-content').innerHTML='<div class="empty">No hay registros de entrenamiento aún.</div>';return;}
-  const byDate={};
-  clientLogs.forEach(l=>{if(!byDate[l.fecha])byDate[l.fecha]=[];byDate[l.fecha].push(l);});
+  if(!clientLogs.length){document.getElementById('historial-content').innerHTML='<div class="empty">No hay registros aún.</div>';return;}
+  const byDate={};clientLogs.forEach(l=>{if(!byDate[l.fecha])byDate[l.fecha]=[];byDate[l.fecha].push(l);});
   document.getElementById('historial-content').innerHTML=Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).map(([fecha,entries])=>{
     const label=new Date(fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
-    return`<div class="section">
-      <div class="log-block-date">📅 ${label}</div>
-      ${entries.map(e=>{
-        const ex=ejercicios.find(x=>x.id===e.ejercicio_id);
-        const load=[e.series_realizadas,e.peso_usado,e.rpe].filter(Boolean).join(' · ');
-        return`<div class="log-row"><span class="log-ex-name">${ex?ex.nombre:'—'}</span><span class="log-ex-load">${load||'—'}</span></div>`;
-      }).join('')}
-    </div>`;
+    return`<div class="section"><div class="log-block-date">📅 ${label}</div>${entries.map(e=>{
+      const ex=ejercicios.find(x=>x.id===e.ejercicio_id);
+      const load=[e.series_realizadas,e.peso_usado,e.rpe].filter(Boolean).join(' · ');
+      return`<div class="log-row"><span class="log-ex-name">${ex?ex.nombre:'—'}</span><span class="log-ex-load">${load||'—'}</span></div>`;
+    }).join('')}</div>`;
   }).join('');
 }
 
@@ -413,25 +485,19 @@ function renderFeedbacks(){
   const withFb=ejercicios.filter(e=>e.devolucion&&e.devolucion.trim());
   const el=document.getElementById('feedback-list');
   if(!withFb.length){el.innerHTML='<div class="empty">Cuando tus clientes dejen comentarios, van a aparecer acá.</div>';return;}
-  el.innerHTML=withFb.map(e=>{
-    const cl=clientes.find(c=>String(c.id)===String(e._clientId));
-    return`<div style="padding:0.75rem 0;border-bottom:0.5px solid var(--color-border-tertiary)">
-      <div style="font-size:13px;font-weight:500">${cl?cl.nombre:'—'}</div>
-      <div style="font-size:12px;color:#0F6E56;margin:3px 0">${e.nombre} ${e.fecha_sesion?'· '+e.fecha_sesion:''}</div>
-      <div style="font-size:13px;color:var(--color-text-secondary)">${e.devolucion}</div>
-    </div>`;
-  }).join('');
+  el.innerHTML=withFb.map(e=>{const cl=clientes.find(c=>String(c.id)===String(e._clientId));return`<div style="padding:0.75rem 0;border-bottom:0.5px solid var(--color-border-tertiary)"><div style="font-size:13px;font-weight:500">${cl?cl.nombre:'—'}</div><div style="font-size:12px;color:#0F6E56;margin:3px 0">${e.nombre}</div><div style="font-size:13px;color:var(--color-text-secondary)">${e.devolucion}</div></div>`;}).join('');
 }
 
 // ── UI ────────────────────────────────────────────────
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  const tabs=['sesion','historial','feedback'];
+  const tabs=['sesion','historial','biblioteca','feedback'];
   document.querySelectorAll('.tab')[tabs.indexOf(tab)].classList.add('active');
   document.getElementById('view-'+tab).classList.add('active');
   if(tab==='feedback')renderFeedbacks();
   if(tab==='historial')loadHistorial(document.getElementById('sel-historial').value);
+  if(tab==='biblioteca')renderBiblioteca();
 }
 
 function showToast(msg,isError=false){
