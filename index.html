@@ -575,7 +575,7 @@ function closeClientModal(){document.getElementById('cl-modal').classList.remove
 async function saveClient(){
   const nombre=document.getElementById('cl-f-nombre').value.trim();
   if(!nombre){showToast('El nombre es obligatorio',true);return;}
-  const data={nombre,edad:parseInt(document.getElementById('cl-f-edad').value)||null,contacto:document.getElementById('cl-f-contacto').value.trim()||null,objetivo:document.getElementById('cl-f-objetivo').value.trim()||null,estado:document.getElementById('cl-f-estado').value},email:document.getElementById('cl-f-email').value.trim()||null
+  const data={nombre,edad:parseInt(document.getElementById('cl-f-edad').value)||null,contacto:document.getElementById('cl-f-contacto').value.trim()||null,objetivo:document.getElementById('cl-f-objetivo').value.trim()||null,estado:document.getElementById('cl-f-estado').value,email:document.getElementById('cl-f-email').value.trim()||null};
   try{
     if(clEditingId){
       await dbPatch('clientes',clEditingId,data);
