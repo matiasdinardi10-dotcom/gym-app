@@ -427,7 +427,19 @@ function showToast(msg,err=false){const t=document.getElementById('toast');t.tex
 // ════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════
-async function init(){
+const PROFE_EMAIL = 'matiasdinardi10@gmail.com';
+(function checkAccess() {
+  const rol = sessionStorage.getItem('rol');
+  const email = sessionStorage.getItem('auth_email');
+  if (!rol || email !== PROFE_EMAIL) {
+    window.location.href = 'login.html';
+  }
+})();
+function profeLogout() {
+  sessionStorage.clear();
+  window.location.href = 'login.html';
+}
+  async function init(){
   try{
     [clientes,biblioteca,allCobros,allSesiones]=await Promise.all([
       dbGet('clientes','order=nombre.asc'),
