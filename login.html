@@ -133,7 +133,7 @@ async function doLogin() {
       sessionStorage.setItem('rol', 'alumno');
       sessionStorage.setItem('cliente_id', clientes[0].id);
       sessionStorage.setItem('cliente_nombre', clientes[0].nombre);
-      window.location.href = 'mi-entrenamiento.html';
+      window.location.href = 'cliente.html';
     }
 
   } catch(e) {
@@ -150,7 +150,7 @@ window.onload = () => {
   const token = sessionStorage.getItem('auth_token');
   if (rol && token) {
     if (rol === 'profe') window.location.href = 'index.html';
-    else window.location.href = 'mi-entrenamiento.html';
+    else window.location.href = 'cliente.html';
   }
 };
 </script>
