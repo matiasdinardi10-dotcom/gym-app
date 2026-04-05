@@ -14,61 +14,102 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { font-family: var(--font-sans); background: #f2f2f7; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; }
-
   .logo { width: 72px; height: 72px; background: var(--green); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem; }
   .logo svg { width: 38px; height: 38px; color: white; }
   h1 { font-size: 24px; font-weight: 700; color: #111; margin-bottom: 0.35rem; }
-  .sub { font-size: 14px; color: #666; margin-bottom: 2rem; }
-
+  .sub { font-size: 14px; color: #666; margin-bottom: 1.5rem; }
   .card { background: white; border-radius: 16px; padding: 1.5rem; width: 100%; max-width: 360px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
-
+  .tab-bar { display: flex; gap: 4px; background: #f2f2f7; border-radius: 10px; padding: 3px; margin-bottom: 1.25rem; }
+  .tab-btn { flex: 1; padding: 8px; border: none; background: transparent; font-size: 14px; color: #666; border-radius: 8px; cursor: pointer; font-family: var(--font-sans); font-weight: 500; transition: all 0.15s; }
+  .tab-btn.active { background: white; color: #111; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  .tab-view { display: none; }
+  .tab-view.active { display: block; }
   .field { margin-bottom: 1rem; }
   .field label { display: block; font-size: 12px; font-weight: 500; color: #666; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
   .field input { width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid #e8e8e8; font-size: 16px; background: #f9f9f9; color: #111; font-family: var(--font-sans); }
   .field input:focus { outline: none; border-color: var(--green); background: white; }
-
-  .btn-login { width: 100%; padding: 0.9rem; border-radius: 12px; border: none; background: var(--green); color: white; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 0.25rem; font-family: var(--font-sans); transition: background 0.15s; }
-  .btn-login:hover { background: var(--green-dark); }
-  .btn-login:disabled { background: #ccc; cursor: default; }
-
-  .error { font-size: 13px; color: var(--red); text-align: center; margin-top: 0.75rem; display: none; padding: 8px; background: #fdecea; border-radius: 8px; }
-  .error.show { display: block; }
-
-  .loading-spinner { display: none; text-align: center; margin-top: 0.75rem; font-size: 13px; color: #666; }
-  .loading-spinner.show { display: block; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+  .row2 .field { margin-bottom: 0; }
+  .btn-main { width: 100%; padding: 0.9rem; border-radius: 12px; border: none; background: var(--green); color: white; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 0.25rem; font-family: var(--font-sans); transition: background 0.15s; }
+  .btn-main:hover { background: var(--green-dark); }
+  .btn-main:disabled { background: #ccc; cursor: default; }
+  .msg { font-size: 13px; text-align: center; margin-top: 0.75rem; padding: 8px 12px; border-radius: 8px; display: none; }
+  .msg.show { display: block; }
+  .msg.error { color: var(--red); background: #fdecea; }
+  .msg.success { color: var(--green-dark); background: var(--green-light); }
+  .loading-txt { display: none; text-align: center; margin-top: 0.75rem; font-size: 13px; color: #666; }
+  .loading-txt.show { display: block; }
 </style>
 </head>
 <body>
-
 <div class="logo">
   <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
   </svg>
 </div>
 <h1>Gym App</h1>
-<p class="sub">Ingresá con tu cuenta</p>
-
+<p class="sub" id="main-sub">Tu entrenamiento en un solo lugar</p>
 <div class="card">
-  <div class="field">
-    <label>Email</label>
-    <input type="email" id="login-email" placeholder="tu@email.com" autocomplete="email" />
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('login')">Ingresar</button>
+    <button class="tab-btn" onclick="switchTab('register')">Registrarse</button>
   </div>
-  <div class="field">
-    <label>Contraseña</label>
-    <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"
-      onkeydown="if(event.key==='Enter') doLogin()" />
+  <!-- LOGIN -->
+  <div class="tab-view active" id="tab-login">
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="tu@email.com" autocomplete="email" />
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()" />
+    </div>
+    <button class="btn-main" id="btn-login" onclick="doLogin()">Ingresar</button>
+    <div class="msg error" id="login-error"></div>
+    <div class="loading-txt" id="login-loading">Verificando…</div>
   </div>
-  <button class="btn-login" id="btn-login" onclick="doLogin()">Ingresar</button>
-  <div class="error" id="login-error">Email o contraseña incorrectos</div>
-  <div class="loading-spinner" id="login-loading">Verificando…</div>
+  <!-- REGISTER -->
+  <div class="tab-view" id="tab-register">
+    <div class="field">
+      <label>Nombre completo</label>
+      <input type="text" id="reg-nombre" placeholder="Tu nombre" autocomplete="name" />
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="reg-email" placeholder="tu@email.com" autocomplete="email" />
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" autocomplete="new-password" />
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Edad</label>
+        <input type="number" id="reg-edad" placeholder="25" min="10" max="99" />
+      </div>
+      <div class="field">
+        <label>Objetivo</label>
+        <input type="text" id="reg-objetivo" placeholder="Ej: Bajar peso" />
+      </div>
+    </div>
+    <button class="btn-main" id="btn-register" onclick="doRegister()">Crear cuenta</button>
+    <div class="msg error" id="register-error"></div>
+    <div class="msg success" id="register-success"></div>
+    <div class="loading-txt" id="register-loading">Creando tu cuenta…</div>
+  </div>
 </div>
-
 <script>
 const SUPABASE_URL = 'https://chbrespqluwlmzwhxjgi.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_-Jzgkul7Gt4p_dQEnrTXww_6n31yt_D';
-
-// Email del profe — solo este email va al panel de administración
 const PROFE_EMAIL = 'matiasdinardi10@gmail.com';
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn')[tab==='login'?0:1].classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('main-sub').textContent = tab === 'login' ? 'Tu entrenamiento en un solo lugar' : 'Creá tu cuenta y empezá hoy';
+}
 
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
@@ -76,75 +117,107 @@ async function doLogin() {
   const errEl = document.getElementById('login-error');
   const loadEl = document.getElementById('login-loading');
   const btn = document.getElementById('btn-login');
-
   errEl.classList.remove('show');
-
-  if (!email || !password) {
-    errEl.textContent = 'Completá email y contraseña';
-    errEl.classList.add('show');
-    return;
-  }
-
-  btn.disabled = true;
-  loadEl.classList.add('show');
-
+  if (!email || !password) { errEl.textContent = 'Completá email y contraseña'; errEl.classList.add('show'); return; }
+  btn.disabled = true; loadEl.classList.add('show');
   try {
-    // Autenticar con Supabase Auth
     const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
       body: JSON.stringify({ email, password })
     });
     const data = await r.json();
-
     if (!r.ok || data.error) {
       errEl.textContent = 'Email o contraseña incorrectos';
       errEl.classList.add('show');
-      btn.disabled = false;
-      loadEl.classList.remove('show');
+      btn.disabled = false; loadEl.classList.remove('show');
       return;
     }
-
-    // Guardar sesión
     sessionStorage.setItem('auth_token', data.access_token);
     sessionStorage.setItem('auth_email', email);
-
-    // Redirigir según rol
     if (email === PROFE_EMAIL) {
-      // Es el profe → panel de administración
       sessionStorage.setItem('rol', 'profe');
       window.location.href = 'index.html';
     } else {
-      // Es un alumno → verificar que existe en la tabla clientes
       const clienteRes = await fetch(
         `${SUPABASE_URL}/rest/v1/clientes?email=eq.${encodeURIComponent(email)}&limit=1`,
         { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + data.access_token } }
       );
       const clientes = await clienteRes.json();
-
       if (!clientes.length) {
         errEl.textContent = 'Tu cuenta no está registrada. Contactá a tu entrenador.';
         errEl.classList.add('show');
-        btn.disabled = false;
-        loadEl.classList.remove('show');
+        btn.disabled = false; loadEl.classList.remove('show');
         return;
       }
-
       sessionStorage.setItem('rol', 'alumno');
       sessionStorage.setItem('cliente_id', clientes[0].id);
       sessionStorage.setItem('cliente_nombre', clientes[0].nombre);
       window.location.href = 'cliente.html';
     }
-
   } catch(e) {
     errEl.textContent = 'Error de conexión. Intentá de nuevo.';
     errEl.classList.add('show');
-    btn.disabled = false;
-    loadEl.classList.remove('show');
+    btn.disabled = false; loadEl.classList.remove('show');
   }
 }
 
-// Si ya hay sesión guardada, redirigir directo
+async function doRegister() {
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  const password = document.getElementById('reg-password').value;
+  const edad = parseInt(document.getElementById('reg-edad').value) || null;
+  const objetivo = document.getElementById('reg-objetivo').value.trim();
+  const errEl = document.getElementById('register-error');
+  const okEl = document.getElementById('register-success');
+  const loadEl = document.getElementById('register-loading');
+  const btn = document.getElementById('btn-register');
+  errEl.classList.remove('show'); okEl.classList.remove('show');
+  if (!nombre) { errEl.textContent = 'Escribí tu nombre'; errEl.classList.add('show'); return; }
+  if (!email) { errEl.textContent = 'Escribí tu email'; errEl.classList.add('show'); return; }
+  if (!password || password.length < 6) { errEl.textContent = 'La contraseña debe tener al menos 6 caracteres'; errEl.classList.add('show'); return; }
+  btn.disabled = true; loadEl.classList.add('show');
+  try {
+    const authRes = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ email, password })
+    });
+    const authData = await authRes.json();
+    if (!authRes.ok || authData.error) {
+      errEl.textContent = authData.error?.message || 'Error al crear la cuenta. El email puede estar en uso.';
+      errEl.classList.add('show');
+      btn.disabled = false; loadEl.classList.remove('show');
+      return;
+    }
+    const TODAY = new Date().toISOString().split('T')[0];
+    const clienteRes = await fetch(`${SUPABASE_URL}/rest/v1/clientes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=representation' },
+      body: JSON.stringify({ nombre, email, edad, objetivo: objetivo || null, estado: 'nuevo', fecha_alta: TODAY })
+    });
+    if (!clienteRes.ok) {
+      errEl.textContent = 'Cuenta creada pero hubo un error al guardar tus datos. Contactá a tu entrenador.';
+      errEl.classList.add('show');
+      btn.disabled = false; loadEl.classList.remove('show');
+      return;
+    }
+    loadEl.classList.remove('show');
+    okEl.textContent = '¡Cuenta creada! Ya podés ingresar con tu email y contraseña.';
+    okEl.classList.add('show');
+    btn.disabled = false;
+    setTimeout(() => {
+      ['reg-nombre','reg-email','reg-password','reg-edad','reg-objetivo'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('login-email').value = email;
+      switchTab('login');
+    }, 2000);
+  } catch(e) {
+    errEl.textContent = 'Error de conexión. Intentá de nuevo.';
+    errEl.classList.add('show');
+    btn.disabled = false; loadEl.classList.remove('show');
+  }
+}
+
 window.onload = () => {
   const rol = sessionStorage.getItem('rol');
   const token = sessionStorage.getItem('auth_token');
