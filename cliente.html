@@ -59,6 +59,8 @@
   .day-btn.today .dd { color: var(--green); }
   .day-btn.has-ex { background: var(--green-light); border-color: #5DCAA5; }
   .day-btn.has-ex .dd { color: var(--green-dark); }
+  .day-btn.has-log { background: var(--green); border-color: var(--green); }
+  .day-btn.has-log .dd, .day-btn.has-log .dn { color: white; }
   .day-btn.selected { background: var(--green) !important; border-color: var(--green) !important; }
   .day-btn.selected .dn, .day-btn.selected .dd { color: white !important; }
 
@@ -429,15 +431,30 @@ async function initApp() {
 
 // ── DAY STRIP ──────────────────────────────────
 function buildDayStrip() {
+  // Only mark days that have actual exercises programmed
   const exDates = new Set(ejercicios.filter(e => e.fecha_sesion).map(e => e.fecha_sesion));
+  const logDates = new Set(logs.map(l => l.fecha));
   const today = new Date(); let html = '';
-  for (let i = -7; i <= 6; i++) {
+  for (let i = -14; i <= 14; i++) {
     const d = new Date(today); d.setDate(today.getDate() + i);
     const ds = d.toISOString().split('T')[0];
-    const cls = [ds===TODAY?'today':'', exDates.has(ds)?'has-ex':'', ds===selectedDate?'selected':''].filter(Boolean).join(' ');
+    const hasEx = exDates.has(ds);
+    const hasLog = logDates.has(ds);
+    const cls = [
+      ds===TODAY?'today':'',
+      hasEx&&!hasLog?'has-ex':'',
+      hasLog?'has-log':'',
+      ds===selectedDate?'selected':''
+    ].filter(Boolean).join(' ');
     html += `<div class="day-btn ${cls}" onclick="selectDay('${ds}')"><div class="dn">${DAYS[d.getDay()]}</div><div class="dd">${d.getDate()}</div></div>`;
   }
   document.getElementById('day-strip').innerHTML = html;
+  // Scroll to today
+  setTimeout(() => {
+    const strip = document.getElementById('day-strip');
+    const todayBtn = strip.querySelector('.today, .selected');
+    if (todayBtn) todayBtn.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+  }, 100);
 }
 
 function selectDay(ds) {
