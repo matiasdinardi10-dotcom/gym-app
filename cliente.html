@@ -190,8 +190,15 @@
     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
   </div>
   <div class="login-title">Mi Entrenamiento</div>
-  <div class="login-sub">Ingresá con tu cuenta</div>
-  <div class="login-card">
+
+  <!-- TAB SWITCHER -->
+  <div style="display:flex;gap:4px;background:#f0f0f0;border-radius:12px;padding:4px;width:100%;max-width:360px;margin-bottom:1.25rem">
+    <button id="tab-login" onclick="switchAuthTab('login')" style="flex:1;padding:8px;border:none;border-radius:8px;background:white;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-sans)">Ingresar</button>
+    <button id="tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:8px;border:none;border-radius:8px;background:transparent;font-size:14px;color:#888;cursor:pointer;font-family:var(--font-sans)">Registrarse</button>
+  </div>
+
+  <!-- LOGIN FORM -->
+  <div class="login-card" id="form-login">
     <div class="login-field">
       <label>Email</label>
       <input type="email" id="login-email" placeholder="tu@email.com" />
@@ -202,6 +209,29 @@
     </div>
     <button class="btn-login" onclick="doLogin()">Ingresar</button>
     <div class="login-error" id="login-error">Email o contraseña incorrectos</div>
+  </div>
+
+  <!-- REGISTER FORM -->
+  <div class="login-card" id="form-register" style="display:none">
+    <div class="login-field">
+      <label>Nombre completo</label>
+      <input type="text" id="reg-nombre" placeholder="Juan Pérez" />
+    </div>
+    <div class="login-field">
+      <label>Email</label>
+      <input type="email" id="reg-email" placeholder="tu@email.com" />
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" />
+    </div>
+    <div class="login-field">
+      <label>Confirmar contraseña</label>
+      <input type="password" id="reg-password2" placeholder="Repetí la contraseña" />
+    </div>
+    <button class="btn-login" onclick="doRegister()">Crear cuenta</button>
+    <div class="login-error" id="reg-error"></div>
+    <div id="reg-success" style="font-size:13px;color:var(--green);text-align:center;margin-top:0.75rem;display:none">✓ Cuenta creada. Ya podés ingresar.</div>
   </div>
 </div>
 
@@ -270,7 +300,9 @@ let ejercicios = [], logs = [];
 let selectedDate = TODAY;
 let sessionExs = [];
 let sessionIdx = 0;
-let sessionState = {}; // {exId: {status, comment, series:[{peso,reps,rpe}], attachments:[]}}
+let allSessionState = {}; // {date: {exId: {status, comment, series, attachments}}}
+let sessionState = {}; // current date state
+let closedSessions = new Set(); // dates that are closed
 let currentExIdForFile = null;
 
 // ── LOGIN ──────────────────────────────────────
@@ -301,6 +333,70 @@ async function doLogin() {
     sessionStorage.setItem('cliente_nombre', currentCliente.nombre);
     await initApp();
   } catch(e) { errEl.textContent = 'Error de conexión. Intentá de nuevo.'; errEl.style.display = 'block'; }
+}
+
+function switchAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('form-login').style.display = isLogin ? 'block' : 'none';
+  document.getElementById('form-register').style.display = isLogin ? 'none' : 'block';
+  document.getElementById('tab-login').style.background = isLogin ? 'white' : 'transparent';
+  document.getElementById('tab-login').style.color = isLogin ? '#111' : '#888';
+  document.getElementById('tab-register').style.background = isLogin ? 'transparent' : 'white';
+  document.getElementById('tab-register').style.color = isLogin ? '#888' : '#111';
+}
+
+async function doRegister() {
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const password2 = document.getElementById('reg-password2').value;
+  const errEl = document.getElementById('reg-error');
+  const successEl = document.getElementById('reg-success');
+  errEl.style.display = 'none'; successEl.style.display = 'none';
+
+  if (!nombre) { errEl.textContent = 'Escribí tu nombre completo'; errEl.style.display = 'block'; return; }
+  if (!email) { errEl.textContent = 'Escribí tu email'; errEl.style.display = 'block'; return; }
+  if (password.length < 6) { errEl.textContent = 'La contraseña debe tener al menos 6 caracteres'; errEl.style.display = 'block'; return; }
+  if (password !== password2) { errEl.textContent = 'Las contraseñas no coinciden'; errEl.style.display = 'block'; return; }
+
+  try {
+    // 1. Crear usuario en Supabase Auth
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await r.json();
+    if (!r.ok || data.error) {
+      errEl.textContent = data.error?.message || 'Error al crear la cuenta. Probá con otro email.';
+      errEl.style.display = 'block'; return;
+    }
+
+    // 2. Crear registro en tabla clientes
+    await dbPost('clientes', {
+      nombre,
+      email,
+      estado: 'nuevo',
+      fecha_alta: new Date().toISOString().split('T')[0],
+      aprobado: true
+    });
+
+    successEl.style.display = 'block';
+    document.getElementById('reg-nombre').value = '';
+    document.getElementById('reg-email').value = '';
+    document.getElementById('reg-password').value = '';
+    document.getElementById('reg-password2').value = '';
+
+    // Auto-switch to login after 2s
+    setTimeout(() => {
+      switchAuthTab('login');
+      document.getElementById('login-email').value = email;
+    }, 2000);
+
+  } catch(e) {
+    errEl.textContent = 'Error de conexión. Intentá de nuevo.';
+    errEl.style.display = 'block';
+  }
 }
 
 function doLogout() {
@@ -345,7 +441,14 @@ function buildDayStrip() {
 }
 
 function selectDay(ds) {
-  selectedDate = ds; buildDayStrip(); renderHome();
+  // Save current state before switching
+  allSessionState[selectedDate] = {...sessionState};
+  selectedDate = ds;
+  // Load state for new date
+  sessionState = allSessionState[selectedDate] || {};
+  sessionExs = [];
+  buildDayStrip();
+  showHome();
 }
 
 // ── HOME ───────────────────────────────────────
@@ -353,6 +456,8 @@ function showHome() {
   document.getElementById('view-home').style.display = 'block';
   document.getElementById('view-session').style.display = 'none';
   document.getElementById('view-summary').style.display = 'none';
+  // Load state for current date
+  sessionState = allSessionState[selectedDate] || {};
   renderHome();
 }
 
@@ -386,7 +491,8 @@ function renderHome() {
     const statusText = st?.status === 'done' ? '✓' : (st?.status === 'missed' ? '✕' : '›');
     const cardStyle = st?.status === 'done' ? 'border-color:#5DCAA5;background:#f0faf6' : (st?.status === 'missed' ? 'border-color:#f5a0a0;background:#fff8f8' : '');
     const comment = st?.comment || '';
-    return `<div class="ex-preview" style="cursor:pointer;${cardStyle}" onclick="openExercise(${i})">
+    const clickable = !isClosed;
+    return `<div class="ex-preview" style="cursor:${clickable?'pointer':'default'};${cardStyle}" ${clickable ? `onclick="openExercise(${i})"` : ''}>
       <div class="ex-letter">${letters[i] || (i+1)}</div>
       <div class="ex-preview-info">
         <div class="ex-preview-name">${ex.nombre}</div>
@@ -401,15 +507,20 @@ function renderHome() {
   }).join('');
 
   const allMarked = done + missed === exs.length;
+  const isClosed = closedSessions.has(selectedDate);
+
   el.innerHTML = `
     <div class="day-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem">
       <span>${dateLabel}</span>
-      <span style="font-size:12px;color:var(--text2)">${done}/${exs.length} hechos</span>
+      <span style="font-size:12px;color:${isClosed ? 'var(--green)' : 'var(--text2)'}">${isClosed ? '✓ Sesión cerrada' : done+'/'+exs.length+' hechos'}</span>
     </div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:1rem">Tocá un ejercicio para abrirlo 👇</div>
+    ${isClosed
+      ? `<div style="font-size:13px;color:var(--green-dark);background:var(--green-light);padding:10px 14px;border-radius:10px;margin-bottom:1rem">✅ Esta sesión ya fue guardada y cerrada.</div>`
+      : `<div style="font-size:13px;color:var(--text2);margin-bottom:1rem">Tocá un ejercicio para abrirlo 👇</div>`
+    }
     ${exItems}
-    ${allMarked ? `<button class="btn-start" style="background:var(--orange);margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>` : ''}
-    <button class="btn-save-session" style="margin-top:0.5rem" onclick="saveFinalSession()">💾 Guardar sesión</button>`;
+    ${!isClosed && allMarked ? `<button class="btn-start" style="background:var(--orange);margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>` : ''}
+    ${!isClosed ? `<button class="btn-save-session" style="margin-top:0.5rem" onclick="saveFinalSession()">💾 Guardar sesión</button>` : `<button class="btn-start" style="background:#888;margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>`}`;
 }
 
 // ── SESSION ────────────────────────────────────
@@ -710,9 +821,11 @@ async function saveFinalSession() {
       }
     }
 
-    showToast('Sesión guardada ✓');
+    // Mark session as closed
+    closedSessions.add(selectedDate);
+    allSessionState[selectedDate] = {...sessionState};
+    showToast('Sesión guardada y cerrada ✓');
     btn.textContent = '✓ Sesión guardada';
-    sessionState = {};
     logs = await dbGet('logs_entrenamiento', `cliente_id=eq.${currentCliente.id}&order=fecha.desc`);
     buildDayStrip();
     setTimeout(() => showHome(), 1500);
