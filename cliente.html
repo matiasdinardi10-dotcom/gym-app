@@ -24,7 +24,6 @@
   body { font-family: var(--font-sans); background: var(--bg); min-height: 100vh; }
   button, input, textarea, select { font-family: var(--font-sans); }
 
-  /* ── LOGIN ── */
   #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; }
   .login-logo { width: 72px; height: 72px; background: var(--green); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
   .login-logo svg { width: 38px; height: 38px; color: white; }
@@ -38,10 +37,7 @@
   .btn-login { width: 100%; padding: 0.9rem; border-radius: 12px; border: none; background: var(--green); color: white; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 0.5rem; }
   .login-error { font-size: 13px; color: var(--red); text-align: center; margin-top: 0.75rem; display: none; }
 
-  /* ── MAIN APP ── */
   #app { display: none; max-width: 430px; margin: 0 auto; min-height: 100vh; }
-
-  /* ── HEADER ── */
   .app-header { background: white; padding: 1rem 1.25rem 0.75rem; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 10; }
   .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
   .header-greeting { font-size: 18px; font-weight: 600; color: var(--text); }
@@ -49,7 +45,6 @@
   .btn-logout { font-size: 12px; color: var(--text2); background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
   .btn-logout:hover { background: var(--bg); }
 
-  /* DAY STRIP */
   .day-strip { display: flex; gap: 6px; overflow-x: auto; padding: 0.75rem 1.25rem; scrollbar-width: none; background: white; }
   .day-strip::-webkit-scrollbar { display: none; }
   .day-btn { flex-shrink: 0; width: 42px; text-align: center; border-radius: 10px; padding: 6px 0; cursor: pointer; border: 1px solid var(--border); background: white; }
@@ -64,7 +59,6 @@
   .day-btn.selected { background: var(--green) !important; border-color: var(--green) !important; }
   .day-btn.selected .dn, .day-btn.selected .dd { color: white !important; }
 
-  /* ── HOME VIEW ── */
   #view-home { padding: 1rem 1.25rem; }
   .day-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 1rem; text-transform: capitalize; }
   .ex-preview { background: white; border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.6rem; border: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
@@ -80,37 +74,30 @@
   .btn-start:disabled { background: #ccc; cursor: default; }
   .empty-day { text-align: center; padding: 3rem 1rem; color: var(--text2); font-size: 14px; }
 
-  /* ── SESSION VIEW ── */
   #view-session { display: none; }
   .session-header { background: white; padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 10; }
   .session-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
   .btn-exit { font-size: 14px; color: var(--text2); background: none; border: none; cursor: pointer; }
   .session-title { font-size: 14px; font-weight: 500; color: var(--text); }
-
-  /* PROGRESS DOTS */
   .progress-dots { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
   .prog-dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.2s; }
   .prog-dot.current { background: var(--green); transform: scale(1.3); }
   .prog-dot.done { background: var(--green); }
   .prog-dot.missed { background: var(--orange); }
 
-  /* CARD */
   .session-body { padding: 1rem 1.25rem; }
   .ex-card { background: white; border-radius: var(--radius); padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 1rem; }
   .ex-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
   .ex-card-letter { width: 40px; height: 40px; border-radius: 10px; background: var(--green-light); color: var(--green-dark); font-weight: 700; font-size: 17px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .ex-card-name { font-size: 18px; font-weight: 600; color: var(--text); }
   .ex-card-links { display: flex; gap: 8px; margin-top: 4px; }
-  .ex-card-link { font-size: 12px; color: var(--green); text-decoration: none; display: flex; align-items: center; gap: 3px; }
+  .ex-card-link { font-size: 12px; color: var(--green); text-decoration: none; display: flex; align-items: center; gap: 3px; cursor: pointer; }
   .ex-card-link.yt { color: #C0392B; }
-
   .ex-card-note { background: #f9f9f9; border-radius: 10px; padding: 0.75rem 1rem; font-size: 13px; color: var(--text2); margin-bottom: 1rem; border-left: 3px solid var(--green); }
-
   .ex-specs { display: flex; gap: 12px; margin-bottom: 1rem; flex-wrap: wrap; }
   .ex-spec { background: var(--bg); border-radius: 8px; padding: 6px 12px; font-size: 13px; color: var(--text); }
   .ex-spec span { font-weight: 600; }
 
-  /* SERIES */
   .series-list { margin-bottom: 1rem; }
   .series-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
   .series-row:last-child { border-bottom: none; }
@@ -120,21 +107,18 @@
   .series-input:focus { outline: none; border-color: var(--green); }
   .series-input::placeholder { color: #bbb; }
 
-  /* ATTACHMENT */
   .attach-btn { display: flex; align-items: center; gap: 8px; background: #f9f9f9; border: 1.5px dashed var(--border); border-radius: 12px; padding: 0.75rem 1rem; cursor: pointer; margin-bottom: 1rem; font-size: 13px; color: var(--text2); width: 100%; }
   .attach-btn:hover { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
   .attach-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
   .attach-thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); }
   #file-input { display: none; }
 
-  /* ACTION BUTTONS */
   .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
   .btn-missed { padding: 0.85rem; border-radius: 12px; border: 2px solid var(--red); background: white; color: var(--red); font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
   .btn-missed.active { background: var(--red); color: white; }
   .btn-completed { padding: 0.85rem; border-radius: 12px; border: 2px solid var(--green); background: white; color: var(--green-dark); font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
   .btn-completed.active { background: var(--green); color: white; }
 
-  /* COMMENT */
   .comment-wrap { display: none; margin-bottom: 1rem; }
   .comment-wrap.open { display: block; }
   .comment-wrap textarea { width: 100%; padding: 0.75rem; border-radius: 12px; border: 1.5px solid var(--border); font-size: 14px; resize: none; min-height: 80px; color: var(--text); background: #f9f9f9; }
@@ -142,7 +126,6 @@
   .comment-wrap.red textarea { border-color: var(--red); background: var(--red-light); }
   .comment-wrap textarea:focus { outline: none; }
 
-  /* HISTORY */
   .history-btn { width: 100%; padding: 0.7rem; border-radius: 12px; border: 1px solid var(--border); background: white; font-size: 13px; color: var(--text2); cursor: pointer; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 6px; }
   .history-content { display: none; background: #f9f9f9; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
   .history-content.open { display: block; }
@@ -152,13 +135,11 @@
   .history-load { font-size: 12px; color: var(--green-dark); margin-top: 2px; }
   .history-comment { font-size: 12px; color: var(--text2); margin-top: 2px; font-style: italic; }
 
-  /* NAV BUTTONS */
   .session-nav-btns { display: flex; gap: 10px; }
   .btn-prev { flex: 1; padding: 0.85rem; border-radius: 12px; border: 1px solid var(--border); background: white; font-size: 14px; color: var(--text2); cursor: pointer; }
   .btn-next { flex: 2; padding: 0.85rem; border-radius: 12px; border: none; background: var(--green); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
   .btn-summary { flex: 2; padding: 0.85rem; border-radius: 12px; border: none; background: var(--orange); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
 
-  /* ── SUMMARY VIEW ── */
   #view-summary { display: none; padding: 1rem 1.25rem; }
   .summary-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
   .back-btn { background: none; border: none; font-size: 14px; color: var(--text2); cursor: pointer; padding: 0; }
@@ -192,10 +173,10 @@
     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
   </div>
   <div class="login-title">Mi Entrenamiento</div>
+  <div class="login-sub" id="login-sub-text">Ingresá con tu cuenta</div>
 
-  <!-- TAB SWITCHER -->
   <div style="display:flex;gap:4px;background:#f0f0f0;border-radius:12px;padding:4px;width:100%;max-width:360px;margin-bottom:1.25rem">
-    <button id="tab-login" onclick="switchAuthTab('login')" style="flex:1;padding:8px;border:none;border-radius:8px;background:white;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-sans)">Ingresar</button>
+    <button id="tab-login" onclick="switchAuthTab('login')" style="flex:1;padding:8px;border:none;border-radius:8px;background:white;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-sans);color:#111">Ingresar</button>
     <button id="tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:8px;border:none;border-radius:8px;background:transparent;font-size:14px;color:#888;cursor:pointer;font-family:var(--font-sans)">Registrarse</button>
   </div>
 
@@ -203,14 +184,14 @@
   <div class="login-card" id="form-login">
     <div class="login-field">
       <label>Email</label>
-      <input type="email" id="login-email" placeholder="tu@email.com" />
+      <input type="email" id="login-email" placeholder="tu@email.com" onkeydown="if(event.key==='Enter')doLogin()" />
     </div>
     <div class="login-field">
       <label>Contraseña</label>
-      <input type="password" id="login-password" placeholder="••••••••" />
+      <input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
     </div>
     <button class="btn-login" onclick="doLogin()">Ingresar</button>
-    <div class="login-error" id="login-error">Email o contraseña incorrectos</div>
+    <div class="login-error" id="login-error"></div>
   </div>
 
   <!-- REGISTER FORM -->
@@ -228,8 +209,12 @@
       <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" />
     </div>
     <div class="login-field">
-      <label>Confirmar contraseña</label>
-      <input type="password" id="reg-password2" placeholder="Repetí la contraseña" />
+      <label>Edad</label>
+      <input type="number" id="reg-edad" placeholder="25" />
+    </div>
+    <div class="login-field">
+      <label>Objetivo</label>
+      <input type="text" id="reg-objetivo" placeholder="Ej: Bajar de peso" />
     </div>
     <button class="btn-login" onclick="doRegister()">Crear cuenta</button>
     <div class="login-error" id="reg-error"></div>
@@ -239,7 +224,6 @@
 
 <!-- APP -->
 <div id="app">
-  <!-- HEADER -->
   <div class="app-header">
     <div class="header-top">
       <div>
@@ -250,16 +234,13 @@
     </div>
   </div>
 
-  <!-- DAY STRIP -->
   <div class="day-strip" id="day-strip"></div>
 
-  <!-- HOME VIEW -->
   <div id="view-home">
     <div class="loading" id="home-loading">Cargando tu rutina…</div>
     <div id="home-content" style="display:none"></div>
   </div>
 
-  <!-- SESSION VIEW -->
   <div id="view-session">
     <div class="session-header">
       <div class="session-nav">
@@ -272,7 +253,6 @@
     <div class="session-body" id="session-body"></div>
   </div>
 
-  <!-- SUMMARY VIEW -->
   <div id="view-summary">
     <div class="summary-header">
       <button class="back-btn" onclick="showHome()">←</button>
@@ -302,22 +282,28 @@ let ejercicios = [], logs = [];
 let selectedDate = TODAY;
 let sessionExs = [];
 let sessionIdx = 0;
-let allSessionState = {}; // {date: {exId: {status, comment, series, attachments}}}
-let sessionState = {}; // current date state
-let closedSessions = new Set(); // dates that are closed
+let allSessionState = {};
+let sessionState = {};
+let closedSessions = new Set();
 let currentExIdForFile = null;
 
-// ── LOGIN ──────────────────────────────────────
+// ── AUTH ──
+function switchAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('form-login').style.display = isLogin ? 'block' : 'none';
+  document.getElementById('form-register').style.display = isLogin ? 'none' : 'block';
+  document.getElementById('tab-login').style.cssText = `flex:1;padding:8px;border:none;border-radius:8px;background:${isLogin?'white':'transparent'};font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-sans);color:${isLogin?'#111':'#888'}`;
+  document.getElementById('tab-register').style.cssText = `flex:1;padding:8px;border:none;border-radius:8px;background:${isLogin?'transparent':'white'};font-size:14px;font-weight:${isLogin?'400':'500'};cursor:pointer;font-family:var(--font-sans);color:${isLogin?'#888':'#111'}`;
+  document.getElementById('login-sub-text').textContent = isLogin ? 'Ingresá con tu cuenta' : 'Creá tu cuenta y empezá hoy';
+}
+
 async function doLogin() {
-  const email = document.getElementById('login-email').value.trim();
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
   const password = document.getElementById('login-password').value;
   const errEl = document.getElementById('login-error');
   errEl.style.display = 'none';
-
   if (!email || !password) { errEl.textContent = 'Completá email y contraseña'; errEl.style.display = 'block'; return; }
-
   try {
-    // Autenticar con Supabase Auth
     const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
@@ -326,7 +312,6 @@ async function doLogin() {
     const data = await r.json();
     if (!r.ok || data.error) { errEl.textContent = 'Email o contraseña incorrectos'; errEl.style.display = 'block'; return; }
 
-    // Buscar cliente por email
     const clientes = await dbGet('clientes', `email=eq.${encodeURIComponent(email)}&limit=1`);
     if (!clientes.length) { errEl.textContent = 'No encontramos tu cuenta. Contactá a tu entrenador.'; errEl.style.display = 'block'; return; }
 
@@ -337,101 +322,66 @@ async function doLogin() {
   } catch(e) { errEl.textContent = 'Error de conexión. Intentá de nuevo.'; errEl.style.display = 'block'; }
 }
 
-function switchAuthTab(tab) {
-  const isLogin = tab === 'login';
-  document.getElementById('form-login').style.display = isLogin ? 'block' : 'none';
-  document.getElementById('form-register').style.display = isLogin ? 'none' : 'block';
-  document.getElementById('tab-login').style.background = isLogin ? 'white' : 'transparent';
-  document.getElementById('tab-login').style.color = isLogin ? '#111' : '#888';
-  document.getElementById('tab-register').style.background = isLogin ? 'transparent' : 'white';
-  document.getElementById('tab-register').style.color = isLogin ? '#888' : '#111';
-}
-
 async function doRegister() {
   const nombre = document.getElementById('reg-nombre').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
   const password = document.getElementById('reg-password').value;
-  const password2 = document.getElementById('reg-password2').value;
+  const edad = parseInt(document.getElementById('reg-edad').value) || null;
+  const objetivo = document.getElementById('reg-objetivo').value.trim();
   const errEl = document.getElementById('reg-error');
   const successEl = document.getElementById('reg-success');
   errEl.style.display = 'none'; successEl.style.display = 'none';
 
-  if (!nombre) { errEl.textContent = 'Escribí tu nombre completo'; errEl.style.display = 'block'; return; }
+  if (!nombre) { errEl.textContent = 'Escribí tu nombre'; errEl.style.display = 'block'; return; }
   if (!email) { errEl.textContent = 'Escribí tu email'; errEl.style.display = 'block'; return; }
   if (password.length < 6) { errEl.textContent = 'La contraseña debe tener al menos 6 caracteres'; errEl.style.display = 'block'; return; }
-  if (password !== password2) { errEl.textContent = 'Las contraseñas no coinciden'; errEl.style.display = 'block'; return; }
 
   try {
-    // 1. Crear usuario en Supabase Auth
     const r = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
       body: JSON.stringify({ email, password })
     });
     const data = await r.json();
-    if (!r.ok || data.error) {
-      errEl.textContent = data.error?.message || 'Error al crear la cuenta. Probá con otro email.';
-      errEl.style.display = 'block'; return;
-    }
+    if (!r.ok || data.error) { errEl.textContent = data.error?.message || 'Error al crear la cuenta.'; errEl.style.display = 'block'; return; }
 
-    // 2. Crear registro en tabla clientes
-    await dbPost('clientes', {
-      nombre,
-      email,
-      estado: 'nuevo',
-      fecha_alta: new Date().toISOString().split('T')[0],
-      aprobado: true
-    });
+    await dbPost('clientes', { nombre, email, edad, objetivo: objetivo||null, estado: 'nuevo', fecha_alta: TODAY });
 
     successEl.style.display = 'block';
-    document.getElementById('reg-nombre').value = '';
-    document.getElementById('reg-email').value = '';
-    document.getElementById('reg-password').value = '';
-    document.getElementById('reg-password2').value = '';
-
-    // Auto-switch to login after 2s
-    setTimeout(() => {
-      switchAuthTab('login');
-      document.getElementById('login-email').value = email;
-    }, 2000);
-
-  } catch(e) {
-    errEl.textContent = 'Error de conexión. Intentá de nuevo.';
-    errEl.style.display = 'block';
-  }
+    ['reg-nombre','reg-email','reg-password','reg-edad','reg-objetivo'].forEach(id => document.getElementById(id).value = '');
+    setTimeout(() => { switchAuthTab('login'); document.getElementById('login-email').value = email; }, 2000);
+  } catch(e) { errEl.textContent = 'Error de conexión. Intentá de nuevo.'; errEl.style.display = 'block'; }
 }
 
 function doLogout() {
   sessionStorage.clear();
   currentCliente = null;
+  ejercicios = []; logs = [];
+  allSessionState = {}; sessionState = {};
+  closedSessions = new Set();
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
 }
 
-// ── INIT APP ───────────────────────────────────
+// ── INIT ──
 async function initApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-
   document.getElementById('header-name').textContent = 'Hola, ' + currentCliente.nombre.split(' ')[0] + ' 👋';
   const now = new Date();
   document.getElementById('header-date').textContent = now.toLocaleDateString('es-UY', {weekday:'long', day:'numeric', month:'long'});
 
-  // Cargar ejercicios y logs del cliente
   const rutinas = await dbGet('rutinas', `cliente_id=eq.${currentCliente.id}`);
   const rutinaIds = rutinas.map(r => r.id);
-  if (rutinaIds.length) {
-    ejercicios = await dbGet('ejercicios', `rutina_id=in.(${rutinaIds.join(',')})&order=id.asc`);
-  } else { ejercicios = []; }
+  ejercicios = rutinaIds.length ? await dbGet('ejercicios', `rutina_id=in.(${rutinaIds.join(',')})&order=id.asc`) : [];
   logs = await dbGet('logs_entrenamiento', `cliente_id=eq.${currentCliente.id}&order=fecha.desc`);
 
   buildDayStrip();
   showHome();
 }
 
-// ── DAY STRIP ──────────────────────────────────
+// ── DAY STRIP ──
 function buildDayStrip() {
-  // Only mark days that have actual exercises programmed
   const exDates = new Set(ejercicios.filter(e => e.fecha_sesion).map(e => e.fecha_sesion));
   const logDates = new Set(logs.map(l => l.fecha));
   const today = new Date(); let html = '';
@@ -440,40 +390,31 @@ function buildDayStrip() {
     const ds = d.toISOString().split('T')[0];
     const hasEx = exDates.has(ds);
     const hasLog = logDates.has(ds);
-    const cls = [
-      ds===TODAY?'today':'',
-      hasEx&&!hasLog?'has-ex':'',
-      hasLog?'has-log':'',
-      ds===selectedDate?'selected':''
-    ].filter(Boolean).join(' ');
+    const cls = [ds===TODAY?'today':'', hasEx&&!hasLog?'has-ex':'', hasLog?'has-log':'', ds===selectedDate?'selected':''].filter(Boolean).join(' ');
     html += `<div class="day-btn ${cls}" onclick="selectDay('${ds}')"><div class="dn">${DAYS[d.getDay()]}</div><div class="dd">${d.getDate()}</div></div>`;
   }
   document.getElementById('day-strip').innerHTML = html;
-  // Scroll to today
   setTimeout(() => {
     const strip = document.getElementById('day-strip');
-    const todayBtn = strip.querySelector('.today, .selected');
-    if (todayBtn) todayBtn.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+    const sel = strip.querySelector('.selected') || strip.querySelector('.today');
+    if (sel) sel.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
   }, 100);
 }
 
 function selectDay(ds) {
-  // Save current state before switching
   allSessionState[selectedDate] = {...sessionState};
   selectedDate = ds;
-  // Load state for new date
   sessionState = allSessionState[selectedDate] || {};
   sessionExs = [];
   buildDayStrip();
   showHome();
 }
 
-// ── HOME ───────────────────────────────────────
+// ── HOME ──
 function showHome() {
   document.getElementById('view-home').style.display = 'block';
   document.getElementById('view-session').style.display = 'none';
   document.getElementById('view-summary').style.display = 'none';
-  // Load state for current date
   sessionState = allSessionState[selectedDate] || {};
   renderHome();
 }
@@ -497,9 +438,12 @@ function renderHome() {
   });
   sessionExs = exs;
 
+  // ← FIX: isClosed declarado ANTES de usarlo
+  const isClosed = closedSessions.has(selectedDate);
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const done = exs.filter(e => sessionState[e.id]?.status === 'done').length;
   const missed = exs.filter(e => sessionState[e.id]?.status === 'missed').length;
+  const allMarked = done + missed === exs.length;
 
   const exItems = exs.map((ex, i) => {
     const tags = [ex.series ? ex.series + ' reps' : '', ex.peso, ex.tiempo].filter(Boolean).join(' · ');
@@ -508,8 +452,7 @@ function renderHome() {
     const statusText = st?.status === 'done' ? '✓' : (st?.status === 'missed' ? '✕' : '›');
     const cardStyle = st?.status === 'done' ? 'border-color:#5DCAA5;background:#f0faf6' : (st?.status === 'missed' ? 'border-color:#f5a0a0;background:#fff8f8' : '');
     const comment = st?.comment || '';
-    const clickable = !isClosed;
-    return `<div class="ex-preview" style="cursor:${clickable?'pointer':'default'};${cardStyle}" ${clickable ? `onclick="openExercise(${i})"` : ''}>
+    return `<div class="ex-preview" style="cursor:${!isClosed?'pointer':'default'};${cardStyle}" ${!isClosed ? `onclick="openExercise(${i})"` : ''}>
       <div class="ex-letter">${letters[i] || (i+1)}</div>
       <div class="ex-preview-info">
         <div class="ex-preview-name">${ex.nombre}</div>
@@ -523,16 +466,13 @@ function renderHome() {
     </div>`;
   }).join('');
 
-  const allMarked = done + missed === exs.length;
-  const isClosed = closedSessions.has(selectedDate);
-
   el.innerHTML = `
     <div class="day-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem">
       <span>${dateLabel}</span>
-      <span style="font-size:12px;color:${isClosed ? 'var(--green)' : 'var(--text2)'}">${isClosed ? '✓ Sesión cerrada' : done+'/'+exs.length+' hechos'}</span>
+      <span style="font-size:12px;color:${isClosed?'var(--green)':'var(--text2)'}">${isClosed ? '✓ Sesión guardada' : done+'/'+exs.length+' hechos'}</span>
     </div>
     ${isClosed
-      ? `<div style="font-size:13px;color:var(--green-dark);background:var(--green-light);padding:10px 14px;border-radius:10px;margin-bottom:1rem">✅ Esta sesión ya fue guardada y cerrada.</div>`
+      ? `<div style="font-size:13px;color:var(--green-dark);background:var(--green-light);padding:10px 14px;border-radius:10px;margin-bottom:1rem">✅ Esta sesión ya fue guardada.</div>`
       : `<div style="font-size:13px;color:var(--text2);margin-bottom:1rem">Tocá un ejercicio para abrirlo 👇</div>`
     }
     ${exItems}
@@ -540,7 +480,7 @@ function renderHome() {
     ${!isClosed ? `<button class="btn-save-session" style="margin-top:0.5rem" onclick="saveFinalSession()">💾 Guardar sesión</button>` : `<button class="btn-start" style="background:#888;margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>`}`;
 }
 
-// ── SESSION ────────────────────────────────────
+// ── SESSION ──
 function openExercise(idx) {
   sessionIdx = idx;
   document.getElementById('view-home').style.display = 'none';
@@ -555,18 +495,6 @@ function showSummaryFromHome() {
   showSummary();
 }
 
-function startSession() {
-  sessionExs = ejercicios.filter(e => e.fecha_sesion === selectedDate);
-  if (!sessionExs.length) return;
-  sessionIdx = 0;
-  sessionExs.forEach(ex => {
-    if (!sessionState[ex.id]) sessionState[ex.id] = { status: null, comment: '', series: [], attachments: [] };
-  });
-  document.getElementById('view-home').style.display = 'none';
-  document.getElementById('view-session').style.display = 'block';
-  renderCard();
-}
-
 function renderCard() {
   const ex = sessionExs[sessionIdx];
   const state = sessionState[ex.id];
@@ -574,7 +502,6 @@ function renderCard() {
   const letter = letters[sessionIdx] || (sessionIdx + 1);
   const isLast = sessionIdx === sessionExs.length - 1;
 
-  // Progress dots
   document.getElementById('session-counter').textContent = `${sessionIdx + 1}/${sessionExs.length}`;
   document.getElementById('progress-dots').innerHTML = sessionExs.map((e, i) => {
     const st = sessionState[e.id];
@@ -585,11 +512,9 @@ function renderCard() {
     return `<div class="prog-dot ${cls}"></div>`;
   }).join('');
 
-  // Series del log anterior
   const prevLog = logs.find(l => l.ejercicio_id === ex.id);
   const numSeries = parseInt(ex.series) || 3;
 
-  // Series inputs
   let seriesHtml = '';
   for (let s = 0; s < numSeries; s++) {
     const sv = state.series[s] || {};
@@ -603,24 +528,15 @@ function renderCard() {
     </div>`;
   }
 
-  // Historial
   const exLogs = logs.filter(l => l.ejercicio_id === ex.id).slice(0, 5);
-  let histHtml = '';
-  if (exLogs.length) {
-    histHtml = exLogs.map(l => {
-      const d = new Date(l.fecha + 'T00:00:00').toLocaleDateString('es-UY', {weekday:'short', day:'numeric', month:'short'});
-      const load = [l.series_realizadas, l.peso_usado, l.rpe].filter(Boolean).join(' · ');
-      return `<div class="history-entry">
-        <div class="history-date">📅 ${d}</div>
-        ${load ? `<div class="history-load">${load}</div>` : ''}
-        ${l.nota ? `<div class="history-comment">"${l.nota}"</div>` : ''}
-      </div>`;
-    }).join('');
-  }
+  let histHtml = exLogs.map(l => {
+    const d = new Date(l.fecha + 'T00:00:00').toLocaleDateString('es-UY', {weekday:'short', day:'numeric', month:'short'});
+    const load = [l.series_realizadas, l.peso_usado, l.rpe].filter(Boolean).join(' · ');
+    return `<div class="history-entry"><div class="history-date">📅 ${d}</div>${load?`<div class="history-load">${load}</div>`:''}</div>`;
+  }).join('');
 
-  // Attachments preview
   let attachHtml = '';
-  if (state.attachments && state.attachments.length) {
+  if (state.attachments?.length) {
     attachHtml = `<div class="attach-preview">${state.attachments.map(a => `<img class="attach-thumb" src="${a}" />`).join('')}</div>`;
   }
 
@@ -639,46 +555,27 @@ function renderCard() {
           </div>
         </div>
       </div>
-
       ${ex.nota ? `<div class="ex-card-note">${ex.nota}</div>` : ''}
-
       ${prevLog ? `<div style="font-size:11px;color:var(--green-dark);background:var(--green-light);padding:6px 10px;border-radius:8px;margin-bottom:1rem">📊 Última vez: ${[prevLog.series_realizadas,prevLog.peso_usado,prevLog.rpe].filter(Boolean).join(' · ')}</div>` : ''}
-
       <div class="series-list">${seriesHtml}</div>
-
-      ${histHtml ? `
-        <button class="history-btn" onclick="toggleHistory('hist-${ex.id}')">🕐 Ver historial de este ejercicio</button>
-        <div class="history-content" id="hist-${ex.id}">${histHtml}</div>
-      ` : ''}
-
-      <label class="attach-btn" onclick="openFileInput(${ex.id})">
-        📎 Adjuntar foto o video
-      </label>
+      ${histHtml ? `<button class="history-btn" onclick="toggleHistory('hist-${ex.id}')">🕐 Ver historial</button><div class="history-content" id="hist-${ex.id}">${histHtml}</div>` : ''}
+      <label class="attach-btn" onclick="openFileInput(${ex.id})">📎 Adjuntar foto o video</label>
       ${attachHtml}
-
       <div class="action-btns">
         <button class="btn-missed ${state.status==='missed'?'active':''}" onclick="setStatus('missed')">✕ No completado</button>
         <button class="btn-completed ${state.status==='done'?'active':''}" onclick="setStatus('done')">✓ Completado</button>
       </div>
-
       <div class="comment-wrap ${commentOpen} ${commentColor}" id="comment-wrap">
-        <textarea id="ex-comment" placeholder="${state.status==='done'?'¿Cómo te fue? Dejá un comentario...':'¿Qué pasó? ¿Alguna dificultad?'}">${state.comment||''}</textarea>
+        <textarea id="ex-comment" placeholder="${state.status==='done'?'¿Cómo te fue?':'¿Qué pasó?'}">${state.comment||''}</textarea>
       </div>
     </div>
-
     <div class="session-nav-btns">
       ${sessionIdx > 0 ? `<button class="btn-prev" onclick="navSession(-1)">← Anterior</button>` : '<div></div>'}
-      ${isLast
-        ? `<button class="btn-summary" onclick="saveCardAndSummary()">Ver resumen →</button>`
-        : `<button class="btn-next" onclick="saveCardAndNext()">Siguiente →</button>`
-      }
+      ${isLast ? `<button class="btn-summary" onclick="saveCardAndSummary()">Ver resumen →</button>` : `<button class="btn-next" onclick="saveCardAndNext()">Siguiente →</button>`}
     </div>`;
 }
 
-function toggleHistory(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.toggle('open');
-}
+function toggleHistory(id) { const el = document.getElementById(id); if (el) el.classList.toggle('open'); }
 
 function setStatus(status) {
   const ex = sessionExs[sessionIdx];
@@ -694,7 +591,6 @@ function setStatus(status) {
 function saveCurrentCard() {
   const ex = sessionExs[sessionIdx];
   const state = sessionState[ex.id];
-  // Guardar series
   const numSeries = parseInt(ex.series) || 3;
   state.series = [];
   for (let s = 0; s < numSeries; s++) {
@@ -707,39 +603,12 @@ function saveCurrentCard() {
   state.comment = document.getElementById('ex-comment')?.value.trim() || '';
 }
 
-function saveCardAndNext() {
-  saveCurrentCard();
-  sessionIdx++;
-  renderCard();
-  window.scrollTo(0, 0);
-}
+function saveCardAndNext() { saveCurrentCard(); sessionIdx++; renderCard(); window.scrollTo(0, 0); }
+function saveCardAndSummary() { saveCurrentCard(); showSummary(); }
+function navSession(dir) { saveCurrentCard(); sessionIdx = Math.max(0, sessionIdx + dir); renderCard(); window.scrollTo(0, 0); }
+function exitSession() { saveCurrentCard(); document.getElementById('view-session').style.display = 'none'; document.getElementById('view-summary').style.display = 'none'; showHome(); }
 
-function saveCardAndSummary() {
-  saveCurrentCard();
-  showSummary();
-}
-
-function navSession(dir) {
-  saveCurrentCard();
-  sessionIdx += dir;
-  if (sessionIdx < 0) sessionIdx = 0;
-  renderCard();
-  window.scrollTo(0, 0);
-}
-
-function exitSession() {
-  saveCurrentCard();
-  document.getElementById('view-session').style.display = 'none';
-  document.getElementById('view-summary').style.display = 'none';
-  showHome();
-}
-
-// FILE UPLOAD
-function openFileInput(exId) {
-  currentExIdForFile = exId;
-  document.getElementById('file-input').click();
-}
-
+function openFileInput(exId) { currentExIdForFile = exId; document.getElementById('file-input').click(); }
 function handleFileUpload(event) {
   const files = event.target.files;
   if (!files.length || !currentExIdForFile) return;
@@ -747,24 +616,19 @@ function handleFileUpload(event) {
   if (!state.attachments) state.attachments = [];
   Array.from(files).forEach(file => {
     const reader = new FileReader();
-    reader.onload = (e) => {
-      state.attachments.push(e.target.result);
-      if (sessionExs[sessionIdx]?.id === currentExIdForFile) renderCard();
-    };
+    reader.onload = (e) => { state.attachments.push(e.target.result); if (sessionExs[sessionIdx]?.id === currentExIdForFile) renderCard(); };
     reader.readAsDataURL(file);
   });
   event.target.value = '';
 }
 
-// ── SUMMARY ────────────────────────────────────
+// ── SUMMARY ──
 function showSummary() {
   document.getElementById('view-session').style.display = 'none';
   document.getElementById('view-summary').style.display = 'block';
-
   const done = sessionExs.filter(e => sessionState[e.id]?.status === 'done').length;
   const missed = sessionExs.filter(e => sessionState[e.id]?.status === 'missed').length;
   const pending = sessionExs.length - done - missed;
-
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const items = sessionExs.map((ex, i) => {
     const st = sessionState[ex.id];
@@ -772,9 +636,8 @@ function showSummary() {
     const statusLabel = status === 'done' ? 'Completado' : (status === 'missed' ? 'No completado' : 'Pendiente');
     const statusCls = status === 'done' ? 'done' : (status === 'missed' ? 'missed' : '');
     const seriesSummary = st?.series?.filter(s => s.peso || s.reps).map((s, si) =>
-      `S${si+1}: ${[s.peso ? s.peso+'kg' : '', s.reps ? s.reps+' reps' : '', s.rpe ? 'RPE '+s.rpe : ''].filter(Boolean).join(' · ')}`
+      `S${si+1}: ${[s.peso?s.peso+'kg':'', s.reps?s.reps+' reps':'', s.rpe?'RPE '+s.rpe:''].filter(Boolean).join(' · ')}`
     ).join('<br>') || '';
-
     return `<div class="summary-item">
       <div class="summary-item-name">
         <span style="background:var(--green-light);color:var(--green-dark);width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px">${letters[i]}</span>
@@ -785,7 +648,6 @@ function showSummary() {
       ${st?.comment ? `<div class="summary-comment">"${st.comment}"</div>` : ''}
     </div>`;
   }).join('');
-
   document.getElementById('summary-content').innerHTML = `
     <div class="summary-stats">
       <div class="stat-card"><div class="stat-num green">${done}</div><div class="stat-label">Completados</div></div>
@@ -796,52 +658,30 @@ function showSummary() {
 }
 
 async function saveFinalSession() {
-  // Can be called from home or summary
   document.getElementById('view-home').style.display = 'none';
   document.getElementById('view-summary').style.display = 'block';
   const btn = document.getElementById('btn-save-session');
   btn.disabled = true; btn.textContent = 'Guardando…';
-
   try {
     for (const ex of sessionExs) {
       const st = sessionState[ex.id];
       if (!st) continue;
-
-      // Guardar log de cargas
       const seriesSummary = st.series?.filter(s => s.peso || s.reps).map((s, i) =>
-        `S${i+1}: ${[s.peso, s.reps ? s.reps+' reps' : '', s.rpe ? 'RPE '+s.rpe : ''].filter(Boolean).join(' ')}`
+        `S${i+1}: ${[s.peso, s.reps?s.reps+' reps':'', s.rpe?'RPE '+s.rpe:''].filter(Boolean).join(' ')}`
       ).join(' | ') || null;
-
       const existing = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
       if (existing) {
-        await dbPatch('logs_entrenamiento', existing.id, {
-          series_realizadas: seriesSummary,
-          peso_usado: st.series?.[0]?.peso || null,
-          rpe: st.series?.[0]?.rpe || null,
-          nota: st.comment || null
-        });
+        await dbPatch('logs_entrenamiento', existing.id, { series_realizadas: seriesSummary, peso_usado: st.series?.[0]?.peso||null, rpe: st.series?.[0]?.rpe||null, nota: st.comment||null });
       } else {
-        await dbPost('logs_entrenamiento', {
-          cliente_id: currentCliente.id,
-          ejercicio_id: ex.id,
-          fecha: selectedDate,
-          series_realizadas: seriesSummary,
-          peso_usado: st.series?.[0]?.peso || null,
-          rpe: st.series?.[0]?.rpe || null,
-          nota: st.comment || null
-        });
+        await dbPost('logs_entrenamiento', { cliente_id: currentCliente.id, ejercicio_id: ex.id, fecha: selectedDate, series_realizadas: seriesSummary, peso_usado: st.series?.[0]?.peso||null, rpe: st.series?.[0]?.rpe||null, nota: st.comment||null });
       }
-
-      // Guardar devolución en ejercicio
-      if (st.comment) {
-        await dbPatch('ejercicios', ex.id, { devolucion: st.comment, completado: st.status === 'done' });
+      if (st.comment || st.status) {
+        await dbPatch('ejercicios', ex.id, { devolucion: st.comment||null, completado: st.status === 'done' });
       }
     }
-
-    // Mark session as closed
     closedSessions.add(selectedDate);
     allSessionState[selectedDate] = {...sessionState};
-    showToast('Sesión guardada y cerrada ✓');
+    showToast('Sesión guardada ✓');
     btn.textContent = '✓ Sesión guardada';
     logs = await dbGet('logs_entrenamiento', `cliente_id=eq.${currentCliente.id}&order=fecha.desc`);
     buildDayStrip();
@@ -849,6 +689,7 @@ async function saveFinalSession() {
   } catch(e) {
     btn.disabled = false; btn.textContent = '💾 Guardar sesión del día';
     showToast('Error al guardar', true);
+    console.error(e);
   }
 }
 
@@ -858,7 +699,6 @@ function showToast(msg, err=false) {
   t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// Auto-login si hay sesión guardada
 window.onload = async () => {
   const cid = sessionStorage.getItem('cliente_id');
   if (cid) {
