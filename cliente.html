@@ -14,7 +14,6 @@
     --red-light: #FDECEA;
     --orange: #E67E22;
     --bg: #f2f2f7;
-    --card-bg: #fff;
     --text: #111;
     --text2: #666;
     --border: #e8e8e8;
@@ -39,39 +38,36 @@
 
   #app { display: none; max-width: 430px; margin: 0 auto; min-height: 100vh; }
   .app-header { background: white; padding: 1rem 1.25rem 0.75rem; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 10; }
-  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; }
   .header-greeting { font-size: 18px; font-weight: 600; color: var(--text); }
-  .header-date { font-size: 13px; color: var(--text2); }
+  .header-date { font-size: 13px; color: var(--text2); margin-top: 2px; }
   .btn-logout { font-size: 12px; color: var(--text2); background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
-  .btn-logout:hover { background: var(--bg); }
 
-  .day-strip { display: flex; gap: 6px; overflow-x: auto; padding: 0.75rem 1.25rem; scrollbar-width: none; background: white; }
+  .day-strip { display: flex; gap: 6px; overflow-x: auto; padding: 0.75rem 1.25rem; scrollbar-width: none; background: white; border-bottom: 0.5px solid var(--border); }
   .day-strip::-webkit-scrollbar { display: none; }
-  .day-btn { flex-shrink: 0; width: 42px; text-align: center; border-radius: 10px; padding: 6px 0; cursor: pointer; border: 1px solid var(--border); background: white; }
+  .day-btn { flex-shrink: 0; width: 44px; text-align: center; border-radius: 10px; padding: 6px 0; cursor: pointer; border: 1px solid var(--border); background: white; }
   .day-btn .dn { font-size: 10px; color: var(--text2); }
   .day-btn .dd { font-size: 15px; font-weight: 500; color: var(--text); }
   .day-btn.today { border-color: var(--green); }
   .day-btn.today .dd { color: var(--green); }
   .day-btn.has-ex { background: var(--green-light); border-color: #5DCAA5; }
   .day-btn.has-ex .dd { color: var(--green-dark); }
-  .day-btn.has-log { background: var(--green); border-color: var(--green); }
-  .day-btn.has-log .dd, .day-btn.has-log .dn { color: white; }
-  .day-btn.selected { background: var(--green) !important; border-color: var(--green) !important; }
-  .day-btn.selected .dn, .day-btn.selected .dd { color: white !important; }
+  .day-btn.is-done { background: var(--green); border-color: var(--green); }
+  .day-btn.is-done .dd, .day-btn.is-done .dn { color: white; }
+  .day-btn.selected { outline: 2px solid var(--green); outline-offset: 2px; }
 
   #view-home { padding: 1rem 1.25rem; }
-  .day-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 1rem; text-transform: capitalize; }
-  .ex-preview { background: white; border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.6rem; border: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .ex-preview { background: white; border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.6rem; border: 1px solid var(--border); display: flex; align-items: center; gap: 12px; transition: border-color 0.2s; }
+  .ex-preview.done { border-color: #5DCAA5; background: #f0faf6; }
+  .ex-preview.missed { border-color: #f5a0a0; background: #fff8f8; }
   .ex-letter { width: 32px; height: 32px; border-radius: 8px; background: var(--green-light); color: var(--green-dark); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .ex-preview-info { flex: 1; }
+  .ex-preview-info { flex: 1; min-width: 0; }
   .ex-preview-name { font-size: 14px; font-weight: 500; color: var(--text); }
   .ex-preview-tags { font-size: 12px; color: var(--text2); margin-top: 2px; }
   .ex-status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
   .dot-done { background: var(--green); }
   .dot-missed { background: var(--red); }
   .dot-pending { background: #ccc; }
-  .btn-start { width: 100%; padding: 0.9rem; border-radius: 14px; border: none; background: var(--green); color: white; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 0.75rem; }
-  .btn-start:disabled { background: #ccc; cursor: default; }
   .empty-day { text-align: center; padding: 3rem 1rem; color: var(--text2); font-size: 14px; }
 
   #view-session { display: none; }
@@ -90,13 +86,10 @@
   .ex-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
   .ex-card-letter { width: 40px; height: 40px; border-radius: 10px; background: var(--green-light); color: var(--green-dark); font-weight: 700; font-size: 17px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .ex-card-name { font-size: 18px; font-weight: 600; color: var(--text); }
-  .ex-card-links { display: flex; gap: 8px; margin-top: 4px; }
+  .ex-card-links { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
   .ex-card-link { font-size: 12px; color: var(--green); text-decoration: none; display: flex; align-items: center; gap: 3px; cursor: pointer; }
   .ex-card-link.yt { color: #C0392B; }
   .ex-card-note { background: #f9f9f9; border-radius: 10px; padding: 0.75rem 1rem; font-size: 13px; color: var(--text2); margin-bottom: 1rem; border-left: 3px solid var(--green); }
-  .ex-specs { display: flex; gap: 12px; margin-bottom: 1rem; flex-wrap: wrap; }
-  .ex-spec { background: var(--bg); border-radius: 8px; padding: 6px 12px; font-size: 13px; color: var(--text); }
-  .ex-spec span { font-weight: 600; }
 
   .series-list { margin-bottom: 1rem; }
   .series-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
@@ -108,7 +101,6 @@
   .series-input::placeholder { color: #bbb; }
 
   .attach-btn { display: flex; align-items: center; gap: 8px; background: #f9f9f9; border: 1.5px dashed var(--border); border-radius: 12px; padding: 0.75rem 1rem; cursor: pointer; margin-bottom: 1rem; font-size: 13px; color: var(--text2); width: 100%; }
-  .attach-btn:hover { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
   .attach-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
   .attach-thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); }
   #file-input { display: none; }
@@ -131,7 +123,7 @@
   .history-content.open { display: block; }
   .history-entry { padding: 0.6rem 0; border-bottom: 0.5px solid var(--border); }
   .history-entry:last-child { border-bottom: none; }
-  .history-date { font-size: 11px; color: var(--text2); font-weight: 600; text-transform: capitalize; }
+  .history-date { font-size: 11px; color: var(--text2); font-weight: 600; }
   .history-load { font-size: 12px; color: var(--green-dark); margin-top: 2px; }
   .history-comment { font-size: 12px; color: var(--text2); margin-top: 2px; font-style: italic; }
 
@@ -163,6 +155,8 @@
   .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--green); color: white; padding: 0.6rem 1.2rem; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; white-space: nowrap; }
   .toast.show { opacity: 1; }
   .toast.error { background: var(--red); }
+
+  .session-closed-banner { font-size: 13px; color: var(--green-dark); background: var(--green-light); padding: 10px 14px; border-radius: 10px; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
 </style>
 </head>
 <body>
@@ -180,42 +174,19 @@
     <button id="tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:8px;border:none;border-radius:8px;background:transparent;font-size:14px;color:#888;cursor:pointer;font-family:var(--font-sans)">Registrarse</button>
   </div>
 
-  <!-- LOGIN FORM -->
   <div class="login-card" id="form-login">
-    <div class="login-field">
-      <label>Email</label>
-      <input type="email" id="login-email" placeholder="tu@email.com" onkeydown="if(event.key==='Enter')doLogin()" />
-    </div>
-    <div class="login-field">
-      <label>Contraseña</label>
-      <input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
-    </div>
+    <div class="login-field"><label>Email</label><input type="email" id="login-email" placeholder="tu@email.com" onkeydown="if(event.key==='Enter')doLogin()" /></div>
+    <div class="login-field"><label>Contraseña</label><input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" /></div>
     <button class="btn-login" onclick="doLogin()">Ingresar</button>
     <div class="login-error" id="login-error"></div>
   </div>
 
-  <!-- REGISTER FORM -->
   <div class="login-card" id="form-register" style="display:none">
-    <div class="login-field">
-      <label>Nombre completo</label>
-      <input type="text" id="reg-nombre" placeholder="Juan Pérez" />
-    </div>
-    <div class="login-field">
-      <label>Email</label>
-      <input type="email" id="reg-email" placeholder="tu@email.com" />
-    </div>
-    <div class="login-field">
-      <label>Contraseña</label>
-      <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" />
-    </div>
-    <div class="login-field">
-      <label>Edad</label>
-      <input type="number" id="reg-edad" placeholder="25" />
-    </div>
-    <div class="login-field">
-      <label>Objetivo</label>
-      <input type="text" id="reg-objetivo" placeholder="Ej: Bajar de peso" />
-    </div>
+    <div class="login-field"><label>Nombre completo</label><input type="text" id="reg-nombre" placeholder="Juan Pérez" /></div>
+    <div class="login-field"><label>Email</label><input type="email" id="reg-email" placeholder="tu@email.com" /></div>
+    <div class="login-field"><label>Contraseña</label><input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" /></div>
+    <div class="login-field"><label>Edad</label><input type="number" id="reg-edad" placeholder="25" /></div>
+    <div class="login-field"><label>Objetivo</label><input type="text" id="reg-objetivo" placeholder="Ej: Bajar de peso" /></div>
     <button class="btn-login" onclick="doRegister()">Crear cuenta</button>
     <div class="login-error" id="reg-error"></div>
     <div id="reg-success" style="font-size:13px;color:var(--green);text-align:center;margin-top:0.75rem;display:none">✓ Cuenta creada. Ya podés ingresar.</div>
@@ -238,7 +209,7 @@
 
   <div id="view-home">
     <div class="loading" id="home-loading">Cargando tu rutina…</div>
-    <div id="home-content" style="display:none"></div>
+    <div id="home-content" style="display:none;padding:1rem 1.25rem"></div>
   </div>
 
   <div id="view-session">
@@ -277,22 +248,31 @@ async function dbPatch(t,id,b){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}
 
 const TODAY = new Date().toISOString().split('T')[0];
 const DAYS = ['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
+
 let currentCliente = null;
 let ejercicios = [], logs = [];
 let selectedDate = TODAY;
 let sessionExs = [];
 let sessionIdx = 0;
-let allSessionState = {};
-let sessionState = {};
-let closedSessions = new Set();
+let sessionState = {}; // {exId: {status, comment, series, attachments}}
 let currentExIdForFile = null;
 
-// ── AUTH ──
+// ─── Determina si un día está cerrado leyendo la BD ───────────────
+// Un día está cerrado si TODOS sus ejercicios tienen completado != null
+// (TRUE = completado, FALSE = no completado, ambos implican que fue guardado)
+function isDayClosed(date) {
+  const exs = ejercicios.filter(e => e.fecha_sesion === date);
+  if (!exs.length) return false;
+  // Si existe al menos un log para esa fecha, la sesión ya fue guardada
+  return logs.some(l => l.fecha === date && exs.some(e => e.id === l.ejercicio_id));
+}
+
+// ─── AUTH ──────────────────────────────────────────────────────────
 function switchAuthTab(tab) {
   const isLogin = tab === 'login';
   document.getElementById('form-login').style.display = isLogin ? 'block' : 'none';
   document.getElementById('form-register').style.display = isLogin ? 'none' : 'block';
-  document.getElementById('tab-login').style.cssText = `flex:1;padding:8px;border:none;border-radius:8px;background:${isLogin?'white':'transparent'};font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-sans);color:${isLogin?'#111':'#888'}`;
+  document.getElementById('tab-login').style.cssText = `flex:1;padding:8px;border:none;border-radius:8px;background:${isLogin?'white':'transparent'};font-size:14px;font-weight:${isLogin?'500':'400'};cursor:pointer;font-family:var(--font-sans);color:${isLogin?'#111':'#888'}`;
   document.getElementById('tab-register').style.cssText = `flex:1;padding:8px;border:none;border-radius:8px;background:${isLogin?'transparent':'white'};font-size:14px;font-weight:${isLogin?'400':'500'};cursor:pointer;font-family:var(--font-sans);color:${isLogin?'#888':'#111'}`;
   document.getElementById('login-sub-text').textContent = isLogin ? 'Ingresá con tu cuenta' : 'Creá tu cuenta y empezá hoy';
 }
@@ -305,19 +285,15 @@ async function doLogin() {
   if (!email || !password) { errEl.textContent = 'Completá email y contraseña'; errEl.style.display = 'block'; return; }
   try {
     const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
-      body: JSON.stringify({ email, password })
+      method:'POST', headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},
+      body: JSON.stringify({email, password})
     });
     const data = await r.json();
     if (!r.ok || data.error) { errEl.textContent = 'Email o contraseña incorrectos'; errEl.style.display = 'block'; return; }
-
     const clientes = await dbGet('clientes', `email=eq.${encodeURIComponent(email)}&limit=1`);
     if (!clientes.length) { errEl.textContent = 'No encontramos tu cuenta. Contactá a tu entrenador.'; errEl.style.display = 'block'; return; }
-
     currentCliente = clientes[0];
     sessionStorage.setItem('cliente_id', currentCliente.id);
-    sessionStorage.setItem('cliente_nombre', currentCliente.nombre);
     await initApp();
   } catch(e) { errEl.textContent = 'Error de conexión. Intentá de nuevo.'; errEl.style.display = 'block'; }
 }
@@ -331,22 +307,17 @@ async function doRegister() {
   const errEl = document.getElementById('reg-error');
   const successEl = document.getElementById('reg-success');
   errEl.style.display = 'none'; successEl.style.display = 'none';
-
   if (!nombre) { errEl.textContent = 'Escribí tu nombre'; errEl.style.display = 'block'; return; }
   if (!email) { errEl.textContent = 'Escribí tu email'; errEl.style.display = 'block'; return; }
   if (password.length < 6) { errEl.textContent = 'La contraseña debe tener al menos 6 caracteres'; errEl.style.display = 'block'; return; }
-
   try {
     const r = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
-      body: JSON.stringify({ email, password })
+      method:'POST', headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},
+      body: JSON.stringify({email, password})
     });
     const data = await r.json();
     if (!r.ok || data.error) { errEl.textContent = data.error?.message || 'Error al crear la cuenta.'; errEl.style.display = 'block'; return; }
-
-    await dbPost('clientes', { nombre, email, edad, objetivo: objetivo||null, estado: 'nuevo', fecha_alta: TODAY });
-
+    await dbPost('clientes', {nombre, email, edad, objetivo: objetivo||null, estado:'nuevo', fecha_alta:TODAY});
     successEl.style.display = 'block';
     ['reg-nombre','reg-email','reg-password','reg-edad','reg-objetivo'].forEach(id => document.getElementById(id).value = '');
     setTimeout(() => { switchAuthTab('login'); document.getElementById('login-email').value = email; }, 2000);
@@ -355,67 +326,72 @@ async function doRegister() {
 
 function doLogout() {
   sessionStorage.clear();
-  currentCliente = null;
-  ejercicios = []; logs = [];
-  allSessionState = {}; sessionState = {};
-  closedSessions = new Set();
+  currentCliente = null; ejercicios = []; logs = []; sessionState = {};
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
 }
 
-// ── INIT ──
+// ─── INIT ──────────────────────────────────────────────────────────
 async function initApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('header-name').textContent = 'Hola, ' + currentCliente.nombre.split(' ')[0] + ' 👋';
-  const now = new Date();
-  document.getElementById('header-date').textContent = now.toLocaleDateString('es-UY', {weekday:'long', day:'numeric', month:'long'});
+  document.getElementById('header-date').textContent = new Date().toLocaleDateString('es-UY', {weekday:'long', day:'numeric', month:'long'});
 
   const rutinas = await dbGet('rutinas', `cliente_id=eq.${currentCliente.id}`);
   const rutinaIds = rutinas.map(r => r.id);
-  ejercicios = rutinaIds.length ? await dbGet('ejercicios', `rutina_id=in.(${rutinaIds.join(',')})&order=id.asc`) : [];
+  ejercicios = rutinaIds.length
+    ? await dbGet('ejercicios', `rutina_id=in.(${rutinaIds.join(',')})&order=id.asc`)
+    : [];
   logs = await dbGet('logs_entrenamiento', `cliente_id=eq.${currentCliente.id}&order=fecha.desc`);
 
   buildDayStrip();
   showHome();
 }
 
-// ── DAY STRIP ──
+// ─── DAY STRIP ─────────────────────────────────────────────────────
 function buildDayStrip() {
   const exDates = new Set(ejercicios.filter(e => e.fecha_sesion).map(e => e.fecha_sesion));
   const logDates = new Set(logs.map(l => l.fecha));
-  const today = new Date(); let html = '';
+  const today = new Date();
+  let html = '';
   for (let i = -14; i <= 14; i++) {
     const d = new Date(today); d.setDate(today.getDate() + i);
     const ds = d.toISOString().split('T')[0];
     const hasEx = exDates.has(ds);
-    const hasLog = logDates.has(ds);
-    const cls = [ds===TODAY?'today':'', hasEx&&!hasLog?'has-ex':'', hasLog?'has-log':'', ds===selectedDate?'selected':''].filter(Boolean).join(' ');
-    html += `<div class="day-btn ${cls}" onclick="selectDay('${ds}')"><div class="dn">${DAYS[d.getDay()]}</div><div class="dd">${d.getDate()}</div></div>`;
+    const isClosed = hasEx && logDates.has(ds);
+    const cls = [
+      ds === TODAY ? 'today' : '',
+      hasEx && !isClosed ? 'has-ex' : '',
+      isClosed ? 'is-done' : '',
+      ds === selectedDate ? 'selected' : ''
+    ].filter(Boolean).join(' ');
+    html += `<div class="day-btn ${cls}" onclick="selectDay('${ds}')">
+      <div class="dn">${DAYS[d.getDay()]}</div>
+      <div class="dd">${d.getDate()}</div>
+      ${isClosed ? `<div style="font-size:8px;color:white">✓</div>` : ''}
+    </div>`;
   }
   document.getElementById('day-strip').innerHTML = html;
   setTimeout(() => {
-    const strip = document.getElementById('day-strip');
-    const sel = strip.querySelector('.selected') || strip.querySelector('.today');
+    const sel = document.querySelector('.day-btn.selected') || document.querySelector('.day-btn.today');
     if (sel) sel.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
   }, 100);
 }
 
 function selectDay(ds) {
-  allSessionState[selectedDate] = {...sessionState};
   selectedDate = ds;
-  sessionState = allSessionState[selectedDate] || {};
+  sessionState = {};
   sessionExs = [];
   buildDayStrip();
   showHome();
 }
 
-// ── HOME ──
+// ─── HOME ──────────────────────────────────────────────────────────
 function showHome() {
   document.getElementById('view-home').style.display = 'block';
   document.getElementById('view-session').style.display = 'none';
   document.getElementById('view-summary').style.display = 'none';
-  sessionState = allSessionState[selectedDate] || {};
   renderHome();
 }
 
@@ -433,31 +409,46 @@ function renderHome() {
     return;
   }
 
-  exs.forEach(ex => {
-    if (!sessionState[ex.id]) sessionState[ex.id] = { status: null, comment: '', series: [], attachments: [] };
-  });
-  sessionExs = exs;
-
-  // ← FIX: isClosed declarado ANTES de usarlo
-  const isClosed = closedSessions.has(selectedDate);
+  // ← CLAVE: determinar si el día está cerrado DESDE LA BASE DE DATOS
+  const isClosed = isDayClosed(selectedDate);
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+  // Si el día está cerrado, cargar los estados desde la BD
+  if (isClosed) {
+    exs.forEach(ex => {
+      const log = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
+      sessionState[ex.id] = {
+        status: ex.completado ? 'done' : 'missed',
+        comment: ex.devolucion || log?.nota || '',
+        series: [],
+        attachments: []
+      };
+    });
+  } else {
+    exs.forEach(ex => {
+      if (!sessionState[ex.id]) sessionState[ex.id] = { status: null, comment: '', series: [], attachments: [] };
+    });
+  }
+
+  sessionExs = exs;
   const done = exs.filter(e => sessionState[e.id]?.status === 'done').length;
   const missed = exs.filter(e => sessionState[e.id]?.status === 'missed').length;
   const allMarked = done + missed === exs.length;
 
   const exItems = exs.map((ex, i) => {
-    const tags = [ex.series ? ex.series + ' reps' : '', ex.peso, ex.tiempo].filter(Boolean).join(' · ');
     const st = sessionState[ex.id];
-    const dotClass = st?.status === 'done' ? 'dot-done' : (st?.status === 'missed' ? 'dot-missed' : 'dot-pending');
-    const statusText = st?.status === 'done' ? '✓' : (st?.status === 'missed' ? '✕' : '›');
-    const cardStyle = st?.status === 'done' ? 'border-color:#5DCAA5;background:#f0faf6' : (st?.status === 'missed' ? 'border-color:#f5a0a0;background:#fff8f8' : '');
+    const dotClass = st?.status === 'done' ? 'dot-done' : st?.status === 'missed' ? 'dot-missed' : 'dot-pending';
+    const statusText = st?.status === 'done' ? '✓' : st?.status === 'missed' ? '✕' : '›';
+    const cardCls = st?.status === 'done' ? 'done' : st?.status === 'missed' ? 'missed' : '';
     const comment = st?.comment || '';
-    return `<div class="ex-preview" style="cursor:${!isClosed?'pointer':'default'};${cardStyle}" ${!isClosed ? `onclick="openExercise(${i})"` : ''}>
+    const log = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
+    const loadInfo = log ? [log.series_realizadas, log.peso_usado, log.rpe ? 'RPE '+log.rpe : ''].filter(Boolean).join(' · ') : '';
+    return `<div class="ex-preview ${cardCls}" style="cursor:${!isClosed?'pointer':'default'}" ${!isClosed ? `onclick="openExercise(${i})"` : ''}>
       <div class="ex-letter">${letters[i] || (i+1)}</div>
       <div class="ex-preview-info">
         <div class="ex-preview-name">${ex.nombre}</div>
-        ${tags ? `<div class="ex-preview-tags">${tags}</div>` : ''}
-        ${comment ? `<div style="font-size:11px;color:var(--text2);margin-top:2px;font-style:italic">"${comment.slice(0,40)}${comment.length>40?'…':''}"</div>` : ''}
+        ${loadInfo ? `<div class="ex-preview-tags">${loadInfo}</div>` : ex.series||ex.peso ? `<div class="ex-preview-tags">${[ex.series?ex.series+' reps':'',ex.peso,ex.tiempo].filter(Boolean).join(' · ')}</div>` : ''}
+        ${comment ? `<div style="font-size:11px;color:var(--text2);margin-top:2px;font-style:italic">"${comment.slice(0,50)}${comment.length>50?'…':''}"</div>` : ''}
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
         <div class="ex-status-dot ${dotClass}"></div>
@@ -467,21 +458,19 @@ function renderHome() {
   }).join('');
 
   el.innerHTML = `
-    <div class="day-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem">
-      <span>${dateLabel}</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+      <span style="font-size:15px;font-weight:600;color:var(--text);text-transform:capitalize">${dateLabel}</span>
       <span style="font-size:12px;color:${isClosed?'var(--green)':'var(--text2)'}">${isClosed ? '✓ Sesión guardada' : done+'/'+exs.length+' hechos'}</span>
     </div>
-    ${isClosed
-      ? `<div style="font-size:13px;color:var(--green-dark);background:var(--green-light);padding:10px 14px;border-radius:10px;margin-bottom:1rem">✅ Esta sesión ya fue guardada.</div>`
-      : `<div style="font-size:13px;color:var(--text2);margin-bottom:1rem">Tocá un ejercicio para abrirlo 👇</div>`
-    }
+    ${isClosed ? `<div class="session-closed-banner">✅ Esta sesión ya fue guardada. No podés modificarla.</div>` : `<div style="font-size:13px;color:var(--text2);margin-bottom:0.75rem">Tocá un ejercicio para marcarlo 👇</div>`}
     ${exItems}
-    ${!isClosed && allMarked ? `<button class="btn-start" style="background:var(--orange);margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>` : ''}
-    ${!isClosed ? `<button class="btn-save-session" style="margin-top:0.5rem" onclick="saveFinalSession()">💾 Guardar sesión</button>` : `<button class="btn-start" style="background:#888;margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>`}`;
+    ${!isClosed && allMarked ? `<button style="width:100%;padding:0.9rem;border-radius:14px;border:none;background:var(--orange);color:white;font-size:16px;font-weight:600;cursor:pointer;margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>` : ''}
+    ${!isClosed ? `<button class="btn-save-session" style="margin-top:0.5rem" onclick="saveFinalSession()">💾 Guardar sesión</button>` : ''}`;
 }
 
-// ── SESSION ──
+// ─── SESSION ───────────────────────────────────────────────────────
 function openExercise(idx) {
+  if (isDayClosed(selectedDate)) return;
   sessionIdx = idx;
   document.getElementById('view-home').style.display = 'none';
   document.getElementById('view-session').style.display = 'block';
@@ -499,22 +488,17 @@ function renderCard() {
   const ex = sessionExs[sessionIdx];
   const state = sessionState[ex.id];
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const letter = letters[sessionIdx] || (sessionIdx + 1);
   const isLast = sessionIdx === sessionExs.length - 1;
 
   document.getElementById('session-counter').textContent = `${sessionIdx + 1}/${sessionExs.length}`;
   document.getElementById('progress-dots').innerHTML = sessionExs.map((e, i) => {
     const st = sessionState[e.id];
-    let cls = '';
-    if (i === sessionIdx) cls = 'current';
-    else if (st?.status === 'done') cls = 'done';
-    else if (st?.status === 'missed') cls = 'missed';
+    let cls = i === sessionIdx ? 'current' : st?.status === 'done' ? 'done' : st?.status === 'missed' ? 'missed' : '';
     return `<div class="prog-dot ${cls}"></div>`;
   }).join('');
 
-  const prevLog = logs.find(l => l.ejercicio_id === ex.id);
+  const prevLog = logs.find(l => l.ejercicio_id === ex.id && l.fecha < selectedDate);
   const numSeries = parseInt(ex.series) || 3;
-
   let seriesHtml = '';
   for (let s = 0; s < numSeries; s++) {
     const sv = state.series[s] || {};
@@ -528,11 +512,15 @@ function renderCard() {
     </div>`;
   }
 
-  const exLogs = logs.filter(l => l.ejercicio_id === ex.id).slice(0, 5);
-  let histHtml = exLogs.map(l => {
+  const exLogs = logs.filter(l => l.ejercicio_id === ex.id && l.fecha < selectedDate).slice(0, 5);
+  const histHtml = exLogs.map(l => {
     const d = new Date(l.fecha + 'T00:00:00').toLocaleDateString('es-UY', {weekday:'short', day:'numeric', month:'short'});
-    const load = [l.series_realizadas, l.peso_usado, l.rpe].filter(Boolean).join(' · ');
-    return `<div class="history-entry"><div class="history-date">📅 ${d}</div>${load?`<div class="history-load">${load}</div>`:''}</div>`;
+    const load = [l.series_realizadas, l.peso_usado, l.rpe ? 'RPE '+l.rpe : ''].filter(Boolean).join(' · ');
+    return `<div class="history-entry">
+      <div class="history-date">📅 ${d}</div>
+      ${load ? `<div class="history-load">${load}</div>` : ''}
+      ${l.nota ? `<div class="history-comment">"${l.nota}"</div>` : ''}
+    </div>`;
   }).join('');
 
   let attachHtml = '';
@@ -541,12 +529,12 @@ function renderCard() {
   }
 
   const commentOpen = state.status ? 'open' : '';
-  const commentColor = state.status === 'done' ? 'green' : (state.status === 'missed' ? 'red' : '');
+  const commentColor = state.status === 'done' ? 'green' : state.status === 'missed' ? 'red' : '';
 
   document.getElementById('session-body').innerHTML = `
     <div class="ex-card">
       <div class="ex-card-header">
-        <div class="ex-card-letter">${letter}</div>
+        <div class="ex-card-letter">${letters[sessionIdx] || sessionIdx+1}</div>
         <div>
           <div class="ex-card-name">${ex.nombre}</div>
           <div class="ex-card-links">
@@ -556,9 +544,9 @@ function renderCard() {
         </div>
       </div>
       ${ex.nota ? `<div class="ex-card-note">${ex.nota}</div>` : ''}
-      ${prevLog ? `<div style="font-size:11px;color:var(--green-dark);background:var(--green-light);padding:6px 10px;border-radius:8px;margin-bottom:1rem">📊 Última vez: ${[prevLog.series_realizadas,prevLog.peso_usado,prevLog.rpe].filter(Boolean).join(' · ')}</div>` : ''}
+      ${prevLog ? `<div style="font-size:11px;color:var(--green-dark);background:var(--green-light);padding:6px 10px;border-radius:8px;margin-bottom:1rem">📊 Última vez (${new Date(prevLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'})}): ${[prevLog.series_realizadas,prevLog.peso_usado,prevLog.rpe?'RPE '+prevLog.rpe:''].filter(Boolean).join(' · ')}</div>` : ''}
       <div class="series-list">${seriesHtml}</div>
-      ${histHtml ? `<button class="history-btn" onclick="toggleHistory('hist-${ex.id}')">🕐 Ver historial</button><div class="history-content" id="hist-${ex.id}">${histHtml}</div>` : ''}
+      ${histHtml ? `<button class="history-btn" onclick="toggleHistory('hist-${ex.id}')">🕐 Ver historial de este ejercicio</button><div class="history-content" id="hist-${ex.id}">${histHtml}</div>` : ''}
       <label class="attach-btn" onclick="openFileInput(${ex.id})">📎 Adjuntar foto o video</label>
       ${attachHtml}
       <div class="action-btns">
@@ -566,7 +554,7 @@ function renderCard() {
         <button class="btn-completed ${state.status==='done'?'active':''}" onclick="setStatus('done')">✓ Completado</button>
       </div>
       <div class="comment-wrap ${commentOpen} ${commentColor}" id="comment-wrap">
-        <textarea id="ex-comment" placeholder="${state.status==='done'?'¿Cómo te fue?':'¿Qué pasó?'}">${state.comment||''}</textarea>
+        <textarea id="ex-comment" placeholder="${state.status==='done'?'¿Cómo te fue? Dejá un comentario...':'¿Qué pasó? ¿Alguna dificultad?'}">${state.comment||''}</textarea>
       </div>
     </div>
     <div class="session-nav-btns">
@@ -584,7 +572,7 @@ function setStatus(status) {
   wrap.classList.add('open');
   wrap.classList.remove('green', 'red');
   wrap.classList.add(status === 'done' ? 'green' : 'red');
-  document.querySelectorAll('.btn-missed, .btn-completed').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.btn-missed,.btn-completed').forEach(b => b.classList.remove('active'));
   document.querySelector(status === 'done' ? '.btn-completed' : '.btn-missed').classList.add('active');
 }
 
@@ -603,10 +591,10 @@ function saveCurrentCard() {
   state.comment = document.getElementById('ex-comment')?.value.trim() || '';
 }
 
-function saveCardAndNext() { saveCurrentCard(); sessionIdx++; renderCard(); window.scrollTo(0, 0); }
+function saveCardAndNext() { saveCurrentCard(); sessionIdx++; renderCard(); window.scrollTo(0,0); }
 function saveCardAndSummary() { saveCurrentCard(); showSummary(); }
-function navSession(dir) { saveCurrentCard(); sessionIdx = Math.max(0, sessionIdx + dir); renderCard(); window.scrollTo(0, 0); }
-function exitSession() { saveCurrentCard(); document.getElementById('view-session').style.display = 'none'; document.getElementById('view-summary').style.display = 'none'; showHome(); }
+function navSession(dir) { saveCurrentCard(); sessionIdx = Math.max(0, sessionIdx + dir); renderCard(); window.scrollTo(0,0); }
+function exitSession() { saveCurrentCard(); document.getElementById('view-session').style.display = 'none'; showHome(); }
 
 function openFileInput(exId) { currentExIdForFile = exId; document.getElementById('file-input').click(); }
 function handleFileUpload(event) {
@@ -616,13 +604,13 @@ function handleFileUpload(event) {
   if (!state.attachments) state.attachments = [];
   Array.from(files).forEach(file => {
     const reader = new FileReader();
-    reader.onload = (e) => { state.attachments.push(e.target.result); if (sessionExs[sessionIdx]?.id === currentExIdForFile) renderCard(); };
+    reader.onload = e => { state.attachments.push(e.target.result); if (sessionExs[sessionIdx]?.id === currentExIdForFile) renderCard(); };
     reader.readAsDataURL(file);
   });
   event.target.value = '';
 }
 
-// ── SUMMARY ──
+// ─── SUMMARY ───────────────────────────────────────────────────────
 function showSummary() {
   document.getElementById('view-session').style.display = 'none';
   document.getElementById('view-summary').style.display = 'block';
@@ -633,8 +621,8 @@ function showSummary() {
   const items = sessionExs.map((ex, i) => {
     const st = sessionState[ex.id];
     const status = st?.status;
-    const statusLabel = status === 'done' ? 'Completado' : (status === 'missed' ? 'No completado' : 'Pendiente');
-    const statusCls = status === 'done' ? 'done' : (status === 'missed' ? 'missed' : '');
+    const statusLabel = status === 'done' ? 'Completado' : status === 'missed' ? 'No completado' : 'Pendiente';
+    const statusCls = status === 'done' ? 'done' : status === 'missed' ? 'missed' : '';
     const seriesSummary = st?.series?.filter(s => s.peso || s.reps).map((s, si) =>
       `S${si+1}: ${[s.peso?s.peso+'kg':'', s.reps?s.reps+' reps':'', s.rpe?'RPE '+s.rpe:''].filter(Boolean).join(' · ')}`
     ).join('<br>') || '';
@@ -657,39 +645,92 @@ function showSummary() {
     ${items}`;
 }
 
+// ─── GUARDAR SESIÓN ────────────────────────────────────────────────
 async function saveFinalSession() {
+  // Guardar la tarjeta actual si estamos en la vista sesión
+  if (document.getElementById('view-session').style.display !== 'none') {
+    saveCurrentCard();
+  }
   document.getElementById('view-home').style.display = 'none';
   document.getElementById('view-summary').style.display = 'block';
+
   const btn = document.getElementById('btn-save-session');
   btn.disabled = true; btn.textContent = 'Guardando…';
+
   try {
     for (const ex of sessionExs) {
       const st = sessionState[ex.id];
       if (!st) continue;
+
+      const isCompleted = st.status === 'done';
+      const isNotCompleted = st.status === 'missed';
+
+      // Armar resumen de series
       const seriesSummary = st.series?.filter(s => s.peso || s.reps).map((s, i) =>
-        `S${i+1}: ${[s.peso, s.reps?s.reps+' reps':'', s.rpe?'RPE '+s.rpe:''].filter(Boolean).join(' ')}`
+        `S${i+1}: ${[s.peso?s.peso+'kg':'', s.reps?s.reps+' reps':'', s.rpe?'RPE '+s.rpe:''].filter(Boolean).join(' ')}`
       ).join(' | ') || null;
-      const existing = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
-      if (existing) {
-        await dbPatch('logs_entrenamiento', existing.id, { series_realizadas: seriesSummary, peso_usado: st.series?.[0]?.peso||null, rpe: st.series?.[0]?.rpe||null, nota: st.comment||null });
-      } else {
-        await dbPost('logs_entrenamiento', { cliente_id: currentCliente.id, ejercicio_id: ex.id, fecha: selectedDate, series_realizadas: seriesSummary, peso_usado: st.series?.[0]?.peso||null, rpe: st.series?.[0]?.rpe||null, nota: st.comment||null });
+
+      // 1 — Guardar log de cargas
+      if (seriesSummary || st.comment) {
+        const existing = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
+        if (existing) {
+          await dbPatch('logs_entrenamiento', existing.id, {
+            series_realizadas: seriesSummary,
+            peso_usado: st.series?.[0]?.peso || null,
+            rpe: st.series?.[0]?.rpe || null,
+            nota: st.comment || null
+          });
+        } else {
+          const newLog = await dbPost('logs_entrenamiento', {
+            cliente_id: currentCliente.id,
+            ejercicio_id: ex.id,
+            fecha: selectedDate,
+            series_realizadas: seriesSummary,
+            peso_usado: st.series?.[0]?.peso || null,
+            rpe: st.series?.[0]?.rpe || null,
+            nota: st.comment || null
+          });
+          logs.unshift(newLog[0]);
+        }
+      } else if (isCompleted || isNotCompleted) {
+        // Guardar aunque no tenga cargas, para registrar el estado
+        const existing = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
+        if (!existing) {
+          const newLog = await dbPost('logs_entrenamiento', {
+            cliente_id: currentCliente.id,
+            ejercicio_id: ex.id,
+            fecha: selectedDate,
+            series_realizadas: null,
+            peso_usado: null,
+            rpe: null,
+            nota: st.comment || null
+          });
+          logs.unshift(newLog[0]);
+        }
       }
-      if (st.comment || st.status) {
-        await dbPatch('ejercicios', ex.id, { devolucion: st.comment||null, completado: st.status === 'done' });
-      }
+
+      // 2 — Actualizar completado y devolucion en ejercicios
+      await dbPatch('ejercicios', ex.id, {
+        completado: isCompleted,
+        devolucion: st.comment || null
+      });
+
+      // Actualizar local
+      const localEx = ejercicios.find(e => e.id === ex.id);
+      if (localEx) { localEx.completado = isCompleted; localEx.devolucion = st.comment || null; }
     }
-    closedSessions.add(selectedDate);
-    allSessionState[selectedDate] = {...sessionState};
+
     showToast('Sesión guardada ✓');
     btn.textContent = '✓ Sesión guardada';
+
+    // Recargar logs desde BD para que el día quede marcado
     logs = await dbGet('logs_entrenamiento', `cliente_id=eq.${currentCliente.id}&order=fecha.desc`);
     buildDayStrip();
     setTimeout(() => showHome(), 1500);
   } catch(e) {
+    console.error(e);
     btn.disabled = false; btn.textContent = '💾 Guardar sesión del día';
     showToast('Error al guardar', true);
-    console.error(e);
   }
 }
 
@@ -699,6 +740,7 @@ function showToast(msg, err=false) {
   t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+// ─── AUTO-LOGIN ────────────────────────────────────────────────────
 window.onload = async () => {
   const cid = sessionStorage.getItem('cliente_id');
   if (cid) {
