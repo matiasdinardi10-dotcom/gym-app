@@ -57,7 +57,7 @@
   .day-btn.selected { outline: 2px solid var(--green); outline-offset: 2px; }
 
   #view-home { padding: 1rem 1.25rem; }
-  .ex-preview { background: white; border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.6rem; border: 1px solid var(--border); display: flex; align-items: center; gap: 12px; transition: border-color 0.2s; cursor: pointer; }
+  .ex-preview { background: white; border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.6rem; border: 1px solid var(--border); display: flex; align-items: center; gap: 12px; transition: border-color 0.2s; }
   .ex-preview.done { border-color: #5DCAA5; background: #f0faf6; }
   .ex-preview.missed { border-color: #f5a0a0; background: #fff8f8; }
   .ex-letter { width: 32px; height: 32px; border-radius: 8px; background: var(--green-light); color: var(--green-dark); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -70,53 +70,114 @@
   .dot-pending { background: #ccc; }
   .empty-day { text-align: center; padding: 3rem 1rem; color: var(--text2); font-size: 14px; }
 
-  /* ── BOTÓN WORKOUT ── */
-  .workout-btn {
-    width: 100%; padding: 1rem 1.25rem;
-    border-radius: 14px; border: none;
-    font-size: 16px; font-weight: 700;
-    cursor: pointer; margin-bottom: 1rem;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    letter-spacing: 0.02em;
-    transition: opacity 0.15s;
-  }
-  .workout-btn:active { opacity: 0.85; }
-  .workout-btn.start  { background: var(--green); color: white; }
-  .workout-btn.continue { background: var(--orange); color: white; }
-  .workout-btn.view   { background: #e8e8e8; color: var(--text2); }
-
   /* ── VISTA DÍA COMPLETADO ── */
-  .completed-day-pill { background: var(--green); border-radius: var(--radius); padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; margin-bottom: 0.75rem; user-select: none; }
+  .completed-day-pill {
+    background: var(--green);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    margin-bottom: 0.75rem;
+    user-select: none;
+  }
   .completed-day-pill-left { display: flex; align-items: center; gap: 12px; }
   .completed-day-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
   .completed-day-title { font-size: 16px; font-weight: 600; color: white; }
   .completed-day-sub { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 2px; }
   .completed-day-arrow { font-size: 18px; color: rgba(255,255,255,0.7); transition: transform 0.2s; }
   .completed-day-arrow.open { transform: rotate(180deg); }
+
+  /* Contenido expandido del día completado */
   .completed-day-content { display: none; }
   .completed-day-content.open { display: block; }
 
-  .done-ex-card { background: white; border-radius: var(--radius); margin-bottom: 0.6rem; border: 1px solid var(--border); overflow: hidden; }
+  /* Tarjeta de ejercicio completado */
+  .done-ex-card {
+    background: white;
+    border-radius: var(--radius);
+    margin-bottom: 0.6rem;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
   .done-ex-card.is-done { border-color: #5DCAA5; }
   .done-ex-card.is-missed { border-color: #f5a0a0; }
-  .done-ex-header { display: flex; align-items: center; gap: 12px; padding: 1rem 1.25rem 0.75rem; }
-  .done-ex-letter { width: 36px; height: 36px; border-radius: 10px; background: var(--green-light); color: var(--green-dark); font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  .done-ex-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 1rem 1.25rem 0.75rem;
+  }
+  .done-ex-letter {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--green-light); color: var(--green-dark);
+    font-weight: 700; font-size: 15px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
   .done-ex-letter.missed { background: var(--red-light); color: var(--red); }
   .done-ex-name { font-size: 15px; font-weight: 600; color: var(--text); flex: 1; }
-  .done-ex-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+  .done-ex-badge {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px; white-space: nowrap;
+  }
   .done-ex-badge.done { background: var(--green-light); color: var(--green-dark); }
   .done-ex-badge.missed { background: var(--red-light); color: var(--red); }
-  .done-ex-prescribed { padding: 0 1.25rem 0.75rem; display: flex; flex-wrap: wrap; gap: 6px; }
-  .prescribed-tag { font-size: 12px; padding: 4px 10px; border-radius: 20px; background: #f0f0f5; color: var(--text2); }
-  .prescribed-note { width: 100%; font-size: 12px; color: var(--text2); padding: 6px 10px; background: #f9f9f9; border-radius: 8px; border-left: 3px solid var(--green); margin-top: 2px; }
-  .done-ex-logged { margin: 0 1rem 1rem; background: #f2f2f7; border-radius: 10px; padding: 0.75rem 1rem; }
-  .done-ex-logged-title { font-size: 10px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-  .done-ex-series-row { font-size: 13px; color: var(--text); padding: 3px 0; border-bottom: 0.5px solid var(--border); }
-  .done-ex-series-row:last-of-type { border-bottom: none; }
-  .done-ex-comment { font-size: 12px; color: var(--text2); font-style: italic; margin-top: 6px; padding-top: 6px; border-top: 0.5px solid var(--border); }
-  .done-yt-link { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #C0392B; text-decoration: none; background: #FEF2F2; padding: 3px 8px; border-radius: 20px; margin: 0 1.25rem 0.75rem; }
 
-  /* ── SESSION ── */
+  /* Lo que el profe programó */
+  .done-ex-prescribed {
+    padding: 0 1.25rem 0.75rem;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .prescribed-tag {
+    font-size: 12px; padding: 4px 10px; border-radius: 20px;
+    background: #f0f0f5; color: var(--text2);
+  }
+  .prescribed-note {
+    width: 100%;
+    font-size: 12px; color: var(--text2);
+    padding: 6px 10px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border-left: 3px solid var(--green);
+    margin-top: 2px;
+  }
+
+  /* Lo que el alumno registró */
+  .done-ex-logged {
+    margin: 0 1rem 1rem;
+    background: #f2f2f7;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+  }
+  .done-ex-logged-title {
+    font-size: 10px; font-weight: 600; color: var(--text2);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .done-ex-series-row {
+    font-size: 13px; color: var(--text);
+    padding: 3px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .done-ex-series-row:last-of-type { border-bottom: none; }
+  .done-ex-comment {
+    font-size: 12px; color: var(--text2);
+    font-style: italic;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 0.5px solid var(--border);
+  }
+
+  /* YouTube link en vista completada */
+  .done-yt-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; color: #C0392B;
+    text-decoration: none;
+    background: #FEF2F2; padding: 3px 8px; border-radius: 20px;
+    margin: 0 1.25rem 0.75rem;
+  }
+
   #view-session { display: none; }
   .session-header { background: white; padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 10; }
   .session-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
@@ -138,11 +199,6 @@
   .ex-card-link.yt { color: #C0392B; }
   .ex-card-note { background: #f9f9f9; border-radius: 10px; padding: 0.75rem 1rem; font-size: 13px; color: var(--text2); margin-bottom: 1rem; border-left: 3px solid var(--green); }
 
-  /* Lo que el profe programó — dentro de la card activa */
-  .ex-prescribed-block { background: var(--green-light); border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
-  .ex-prescribed-block-title { font-size: 10px; font-weight: 700; color: var(--green-dark); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-  .ex-prescribed-row { font-size: 13px; color: var(--green-dark); line-height: 1.7; }
-
   .series-list { margin-bottom: 1rem; }
   .series-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
   .series-row:last-child { border-bottom: none; }
@@ -151,7 +207,6 @@
   .series-input { flex: 1; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; background: #f9f9f9; color: var(--text); min-width: 0; }
   .series-input:focus { outline: none; border-color: var(--green); }
   .series-input::placeholder { color: #bbb; }
-  .series-input:disabled { background: #f0f0f0; color: var(--text2); }
 
   .attach-btn { display: flex; align-items: center; gap: 8px; background: #f9f9f9; border: 1.5px dashed var(--border); border-radius: 12px; padding: 0.75rem 1rem; cursor: pointer; margin-bottom: 1rem; font-size: 13px; color: var(--text2); width: 100%; }
   .attach-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
@@ -183,7 +238,7 @@
   .session-nav-btns { display: flex; gap: 10px; }
   .btn-prev { flex: 1; padding: 0.85rem; border-radius: 12px; border: 1px solid var(--border); background: white; font-size: 14px; color: var(--text2); cursor: pointer; }
   .btn-next { flex: 2; padding: 0.85rem; border-radius: 12px; border: none; background: var(--green); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .btn-finish { flex: 2; padding: 0.85rem; border-radius: 12px; border: none; background: var(--orange); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-summary { flex: 2; padding: 0.85rem; border-radius: 12px; border: none; background: var(--orange); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
 
   #view-summary { display: none; padding: 1rem 1.25rem; }
   .summary-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
@@ -219,16 +274,19 @@
   </div>
   <div class="login-title">Mi Entrenamiento</div>
   <div class="login-sub" id="login-sub-text">Ingresá con tu cuenta</div>
+
   <div style="display:flex;gap:4px;background:#f0f0f0;border-radius:12px;padding:4px;width:100%;max-width:360px;margin-bottom:1.25rem">
     <button id="tab-login" onclick="switchAuthTab('login')" style="flex:1;padding:8px;border:none;border-radius:8px;background:white;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-sans);color:#111">Ingresar</button>
     <button id="tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:8px;border:none;border-radius:8px;background:transparent;font-size:14px;color:#888;cursor:pointer;font-family:var(--font-sans)">Registrarse</button>
   </div>
+
   <div class="login-card" id="form-login">
     <div class="login-field"><label>Email</label><input type="email" id="login-email" placeholder="tu@email.com" onkeydown="if(event.key==='Enter')doLogin()" /></div>
     <div class="login-field"><label>Contraseña</label><input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" /></div>
     <button class="btn-login" onclick="doLogin()">Ingresar</button>
     <div class="login-error" id="login-error"></div>
   </div>
+
   <div class="login-card" id="form-register" style="display:none">
     <div class="login-field"><label>Nombre completo</label><input type="text" id="reg-nombre" placeholder="Juan Pérez" /></div>
     <div class="login-field"><label>Email</label><input type="email" id="reg-email" placeholder="tu@email.com" /></div>
@@ -252,11 +310,14 @@
       <button class="btn-logout" onclick="doLogout()">Salir</button>
     </div>
   </div>
+
   <div class="day-strip" id="day-strip"></div>
+
   <div id="view-home">
     <div class="loading" id="home-loading">Cargando tu rutina…</div>
     <div id="home-content" style="display:none;padding:1rem 1.25rem"></div>
   </div>
+
   <div id="view-session">
     <div class="session-header">
       <div class="session-nav">
@@ -268,6 +329,7 @@
     </div>
     <div class="session-body" id="session-body"></div>
   </div>
+
   <div id="view-summary">
     <div class="summary-header">
       <button class="back-btn" onclick="showHome()">←</button>
@@ -300,18 +362,12 @@ let sessionExs = [];
 let sessionIdx = 0;
 let sessionState = {};
 let currentExIdForFile = null;
-let completedDayExpanded = false;
-let sessionReadOnly = false; // true cuando es modo "Ver entrenamiento"
+let completedDayExpanded = false; // estado del acordeón del día completado
 
 function isDayClosed(date) {
   const exs = ejercicios.filter(e => e.fecha_sesion === date);
   if (!exs.length) return false;
   return logs.some(l => l.fecha === date && exs.some(e => e.id === l.ejercicio_id));
-}
-
-// Determina cuántos ejercicios del día ya tienen algo marcado en sessionState
-function countMarked(exs) {
-  return exs.filter(e => sessionState[e.id]?.status !== null && sessionState[e.id]?.status !== undefined).length;
 }
 
 // ─── AUTH ──
@@ -378,6 +434,7 @@ function doLogout() {
   document.getElementById('app').style.display = 'none';
 }
 
+// ─── INIT ──
 async function initApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
@@ -391,6 +448,7 @@ async function initApp() {
   showHome();
 }
 
+// ─── DAY STRIP ──
 function buildDayStrip() {
   const exDates = new Set(ejercicios.filter(e => e.fecha_sesion).map(e => e.fecha_sesion));
   const logDates = new Set(logs.map(l => l.fecha));
@@ -420,11 +478,11 @@ function selectDay(ds) {
   sessionState = {};
   sessionExs = [];
   completedDayExpanded = false;
-  sessionReadOnly = false;
   buildDayStrip();
   showHome();
 }
 
+// ─── HOME ──
 function showHome() {
   document.getElementById('view-home').style.display = 'block';
   document.getElementById('view-session').style.display = 'none';
@@ -440,39 +498,6 @@ function toggleCompletedDay() {
   if (arrow) arrow.classList.toggle('open', completedDayExpanded);
 }
 
-// ─── WORKOUT BUTTON ──
-// Determina el estado del botón según el día
-function getWorkoutBtnState(exs, isClosed) {
-  if (isClosed) return 'view';
-  const marked = countMarked(exs);
-  if (marked === 0) return 'start';
-  return 'continue';
-}
-
-function renderWorkoutBtn(state, firstUnmarkedIdx) {
-  const configs = {
-    start:    { cls: 'start',    icon: '🏋️', label: 'Iniciar entrenamiento',    idx: 0 },
-    continue: { cls: 'continue', icon: '▶️',  label: 'Continuar entrenamiento',  idx: firstUnmarkedIdx },
-    view:     { cls: 'view',     icon: '👁',  label: 'Ver entrenamiento',         idx: 0 }
-  };
-  const c = configs[state];
-  return `<button class="workout-btn ${c.cls}" onclick="startWorkout(${c.idx}, '${state}')">
-    <span>${c.icon}</span><span>${c.label}</span>
-  </button>`;
-}
-
-// Arranca la pantalla deslizable
-function startWorkout(startIdx, mode) {
-  sessionReadOnly = (mode === 'view');
-  sessionIdx = startIdx;
-  document.getElementById('view-home').style.display = 'none';
-  document.getElementById('view-session').style.display = 'block';
-  document.getElementById('view-summary').style.display = 'none';
-  renderCard();
-  window.scrollTo(0, 0);
-}
-
-// ─── HOME ──
 function renderHome() {
   const exs = ejercicios.filter(e => e.fecha_sesion === selectedDate);
   document.getElementById('home-loading').style.display = 'none';
@@ -490,40 +515,55 @@ function renderHome() {
   const isClosed = isDayClosed(selectedDate);
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-  // ── DÍA COMPLETADO ──
+  // ── DÍA COMPLETADO: vista especial ──
   if (isClosed) {
     const done = exs.filter(e => e.completado === true).length;
     const missed = exs.filter(e => e.completado === false).length;
 
+    // Construir tarjetas expandidas de cada ejercicio
     const exCards = exs.map((ex, i) => {
       const log = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
       const isExDone = ex.completado === true;
       const letter = letters[i] || (i+1);
-      const prescribedTags = [ex.series?`${ex.series} reps`:'', ex.peso?`${ex.peso}`:'', ex.tiempo?`${ex.tiempo}`:''].filter(Boolean);
+
+      // Lo que el profe programó
+      const prescribedTags = [
+        ex.series ? `${ex.series} reps` : '',
+        ex.peso ? `${ex.peso}` : '',
+        ex.tiempo ? `${ex.tiempo}` : ''
+      ].filter(Boolean);
+
+      // Lo que el alumno registró — parsear series_realizadas
       let seriesRows = '';
       if (log?.series_realizadas) {
-        seriesRows = log.series_realizadas.split(' | ').map(p => `<div class="done-ex-series-row">${p}</div>`).join('');
+        const parts = log.series_realizadas.split(' | ');
+        seriesRows = parts.map(p => `<div class="done-ex-series-row">${p}</div>`).join('');
       } else if (log?.peso_usado || log?.rpe) {
-        seriesRows = `<div class="done-ex-series-row">${[log.peso_usado, log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ')}</div>`;
+        seriesRows = `<div class="done-ex-series-row">${[log.peso_usado, log.rpe ? 'RPE '+log.rpe : ''].filter(Boolean).join(' · ')}</div>`;
       }
+
       const comment = ex.devolucion || log?.nota || '';
-      return `<div class="done-ex-card ${isExDone?'is-done':'is-missed'}">
+
+      return `<div class="done-ex-card ${isExDone ? 'is-done' : 'is-missed'}">
         <div class="done-ex-header">
-          <div class="done-ex-letter ${isExDone?'':'missed'}">${letter}</div>
+          <div class="done-ex-letter ${isExDone ? '' : 'missed'}">${letter}</div>
           <div class="done-ex-name">${ex.nombre}</div>
-          <span class="done-ex-badge ${isExDone?'done':'missed'}">${isExDone?'✓ Hecho':'✕ No hecho'}</span>
+          <span class="done-ex-badge ${isExDone ? 'done' : 'missed'}">${isExDone ? '✓ Hecho' : '✕ No hecho'}</span>
         </div>
-        ${prescribedTags.length ? `<div class="done-ex-prescribed">${prescribedTags.map(t=>`<span class="prescribed-tag">📋 ${t}</span>`).join('')}${ex.nota?`<div class="prescribed-note">${ex.nota}</div>`:''}</div>` : ex.nota?`<div class="done-ex-prescribed"><div class="prescribed-note">${ex.nota}</div></div>`:''}
-        ${ex.link_youtube?`<a class="done-yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>`:''}
-        ${seriesRows||comment?`<div class="done-ex-logged"><div class="done-ex-logged-title">Lo que registraste</div>${seriesRows}${comment?`<div class="done-ex-comment">💬 "${comment}"</div>`:''}</div>`:''}
+        ${prescribedTags.length ? `<div class="done-ex-prescribed">
+          ${prescribedTags.map(t => `<span class="prescribed-tag">📋 ${t}</span>`).join('')}
+          ${ex.nota ? `<div class="prescribed-note">${ex.nota}</div>` : ''}
+        </div>` : ex.nota ? `<div class="done-ex-prescribed"><div class="prescribed-note">${ex.nota}</div></div>` : ''}
+        ${ex.link_youtube ? `<a class="done-yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>` : ''}
+        ${seriesRows || comment ? `<div class="done-ex-logged">
+          <div class="done-ex-logged-title">Lo que registraste</div>
+          ${seriesRows}
+          ${comment ? `<div class="done-ex-comment">💬 "${comment}"</div>` : ''}
+        </div>` : ''}
       </div>`;
     }).join('');
 
-    // Botón "Ver entrenamiento" para día cerrado
-    const btnHtml = renderWorkoutBtn('view', 0);
-
     el.innerHTML = `
-      ${btnHtml}
       <div class="completed-day-pill" onclick="toggleCompletedDay()">
         <div class="completed-day-pill-left">
           <div class="completed-day-icon">💪</div>
@@ -532,29 +572,22 @@ function renderHome() {
             <div class="completed-day-sub">${done} hechos · ${missed} no hechos · ${exs.length} ejercicios</div>
           </div>
         </div>
-        <div class="completed-day-arrow ${completedDayExpanded?'open':''}" id="completed-day-arrow">▾</div>
+        <div class="completed-day-arrow ${completedDayExpanded ? 'open' : ''}" id="completed-day-arrow">▾</div>
       </div>
-      <div class="completed-day-content ${completedDayExpanded?'open':''}" id="completed-day-content">
+      <div class="completed-day-content ${completedDayExpanded ? 'open' : ''}" id="completed-day-content">
         ${exCards}
       </div>`;
     return;
   }
 
-  // ── DÍA ABIERTO ──
+  // ── DÍA ABIERTO: vista normal ──
   exs.forEach(ex => {
     if (!sessionState[ex.id]) sessionState[ex.id] = { status: null, comment: '', series: [], attachments: [] };
   });
   sessionExs = exs;
-
-  const marked = countMarked(exs);
   const done = exs.filter(e => sessionState[e.id]?.status === 'done').length;
   const missed = exs.filter(e => sessionState[e.id]?.status === 'missed').length;
   const allMarked = done + missed === exs.length;
-
-  // Primer ejercicio sin marcar (para "Continuar")
-  const firstUnmarkedIdx = exs.findIndex(e => !sessionState[e.id]?.status);
-  const btnState = getWorkoutBtnState(exs, false);
-  const btnHtml = renderWorkoutBtn(btnState, firstUnmarkedIdx >= 0 ? firstUnmarkedIdx : 0);
 
   const exItems = exs.map((ex, i) => {
     const st = sessionState[ex.id];
@@ -563,13 +596,13 @@ function renderHome() {
     const cardCls = st?.status === 'done' ? 'done' : st?.status === 'missed' ? 'missed' : '';
     const comment = st?.comment || '';
     const log = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
-    const loadInfo = log ? [log.series_realizadas, log.peso_usado, log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ') : '';
-    return `<div class="ex-preview ${cardCls}" onclick="openExercise(${i})">
-      <div class="ex-letter">${letters[i]||(i+1)}</div>
+    const loadInfo = log ? [log.series_realizadas, log.peso_usado, log.rpe ? 'RPE '+log.rpe : ''].filter(Boolean).join(' · ') : '';
+    return `<div class="ex-preview ${cardCls}" style="cursor:pointer" onclick="openExercise(${i})">
+      <div class="ex-letter">${letters[i] || (i+1)}</div>
       <div class="ex-preview-info">
         <div class="ex-preview-name">${ex.nombre}</div>
-        ${loadInfo?`<div class="ex-preview-tags">${loadInfo}</div>`:ex.series||ex.peso?`<div class="ex-preview-tags">${[ex.series?ex.series+' reps':'',ex.peso,ex.tiempo].filter(Boolean).join(' · ')}</div>`:''}
-        ${comment?`<div style="font-size:11px;color:var(--text2);margin-top:2px;font-style:italic">"${comment.slice(0,50)}${comment.length>50?'…':''}"</div>`:''}
+        ${loadInfo ? `<div class="ex-preview-tags">${loadInfo}</div>` : ex.series||ex.peso ? `<div class="ex-preview-tags">${[ex.series?ex.series+' reps':'',ex.peso,ex.tiempo].filter(Boolean).join(' · ')}</div>` : ''}
+        ${comment ? `<div style="font-size:11px;color:var(--text2);margin-top:2px;font-style:italic">"${comment.slice(0,50)}${comment.length>50?'…':''}"</div>` : ''}
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
         <div class="ex-status-dot ${dotClass}"></div>
@@ -579,22 +612,23 @@ function renderHome() {
   }).join('');
 
   el.innerHTML = `
-    ${btnHtml}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
       <span style="font-size:15px;font-weight:600;color:var(--text);text-transform:capitalize">${dateLabel}</span>
       <span style="font-size:12px;color:var(--text2)">${done}/${exs.length} hechos</span>
     </div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:0.75rem">Tocá un ejercicio para marcarlo 👇</div>
     ${exItems}
-    ${allMarked?`<button style="width:100%;padding:0.9rem;border-radius:14px;border:none;background:var(--orange);color:white;font-size:16px;font-weight:600;cursor:pointer;margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>`:''}
+    ${allMarked ? `<button style="width:100%;padding:0.9rem;border-radius:14px;border:none;background:var(--orange);color:white;font-size:16px;font-weight:600;cursor:pointer;margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>` : ''}
     <button class="btn-save-session" style="margin-top:0.5rem" onclick="saveFinalSession()">💾 Guardar sesión</button>`;
 }
 
 // ─── SESSION ──
 function openExercise(idx) {
-  sessionReadOnly = false;
+  if (isDayClosed(selectedDate)) return;
   sessionIdx = idx;
   document.getElementById('view-home').style.display = 'none';
   document.getElementById('view-session').style.display = 'block';
+  document.getElementById('view-summary').style.display = 'none';
   renderCard();
   window.scrollTo(0, 0);
 }
@@ -606,15 +640,10 @@ function showSummaryFromHome() {
 
 function renderCard() {
   const ex = sessionExs[sessionIdx];
-  if (!ex) return;
-  const state = sessionState[ex.id] || { status: null, comment: '', series: [], attachments: [] };
+  const state = sessionState[ex.id];
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const isLast = sessionIdx === sessionExs.length - 1;
-  const ro = sessionReadOnly; // modo lectura
 
-  // Label del header según modo
-  const modeLabel = ro ? 'Ver entrenamiento' : 'Entrenamiento';
-  document.getElementById('session-label').textContent = modeLabel;
   document.getElementById('session-counter').textContent = `${sessionIdx + 1}/${sessionExs.length}`;
   document.getElementById('progress-dots').innerHTML = sessionExs.map((e, i) => {
     const st = sessionState[e.id];
@@ -624,40 +653,28 @@ function renderCard() {
 
   const prevLog = logs.find(l => l.ejercicio_id === ex.id && l.fecha < selectedDate);
   const numSeries = parseInt(ex.series) || 3;
-
-  // En modo lectura para día cerrado, mostrar lo que registró el alumno
-  const closedLog = ro ? logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate) : null;
-
   let seriesHtml = '';
-  if (ro && closedLog?.series_realizadas) {
-    // Modo lectura: mostrar lo que registró
-    const parts = closedLog.series_realizadas.split(' | ');
-    seriesHtml = `<div style="background:#f2f2f7;border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem">
-      <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Lo que registraste</div>
-      ${parts.map(p => `<div style="font-size:13px;color:var(--text);padding:3px 0;border-bottom:0.5px solid var(--border)">${p}</div>`).join('')}
-      ${closedLog.nota ? `<div style="font-size:12px;color:var(--text2);font-style:italic;margin-top:6px;padding-top:6px;border-top:0.5px solid var(--border)">💬 "${closedLog.nota}"</div>` : ''}
+  for (let s = 0; s < numSeries; s++) {
+    const sv = state.series[s] || {};
+    seriesHtml += `<div class="series-row">
+      <div class="series-num">S${s+1}</div>
+      <div class="series-inputs">
+        <input class="series-input" id="s-peso-${s}" placeholder="kg" value="${sv.peso||''}" />
+        <input class="series-input" id="s-reps-${s}" placeholder="reps" value="${sv.reps||''}" />
+        <input class="series-input" id="s-rpe-${s}" placeholder="RPE" value="${sv.rpe||''}" />
+      </div>
     </div>`;
-  } else if (!ro) {
-    // Modo edición: inputs
-    for (let s = 0; s < numSeries; s++) {
-      const sv = state.series[s] || {};
-      seriesHtml += `<div class="series-row">
-        <div class="series-num">S${s+1}</div>
-        <div class="series-inputs">
-          <input class="series-input" id="s-peso-${s}" placeholder="kg" value="${sv.peso||''}" />
-          <input class="series-input" id="s-reps-${s}" placeholder="reps" value="${sv.reps||''}" />
-          <input class="series-input" id="s-rpe-${s}" placeholder="RPE" value="${sv.rpe||''}" />
-        </div>
-      </div>`;
-    }
-    seriesHtml = `<div class="series-list">${seriesHtml}</div>`;
   }
 
   const exLogs = logs.filter(l => l.ejercicio_id === ex.id && l.fecha < selectedDate).slice(0, 5);
   const histHtml = exLogs.map(l => {
-    const d = new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'short',day:'numeric',month:'short'});
-    const load = [l.series_realizadas, l.peso_usado, l.rpe?'RPE '+l.rpe:''].filter(Boolean).join(' · ');
-    return `<div class="history-entry"><div class="history-date">📅 ${d}</div>${load?`<div class="history-load">${load}</div>`:''}</div>`;
+    const d = new Date(l.fecha + 'T00:00:00').toLocaleDateString('es-UY', {weekday:'short', day:'numeric', month:'short'});
+    const load = [l.series_realizadas, l.peso_usado, l.rpe ? 'RPE '+l.rpe : ''].filter(Boolean).join(' · ');
+    return `<div class="history-entry">
+      <div class="history-date">📅 ${d}</div>
+      ${load ? `<div class="history-load">${load}</div>` : ''}
+      ${l.nota ? `<div class="history-comment">"${l.nota}"</div>` : ''}
+    </div>`;
   }).join('');
 
   let attachHtml = '';
@@ -668,42 +685,10 @@ function renderCard() {
   const commentOpen = state.status ? 'open' : '';
   const commentColor = state.status === 'done' ? 'green' : state.status === 'missed' ? 'red' : '';
 
-  // Bloque de lo que programó el profe
-  const prescribedItems = [
-    ex.series ? `${ex.series} series` : '',
-    ex.reps ? `${ex.reps} reps` : ex.series ? '' : '',
-    ex.peso ? `${ex.peso}` : '',
-    ex.tiempo ? `${ex.tiempo}` : ''
-  ].filter(Boolean);
-  // Reconstruir desde campo series que puede ser "3x12" etc
-  const prescribedText = [ex.series, ex.peso, ex.tiempo].filter(Boolean).join(' · ');
-
-  const prescribedBlock = (prescribedText || ex.nota) ? `
-    <div class="ex-prescribed-block">
-      <div class="ex-prescribed-block-title">📋 Lo que te toca hoy</div>
-      ${prescribedText ? `<div class="ex-prescribed-row">${prescribedText}</div>` : ''}
-      ${ex.nota ? `<div class="ex-prescribed-row" style="margin-top:4px;font-style:italic">${ex.nota}</div>` : ''}
-    </div>` : '';
-
-  // Botones de navegación según modo
-  let navBtns = '';
-  if (ro) {
-    // Solo navegación sin acciones
-    navBtns = `<div class="session-nav-btns">
-      ${sessionIdx > 0 ? `<button class="btn-prev" onclick="navSession(-1)">← Anterior</button>` : '<div></div>'}
-      ${isLast ? `<button class="btn-next" onclick="exitSession()">✓ Cerrar</button>` : `<button class="btn-next" onclick="navSession(1)">Siguiente →</button>`}
-    </div>`;
-  } else {
-    navBtns = `<div class="session-nav-btns">
-      ${sessionIdx > 0 ? `<button class="btn-prev" onclick="navSession(-1)">← Anterior</button>` : '<div></div>'}
-      ${isLast ? `<button class="btn-finish" onclick="saveCardAndSummary()">Finalizar 🏁</button>` : `<button class="btn-next" onclick="saveCardAndNext()">Siguiente →</button>`}
-    </div>`;
-  }
-
   document.getElementById('session-body').innerHTML = `
     <div class="ex-card">
       <div class="ex-card-header">
-        <div class="ex-card-letter">${letters[sessionIdx]||sessionIdx+1}</div>
+        <div class="ex-card-letter">${letters[sessionIdx] || sessionIdx+1}</div>
         <div>
           <div class="ex-card-name">${ex.nombre}</div>
           <div class="ex-card-links">
@@ -712,20 +697,24 @@ function renderCard() {
           </div>
         </div>
       </div>
-      ${prescribedBlock}
-      ${prevLog&&!ro ? `<div style="font-size:11px;color:var(--green-dark);background:var(--green-light);padding:6px 10px;border-radius:8px;margin-bottom:1rem">📊 Última vez (${new Date(prevLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'})}): ${[prevLog.series_realizadas,prevLog.peso_usado,prevLog.rpe?'RPE '+prevLog.rpe:''].filter(Boolean).join(' · ')}</div>` : ''}
-      ${seriesHtml}
-      ${histHtml ? `<button class="history-btn" onclick="toggleHistory('hist-${ex.id}')">🕐 Ver historial</button><div class="history-content" id="hist-${ex.id}">${histHtml}</div>` : ''}
-      ${!ro ? `<label class="attach-btn" onclick="openFileInput(${ex.id})">📎 Adjuntar foto o video</label>${attachHtml}
+      ${ex.nota ? `<div class="ex-card-note">${ex.nota}</div>` : ''}
+      ${prevLog ? `<div style="font-size:11px;color:var(--green-dark);background:var(--green-light);padding:6px 10px;border-radius:8px;margin-bottom:1rem">📊 Última vez (${new Date(prevLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'})}): ${[prevLog.series_realizadas,prevLog.peso_usado,prevLog.rpe?'RPE '+prevLog.rpe:''].filter(Boolean).join(' · ')}</div>` : ''}
+      <div class="series-list">${seriesHtml}</div>
+      ${histHtml ? `<button class="history-btn" onclick="toggleHistory('hist-${ex.id}')">🕐 Ver historial de este ejercicio</button><div class="history-content" id="hist-${ex.id}">${histHtml}</div>` : ''}
+      <label class="attach-btn" onclick="openFileInput(${ex.id})">📎 Adjuntar foto o video</label>
+      ${attachHtml}
       <div class="action-btns">
         <button class="btn-missed ${state.status==='missed'?'active':''}" onclick="setStatus('missed')">✕ No completado</button>
         <button class="btn-completed ${state.status==='done'?'active':''}" onclick="setStatus('done')">✓ Completado</button>
       </div>
       <div class="comment-wrap ${commentOpen} ${commentColor}" id="comment-wrap">
-        <textarea id="ex-comment" placeholder="${state.status==='done'?'¿Cómo te fue?':'¿Qué pasó?'}">${state.comment||''}</textarea>
-      </div>` : ''}
+        <textarea id="ex-comment" placeholder="${state.status==='done'?'¿Cómo te fue? Dejá un comentario...':'¿Qué pasó? ¿Alguna dificultad?'}">${state.comment||''}</textarea>
+      </div>
     </div>
-    ${navBtns}`;
+    <div class="session-nav-btns">
+      ${sessionIdx > 0 ? `<button class="btn-prev" onclick="navSession(-1)">← Anterior</button>` : '<div></div>'}
+      ${isLast ? `<button class="btn-summary" onclick="saveCardAndSummary()">Ver resumen →</button>` : `<button class="btn-next" onclick="saveCardAndNext()">Siguiente →</button>`}
+    </div>`;
 }
 
 function toggleHistory(id) { const el = document.getElementById(id); if (el) el.classList.toggle('open'); }
@@ -742,9 +731,7 @@ function setStatus(status) {
 }
 
 function saveCurrentCard() {
-  if (sessionReadOnly) return;
   const ex = sessionExs[sessionIdx];
-  if (!ex) return;
   const state = sessionState[ex.id];
   const numSeries = parseInt(ex.series) || 3;
   state.series = [];
@@ -760,16 +747,8 @@ function saveCurrentCard() {
 
 function saveCardAndNext() { saveCurrentCard(); sessionIdx++; renderCard(); window.scrollTo(0,0); }
 function saveCardAndSummary() { saveCurrentCard(); showSummary(); }
-function navSession(dir) {
-  if (!sessionReadOnly) saveCurrentCard();
-  sessionIdx = Math.max(0, Math.min(sessionExs.length - 1, sessionIdx + dir));
-  renderCard(); window.scrollTo(0,0);
-}
-function exitSession() {
-  if (!sessionReadOnly) saveCurrentCard();
-  document.getElementById('view-session').style.display = 'none';
-  showHome();
-}
+function navSession(dir) { saveCurrentCard(); sessionIdx = Math.max(0, sessionIdx + dir); renderCard(); window.scrollTo(0,0); }
+function exitSession() { saveCurrentCard(); document.getElementById('view-session').style.display = 'none'; showHome(); }
 
 function openFileInput(exId) { currentExIdForFile = exId; document.getElementById('file-input').click(); }
 function handleFileUpload(event) {
@@ -805,10 +784,10 @@ function showSummary() {
       <div class="summary-item-name">
         <span style="background:var(--green-light);color:var(--green-dark);width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px">${letters[i]}</span>
         ${ex.nombre}
-        ${statusCls?`<span class="summary-status ${statusCls}">${statusLabel}</span>`:''}
+        ${statusCls ? `<span class="summary-status ${statusCls}">${statusLabel}</span>` : ''}
       </div>
-      ${seriesSummary?`<div style="font-size:12px;color:var(--text2);margin-bottom:4px;line-height:1.6">${seriesSummary}</div>`:''}
-      ${st?.comment?`<div class="summary-comment">"${st.comment}"</div>`:''}
+      ${seriesSummary ? `<div style="font-size:12px;color:var(--text2);margin-bottom:4px;line-height:1.6">${seriesSummary}</div>` : ''}
+      ${st?.comment ? `<div class="summary-comment">"${st.comment}"</div>` : ''}
     </div>`;
   }).join('');
   document.getElementById('summary-content').innerHTML = `
@@ -820,6 +799,7 @@ function showSummary() {
     ${items}`;
 }
 
+// ─── GUARDAR SESIÓN ──
 async function saveFinalSession() {
   if (document.getElementById('view-session').style.display !== 'none') saveCurrentCard();
   document.getElementById('view-home').style.display = 'none';
@@ -851,10 +831,12 @@ async function saveFinalSession() {
           logs.unshift(newLog[0]);
         }
       }
+
       await dbPatch('ejercicios', ex.id, {completado: isCompleted, devolucion: st.comment||null});
       const localEx = ejercicios.find(e => e.id === ex.id);
       if (localEx) { localEx.completado = isCompleted; localEx.devolucion = st.comment||null; }
     }
+
     showToast('Sesión guardada ✓');
     btn.textContent = '✓ Sesión guardada';
     logs = await dbGet('logs_entrenamiento', `cliente_id=eq.${currentCliente.id}&order=fecha.desc`);
