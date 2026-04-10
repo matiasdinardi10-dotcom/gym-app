@@ -70,6 +70,114 @@
   .dot-pending { background: #ccc; }
   .empty-day { text-align: center; padding: 3rem 1rem; color: var(--text2); font-size: 14px; }
 
+  /* ── VISTA DÍA COMPLETADO ── */
+  .completed-day-pill {
+    background: var(--green);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    margin-bottom: 0.75rem;
+    user-select: none;
+  }
+  .completed-day-pill-left { display: flex; align-items: center; gap: 12px; }
+  .completed-day-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .completed-day-title { font-size: 16px; font-weight: 600; color: white; }
+  .completed-day-sub { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 2px; }
+  .completed-day-arrow { font-size: 18px; color: rgba(255,255,255,0.7); transition: transform 0.2s; }
+  .completed-day-arrow.open { transform: rotate(180deg); }
+
+  /* Contenido expandido del día completado */
+  .completed-day-content { display: none; }
+  .completed-day-content.open { display: block; }
+
+  /* Tarjeta de ejercicio completado */
+  .done-ex-card {
+    background: white;
+    border-radius: var(--radius);
+    margin-bottom: 0.6rem;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .done-ex-card.is-done { border-color: #5DCAA5; }
+  .done-ex-card.is-missed { border-color: #f5a0a0; }
+
+  .done-ex-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 1rem 1.25rem 0.75rem;
+  }
+  .done-ex-letter {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--green-light); color: var(--green-dark);
+    font-weight: 700; font-size: 15px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .done-ex-letter.missed { background: var(--red-light); color: var(--red); }
+  .done-ex-name { font-size: 15px; font-weight: 600; color: var(--text); flex: 1; }
+  .done-ex-badge {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px; white-space: nowrap;
+  }
+  .done-ex-badge.done { background: var(--green-light); color: var(--green-dark); }
+  .done-ex-badge.missed { background: var(--red-light); color: var(--red); }
+
+  /* Lo que el profe programó */
+  .done-ex-prescribed {
+    padding: 0 1.25rem 0.75rem;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .prescribed-tag {
+    font-size: 12px; padding: 4px 10px; border-radius: 20px;
+    background: #f0f0f5; color: var(--text2);
+  }
+  .prescribed-note {
+    width: 100%;
+    font-size: 12px; color: var(--text2);
+    padding: 6px 10px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border-left: 3px solid var(--green);
+    margin-top: 2px;
+  }
+
+  /* Lo que el alumno registró */
+  .done-ex-logged {
+    margin: 0 1rem 1rem;
+    background: #f2f2f7;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+  }
+  .done-ex-logged-title {
+    font-size: 10px; font-weight: 600; color: var(--text2);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .done-ex-series-row {
+    font-size: 13px; color: var(--text);
+    padding: 3px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .done-ex-series-row:last-of-type { border-bottom: none; }
+  .done-ex-comment {
+    font-size: 12px; color: var(--text2);
+    font-style: italic;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 0.5px solid var(--border);
+  }
+
+  /* YouTube link en vista completada */
+  .done-yt-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; color: #C0392B;
+    text-decoration: none;
+    background: #FEF2F2; padding: 3px 8px; border-radius: 20px;
+    margin: 0 1.25rem 0.75rem;
+  }
+
   #view-session { display: none; }
   .session-header { background: white; padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 10; }
   .session-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
@@ -155,8 +263,6 @@
   .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--green); color: white; padding: 0.6rem 1.2rem; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; white-space: nowrap; }
   .toast.show { opacity: 1; }
   .toast.error { background: var(--red); }
-
-  .session-closed-banner { font-size: 13px; color: var(--green-dark); background: var(--green-light); padding: 10px 14px; border-radius: 10px; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
 </style>
 </head>
 <body>
@@ -254,20 +360,17 @@ let ejercicios = [], logs = [];
 let selectedDate = TODAY;
 let sessionExs = [];
 let sessionIdx = 0;
-let sessionState = {}; // {exId: {status, comment, series, attachments}}
+let sessionState = {};
 let currentExIdForFile = null;
+let completedDayExpanded = false; // estado del acordeón del día completado
 
-// ─── Determina si un día está cerrado leyendo la BD ───────────────
-// Un día está cerrado si TODOS sus ejercicios tienen completado != null
-// (TRUE = completado, FALSE = no completado, ambos implican que fue guardado)
 function isDayClosed(date) {
   const exs = ejercicios.filter(e => e.fecha_sesion === date);
   if (!exs.length) return false;
-  // Si existe al menos un log para esa fecha, la sesión ya fue guardada
   return logs.some(l => l.fecha === date && exs.some(e => e.id === l.ejercicio_id));
 }
 
-// ─── AUTH ──────────────────────────────────────────────────────────
+// ─── AUTH ──
 function switchAuthTab(tab) {
   const isLogin = tab === 'login';
   document.getElementById('form-login').style.display = isLogin ? 'block' : 'none';
@@ -331,25 +434,21 @@ function doLogout() {
   document.getElementById('app').style.display = 'none';
 }
 
-// ─── INIT ──────────────────────────────────────────────────────────
+// ─── INIT ──
 async function initApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('header-name').textContent = 'Hola, ' + currentCliente.nombre.split(' ')[0] + ' 👋';
   document.getElementById('header-date').textContent = new Date().toLocaleDateString('es-UY', {weekday:'long', day:'numeric', month:'long'});
-
   const rutinas = await dbGet('rutinas', `cliente_id=eq.${currentCliente.id}`);
   const rutinaIds = rutinas.map(r => r.id);
-  ejercicios = rutinaIds.length
-    ? await dbGet('ejercicios', `rutina_id=in.(${rutinaIds.join(',')})&order=id.asc`)
-    : [];
+  ejercicios = rutinaIds.length ? await dbGet('ejercicios', `rutina_id=in.(${rutinaIds.join(',')})&order=id.asc`) : [];
   logs = await dbGet('logs_entrenamiento', `cliente_id=eq.${currentCliente.id}&order=fecha.desc`);
-
   buildDayStrip();
   showHome();
 }
 
-// ─── DAY STRIP ─────────────────────────────────────────────────────
+// ─── DAY STRIP ──
 function buildDayStrip() {
   const exDates = new Set(ejercicios.filter(e => e.fecha_sesion).map(e => e.fecha_sesion));
   const logDates = new Set(logs.map(l => l.fecha));
@@ -360,12 +459,7 @@ function buildDayStrip() {
     const ds = d.toISOString().split('T')[0];
     const hasEx = exDates.has(ds);
     const isClosed = hasEx && logDates.has(ds);
-    const cls = [
-      ds === TODAY ? 'today' : '',
-      hasEx && !isClosed ? 'has-ex' : '',
-      isClosed ? 'is-done' : '',
-      ds === selectedDate ? 'selected' : ''
-    ].filter(Boolean).join(' ');
+    const cls = [ds===TODAY?'today':'', hasEx&&!isClosed?'has-ex':'', isClosed?'is-done':'', ds===selectedDate?'selected':''].filter(Boolean).join(' ');
     html += `<div class="day-btn ${cls}" onclick="selectDay('${ds}')">
       <div class="dn">${DAYS[d.getDay()]}</div>
       <div class="dd">${d.getDate()}</div>
@@ -383,16 +477,25 @@ function selectDay(ds) {
   selectedDate = ds;
   sessionState = {};
   sessionExs = [];
+  completedDayExpanded = false;
   buildDayStrip();
   showHome();
 }
 
-// ─── HOME ──────────────────────────────────────────────────────────
+// ─── HOME ──
 function showHome() {
   document.getElementById('view-home').style.display = 'block';
   document.getElementById('view-session').style.display = 'none';
   document.getElementById('view-summary').style.display = 'none';
   renderHome();
+}
+
+function toggleCompletedDay() {
+  completedDayExpanded = !completedDayExpanded;
+  const content = document.getElementById('completed-day-content');
+  const arrow = document.getElementById('completed-day-arrow');
+  if (content) content.classList.toggle('open', completedDayExpanded);
+  if (arrow) arrow.classList.toggle('open', completedDayExpanded);
 }
 
 function renderHome() {
@@ -409,27 +512,78 @@ function renderHome() {
     return;
   }
 
-  // ← CLAVE: determinar si el día está cerrado DESDE LA BASE DE DATOS
   const isClosed = isDayClosed(selectedDate);
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-  // Si el día está cerrado, cargar los estados desde la BD
+  // ── DÍA COMPLETADO: vista especial ──
   if (isClosed) {
-    exs.forEach(ex => {
+    const done = exs.filter(e => e.completado === true).length;
+    const missed = exs.filter(e => e.completado === false).length;
+
+    // Construir tarjetas expandidas de cada ejercicio
+    const exCards = exs.map((ex, i) => {
       const log = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
-      sessionState[ex.id] = {
-        status: ex.completado ? 'done' : 'missed',
-        comment: ex.devolucion || log?.nota || '',
-        series: [],
-        attachments: []
-      };
-    });
-  } else {
-    exs.forEach(ex => {
-      if (!sessionState[ex.id]) sessionState[ex.id] = { status: null, comment: '', series: [], attachments: [] };
-    });
+      const isExDone = ex.completado === true;
+      const letter = letters[i] || (i+1);
+
+      // Lo que el profe programó
+      const prescribedTags = [
+        ex.series ? `${ex.series} reps` : '',
+        ex.peso ? `${ex.peso}` : '',
+        ex.tiempo ? `${ex.tiempo}` : ''
+      ].filter(Boolean);
+
+      // Lo que el alumno registró — parsear series_realizadas
+      let seriesRows = '';
+      if (log?.series_realizadas) {
+        const parts = log.series_realizadas.split(' | ');
+        seriesRows = parts.map(p => `<div class="done-ex-series-row">${p}</div>`).join('');
+      } else if (log?.peso_usado || log?.rpe) {
+        seriesRows = `<div class="done-ex-series-row">${[log.peso_usado, log.rpe ? 'RPE '+log.rpe : ''].filter(Boolean).join(' · ')}</div>`;
+      }
+
+      const comment = ex.devolucion || log?.nota || '';
+
+      return `<div class="done-ex-card ${isExDone ? 'is-done' : 'is-missed'}">
+        <div class="done-ex-header">
+          <div class="done-ex-letter ${isExDone ? '' : 'missed'}">${letter}</div>
+          <div class="done-ex-name">${ex.nombre}</div>
+          <span class="done-ex-badge ${isExDone ? 'done' : 'missed'}">${isExDone ? '✓ Hecho' : '✕ No hecho'}</span>
+        </div>
+        ${prescribedTags.length ? `<div class="done-ex-prescribed">
+          ${prescribedTags.map(t => `<span class="prescribed-tag">📋 ${t}</span>`).join('')}
+          ${ex.nota ? `<div class="prescribed-note">${ex.nota}</div>` : ''}
+        </div>` : ex.nota ? `<div class="done-ex-prescribed"><div class="prescribed-note">${ex.nota}</div></div>` : ''}
+        ${ex.link_youtube ? `<a class="done-yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>` : ''}
+        ${seriesRows || comment ? `<div class="done-ex-logged">
+          <div class="done-ex-logged-title">Lo que registraste</div>
+          ${seriesRows}
+          ${comment ? `<div class="done-ex-comment">💬 "${comment}"</div>` : ''}
+        </div>` : ''}
+      </div>`;
+    }).join('');
+
+    el.innerHTML = `
+      <div class="completed-day-pill" onclick="toggleCompletedDay()">
+        <div class="completed-day-pill-left">
+          <div class="completed-day-icon">💪</div>
+          <div>
+            <div class="completed-day-title">${dateLabel} · ✓ Completado</div>
+            <div class="completed-day-sub">${done} hechos · ${missed} no hechos · ${exs.length} ejercicios</div>
+          </div>
+        </div>
+        <div class="completed-day-arrow ${completedDayExpanded ? 'open' : ''}" id="completed-day-arrow">▾</div>
+      </div>
+      <div class="completed-day-content ${completedDayExpanded ? 'open' : ''}" id="completed-day-content">
+        ${exCards}
+      </div>`;
+    return;
   }
 
+  // ── DÍA ABIERTO: vista normal ──
+  exs.forEach(ex => {
+    if (!sessionState[ex.id]) sessionState[ex.id] = { status: null, comment: '', series: [], attachments: [] };
+  });
   sessionExs = exs;
   const done = exs.filter(e => sessionState[e.id]?.status === 'done').length;
   const missed = exs.filter(e => sessionState[e.id]?.status === 'missed').length;
@@ -443,7 +597,7 @@ function renderHome() {
     const comment = st?.comment || '';
     const log = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
     const loadInfo = log ? [log.series_realizadas, log.peso_usado, log.rpe ? 'RPE '+log.rpe : ''].filter(Boolean).join(' · ') : '';
-    return `<div class="ex-preview ${cardCls}" style="cursor:${!isClosed?'pointer':'default'}" ${!isClosed ? `onclick="openExercise(${i})"` : ''}>
+    return `<div class="ex-preview ${cardCls}" style="cursor:pointer" onclick="openExercise(${i})">
       <div class="ex-letter">${letters[i] || (i+1)}</div>
       <div class="ex-preview-info">
         <div class="ex-preview-name">${ex.nombre}</div>
@@ -460,15 +614,15 @@ function renderHome() {
   el.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
       <span style="font-size:15px;font-weight:600;color:var(--text);text-transform:capitalize">${dateLabel}</span>
-      <span style="font-size:12px;color:${isClosed?'var(--green)':'var(--text2)'}">${isClosed ? '✓ Sesión guardada' : done+'/'+exs.length+' hechos'}</span>
+      <span style="font-size:12px;color:var(--text2)">${done}/${exs.length} hechos</span>
     </div>
-    ${isClosed ? `<div class="session-closed-banner">✅ Esta sesión ya fue guardada. No podés modificarla.</div>` : `<div style="font-size:13px;color:var(--text2);margin-bottom:0.75rem">Tocá un ejercicio para marcarlo 👇</div>`}
+    <div style="font-size:13px;color:var(--text2);margin-bottom:0.75rem">Tocá un ejercicio para marcarlo 👇</div>
     ${exItems}
-    ${!isClosed && allMarked ? `<button style="width:100%;padding:0.9rem;border-radius:14px;border:none;background:var(--orange);color:white;font-size:16px;font-weight:600;cursor:pointer;margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>` : ''}
-    ${!isClosed ? `<button class="btn-save-session" style="margin-top:0.5rem" onclick="saveFinalSession()">💾 Guardar sesión</button>` : ''}`;
+    ${allMarked ? `<button style="width:100%;padding:0.9rem;border-radius:14px;border:none;background:var(--orange);color:white;font-size:16px;font-weight:600;cursor:pointer;margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>` : ''}
+    <button class="btn-save-session" style="margin-top:0.5rem" onclick="saveFinalSession()">💾 Guardar sesión</button>`;
 }
 
-// ─── SESSION ───────────────────────────────────────────────────────
+// ─── SESSION ──
 function openExercise(idx) {
   if (isDayClosed(selectedDate)) return;
   sessionIdx = idx;
@@ -610,7 +764,7 @@ function handleFileUpload(event) {
   event.target.value = '';
 }
 
-// ─── SUMMARY ───────────────────────────────────────────────────────
+// ─── SUMMARY ──
 function showSummary() {
   document.getElementById('view-session').style.display = 'none';
   document.getElementById('view-summary').style.display = 'block';
@@ -645,85 +799,46 @@ function showSummary() {
     ${items}`;
 }
 
-// ─── GUARDAR SESIÓN ────────────────────────────────────────────────
+// ─── GUARDAR SESIÓN ──
 async function saveFinalSession() {
-  // Guardar la tarjeta actual si estamos en la vista sesión
-  if (document.getElementById('view-session').style.display !== 'none') {
-    saveCurrentCard();
-  }
+  if (document.getElementById('view-session').style.display !== 'none') saveCurrentCard();
   document.getElementById('view-home').style.display = 'none';
   document.getElementById('view-summary').style.display = 'block';
-
   const btn = document.getElementById('btn-save-session');
   btn.disabled = true; btn.textContent = 'Guardando…';
-
   try {
     for (const ex of sessionExs) {
       const st = sessionState[ex.id];
       if (!st) continue;
-
       const isCompleted = st.status === 'done';
       const isNotCompleted = st.status === 'missed';
-
-      // Armar resumen de series
       const seriesSummary = st.series?.filter(s => s.peso || s.reps).map((s, i) =>
         `S${i+1}: ${[s.peso?s.peso+'kg':'', s.reps?s.reps+' reps':'', s.rpe?'RPE '+s.rpe:''].filter(Boolean).join(' ')}`
       ).join(' | ') || null;
 
-      // 1 — Guardar log de cargas
       if (seriesSummary || st.comment) {
         const existing = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
         if (existing) {
-          await dbPatch('logs_entrenamiento', existing.id, {
-            series_realizadas: seriesSummary,
-            peso_usado: st.series?.[0]?.peso || null,
-            rpe: st.series?.[0]?.rpe || null,
-            nota: st.comment || null
-          });
+          await dbPatch('logs_entrenamiento', existing.id, {series_realizadas: seriesSummary, peso_usado: st.series?.[0]?.peso||null, rpe: st.series?.[0]?.rpe||null, nota: st.comment||null});
         } else {
-          const newLog = await dbPost('logs_entrenamiento', {
-            cliente_id: currentCliente.id,
-            ejercicio_id: ex.id,
-            fecha: selectedDate,
-            series_realizadas: seriesSummary,
-            peso_usado: st.series?.[0]?.peso || null,
-            rpe: st.series?.[0]?.rpe || null,
-            nota: st.comment || null
-          });
+          const newLog = await dbPost('logs_entrenamiento', {cliente_id: currentCliente.id, ejercicio_id: ex.id, fecha: selectedDate, series_realizadas: seriesSummary, peso_usado: st.series?.[0]?.peso||null, rpe: st.series?.[0]?.rpe||null, nota: st.comment||null});
           logs.unshift(newLog[0]);
         }
       } else if (isCompleted || isNotCompleted) {
-        // Guardar aunque no tenga cargas, para registrar el estado
         const existing = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
         if (!existing) {
-          const newLog = await dbPost('logs_entrenamiento', {
-            cliente_id: currentCliente.id,
-            ejercicio_id: ex.id,
-            fecha: selectedDate,
-            series_realizadas: null,
-            peso_usado: null,
-            rpe: null,
-            nota: st.comment || null
-          });
+          const newLog = await dbPost('logs_entrenamiento', {cliente_id: currentCliente.id, ejercicio_id: ex.id, fecha: selectedDate, series_realizadas: null, peso_usado: null, rpe: null, nota: st.comment||null});
           logs.unshift(newLog[0]);
         }
       }
 
-      // 2 — Actualizar completado y devolucion en ejercicios
-      await dbPatch('ejercicios', ex.id, {
-        completado: isCompleted,
-        devolucion: st.comment || null
-      });
-
-      // Actualizar local
+      await dbPatch('ejercicios', ex.id, {completado: isCompleted, devolucion: st.comment||null});
       const localEx = ejercicios.find(e => e.id === ex.id);
-      if (localEx) { localEx.completado = isCompleted; localEx.devolucion = st.comment || null; }
+      if (localEx) { localEx.completado = isCompleted; localEx.devolucion = st.comment||null; }
     }
 
     showToast('Sesión guardada ✓');
     btn.textContent = '✓ Sesión guardada';
-
-    // Recargar logs desde BD para que el día quede marcado
     logs = await dbGet('logs_entrenamiento', `cliente_id=eq.${currentCliente.id}&order=fecha.desc`);
     buildDayStrip();
     setTimeout(() => showHome(), 1500);
@@ -740,7 +855,6 @@ function showToast(msg, err=false) {
   t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ─── AUTO-LOGIN ────────────────────────────────────────────────────
 window.onload = async () => {
   const cid = sessionStorage.getItem('cliente_id');
   if (cid) {
