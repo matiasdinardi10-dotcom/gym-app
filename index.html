@@ -60,9 +60,20 @@
   .search:focus { outline: none; border-color: var(--green); }
   .client-card { background: white; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 0.75rem; cursor: pointer; }
   .client-row { display: flex; align-items: center; gap: 12px; }
-  .avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 14px; flex-shrink: 0; }
+  .avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 14px; flex-shrink: 0; position: relative; }
   .avatar-lg { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 18px; flex-shrink: 0; }
   .av-teal{background:#E1F5EE;color:#0F6E56} .av-blue{background:#E6F1FB;color:#185FA5} .av-coral{background:#FAECE7;color:#993C1D} .av-purple{background:#EEEDFE;color:#534AB7} .av-amber{background:#FAEEDA;color:#854F0B}
+
+  /* ── ACTIVITY DOT ── */
+  .activity-dot {
+    position: absolute; bottom: 0; right: 0;
+    width: 13px; height: 13px; border-radius: 50%;
+    border: 2px solid white;
+  }
+  .activity-dot.trained-today { background: #1D9E75; }   /* entrenó hoy */
+  .activity-dot.has-session { background: #F39C12; }      /* tiene sesión pero no la hizo */
+  .activity-dot.inactive { background: #ccc; }            /* sin sesión hoy */
+
   .client-info { flex: 1; min-width: 0; }
   .client-name { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
   .client-sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
@@ -148,15 +159,26 @@
   .session-info { flex: 1; font-size: 13px; }
   .session-time { font-size: 11px; color: var(--color-text-secondary); }
   .session-delete { background: none; border: none; color: var(--color-text-secondary); cursor: pointer; font-size: 14px; }
+
+  /* ── LEYENDA DE ACTIVIDAD ── */
+  .activity-legend { display: flex; gap: 12px; align-items: center; margin-bottom: 0.75rem; font-size: 11px; color: var(--color-text-secondary); flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 </style>
 </head>
 <body>
 
 <div class="screen active" id="screen-clientes">
   <div class="list-view" id="cl-list">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
       <h1 class="page-title" style="margin:0">Mis clientes</h1>
       <span id="cl-count" style="font-size:13px;color:var(--color-text-secondary)">—</span>
+    </div>
+    <!-- Leyenda de actividad -->
+    <div class="activity-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div> Entrenó hoy</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#F39C12"></div> Sesión pendiente</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ccc"></div> Sin sesión hoy</div>
     </div>
     <input class="search" type="text" placeholder="Buscar cliente..." id="cl-search" oninput="filterClients()" />
     <div id="cl-list-items"><div class="loading">Cargando…</div></div>
@@ -177,7 +199,6 @@
     <button class="sub-tab" onclick="rutSwitchTab('biblioteca')">Biblioteca</button>
     <button class="sub-tab" onclick="rutSwitchTab('feedback')">Comentarios</button>
   </div>
-
   <div class="sub-view active" id="rut-sesion">
     <div class="cal-strip" id="rut-cal-strip"></div>
     <div class="section" style="margin-bottom:0.75rem;display:flex;align-items:center;justify-content:space-between">
@@ -190,17 +211,14 @@
     <div id="rut-completed-banner" style="display:none;font-size:13px;color:#0F6E56;background:#E1F5EE;padding:10px 14px;border-radius:8px;margin-bottom:0.75rem;">✅ El alumno ya completó esta sesión.</div>
     <div id="rut-exercise-list"><div class="loading">Cargando…</div></div>
   </div>
-
   <div class="sub-view" id="rut-sesiones">
     <select class="client-selector" id="rut-sel-sesiones" onchange="rutLoadSesionesAlumno(this.value)"></select>
     <div id="rut-sesiones-content"><div class="loading">Cargando…</div></div>
   </div>
-
   <div class="sub-view" id="rut-historial">
     <select class="client-selector" id="rut-sel-historial" onchange="rutLoadHistorial(this.value)"></select>
     <div id="rut-historial-content"><div class="loading">Cargando…</div></div>
   </div>
-
   <div class="sub-view" id="rut-biblioteca">
     <div class="section">
       <div class="section-title">Agregar ejercicio</div>
@@ -213,7 +231,6 @@
       <div id="bib-list"><div class="loading">Cargando…</div></div>
     </div>
   </div>
-
   <div class="sub-view" id="rut-feedback">
     <div class="section">
       <div class="section-title">Comentarios de clientes</div>
@@ -360,7 +377,23 @@ function showToast(msg,err=false){const t=document.getElementById('toast');t.tex
 
 const PROFE_EMAIL='matiasdinardi10@gmail.com';
 (function checkAccess(){const rol=sessionStorage.getItem('rol');const email=sessionStorage.getItem('auth_email');if(!rol||email!==PROFE_EMAIL){window.location.href='login.html';}})();
-function profeLogout(){sessionStorage.clear();window.location.href='login.html';}
+
+// ── ACTIVIDAD DEL CLIENTE HOY ──────────────────────────────────────
+// Devuelve: 'trained' | 'pending' | 'none'
+function getClientActivityToday(clientId) {
+  const cid = parseInt(clientId);
+  // ¿Tiene ejercicios programados hoy?
+  const hasSessionToday = allEjercicios.some(e => String(e._clientId) === String(cid) && e.fecha_sesion === TODAY);
+  if (!hasSessionToday) return 'none';
+  // ¿Ya guardó logs hoy?
+  const trainedToday = allLogs.some(l => l.cliente_id === cid && l.fecha === TODAY);
+  return trainedToday ? 'trained' : 'pending';
+}
+
+function activityDot(status) {
+  const cls = status === 'trained' ? 'trained-today' : status === 'pending' ? 'has-session' : 'inactive';
+  return `<div class="activity-dot ${cls}" title="${status==='trained'?'Entrenó hoy':status==='pending'?'Tiene sesión hoy pero no la completó':'Sin sesión hoy'}"></div>`;
+}
 
 async function init(){
   try{
@@ -397,28 +430,43 @@ function clRenderList(){
   document.getElementById('cl-count').textContent=`${activos} activo${activos!==1?'s':''}`;
   clRenderFiltered();
 }
+
 function clRenderFiltered(){
   if(!clFiltered.length){document.getElementById('cl-list-items').innerHTML='<div class="empty">No hay clientes aún.</div>';return;}
-  document.getElementById('cl-list-items').innerHTML=clFiltered.map(c=>`
-    <div class="client-card" onclick="clShowDetail(${c.id})">
+  // Ordenar: primero los que entrenaron hoy, luego los que tienen sesión pendiente, luego el resto
+  const sorted=[...clFiltered].sort((a,b)=>{
+    const order={'trained':0,'pending':1,'none':2};
+    return order[getClientActivityToday(a.id)] - order[getClientActivityToday(b.id)];
+  });
+  document.getElementById('cl-list-items').innerHTML=sorted.map(c=>{
+    const activity=getClientActivityToday(c.id);
+    return`<div class="client-card" onclick="clShowDetail(${c.id})">
       <div class="client-row">
-        <div class="avatar ${avClass(c.nombre)}">${initials(c.nombre)}</div>
-        <div class="client-info"><div class="client-name">${c.nombre}</div><div class="client-sub">${c.objetivo||'—'} · ${c.edad?c.edad+' años':'—'}</div></div>
+        <div class="avatar ${avClass(c.nombre)}">${initials(c.nombre)}${activityDot(activity)}</div>
+        <div class="client-info">
+          <div class="client-name">${c.nombre}</div>
+          <div class="client-sub">${c.objetivo||'—'} · ${c.edad?c.edad+' años':'—'}</div>
+        </div>
         <span class="badge badge-${c.estado}">${c.estado==='activo'?'Activo':'Nuevo'}</span>
         <span class="arrow">›</span>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
+
 function filterClients(){
   const q=document.getElementById('cl-search').value.toLowerCase();
   clFiltered=clientes.filter(c=>c.nombre.toLowerCase().includes(q)||(c.objetivo||'').toLowerCase().includes(q));
   clRenderFiltered();
 }
+
 function clShowDetail(id){
   const c=clientes.find(x=>x.id===id);if(!c)return;
+  const activity=getClientActivityToday(c.id);
+  const activityText = activity==='trained' ? '✅ Entrenó hoy' : activity==='pending' ? '⏳ Tiene sesión pendiente hoy' : '—';
   document.getElementById('cl-detail-content').innerHTML=`
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:1.5rem">
-      <div class="avatar-lg ${avClass(c.nombre)}">${initials(c.nombre)}</div>
+      <div class="avatar-lg ${avClass(c.nombre)}" style="position:relative">${initials(c.nombre)}${activityDot(activity)}</div>
       <div><div style="font-size:19px;font-weight:500">${c.nombre}</div><div style="font-size:13px;color:var(--color-text-secondary);margin-top:3px">${c.objetivo||'—'}</div></div>
     </div>
     <div class="section">
@@ -428,6 +476,7 @@ function clShowDetail(id){
       <div class="field-row"><span class="field-label">Email</span><span class="field-value">${c.email||'—'}</span></div>
       <div class="field-row"><span class="field-label">Estado</span><span class="field-value"><span class="badge badge-${c.estado}">${c.estado==='activo'?'Activo':'Nuevo'}</span></span></div>
       <div class="field-row"><span class="field-label">Alta</span><span class="field-value">${c.fecha_alta?c.fecha_alta.split('-').reverse().join('/'):'—'}</span></div>
+      <div class="field-row"><span class="field-label">Actividad hoy</span><span class="field-value">${activityText}</span></div>
     </div>
     <div class="section" style="display:flex;gap:8px">
       <button class="btn-primary" style="flex:2;margin:0" onclick="openEditClientModal(${c.id})">✏️ Editar</button>
@@ -436,6 +485,7 @@ function clShowDetail(id){
   document.getElementById('cl-list').classList.add('hidden');
   document.getElementById('cl-detail').classList.add('active');
 }
+
 function showClientList(){document.getElementById('cl-list').classList.remove('hidden');document.getElementById('cl-detail').classList.remove('active');}
 function openClientModal(){
   clEditingId=null;document.getElementById('cl-modal-title').textContent='Agregar cliente';
@@ -481,7 +531,6 @@ async function deleteClient(id){
 
 // ── RUTINAS ──
 let rutCurrentClientId=null;let rutSelectedDate=TODAY;let rutOpenDetails={};
-
 function rutSwitchTab(tab){
   document.querySelectorAll('.sub-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('#screen-rutinas .sub-view').forEach(v=>v.classList.remove('active'));
@@ -498,7 +547,6 @@ function rutSwitchTab(tab){
 }
 async function rutOnClientChange(id){rutCurrentClientId=parseInt(id);rutOpenDetails={};rutBuildCalStrip();rutRenderDay();}
 
-// ── CALENDARIO CON DÍAS COMPLETADOS EN VERDE ──
 function rutBuildCalStrip(){
   const exsByDate={};
   allEjercicios.filter(e=>String(e._clientId)===String(rutCurrentClientId)&&e.fecha_sesion).forEach(e=>{
@@ -511,17 +559,14 @@ function rutBuildCalStrip(){
     const d=new Date(today);d.setDate(today.getDate()+i);
     const ds=d.toISOString().split('T')[0];
     const hasSession=!!exsByDate[ds];
-    // Día completado = tiene ejercicios Y el alumno guardó logs ese día
     const isCompleted=hasSession&&logDates.has(ds);
     const isSelected=ds===rutSelectedDate;
     const isToday=ds===TODAY;
-
     let bg='white';let border='var(--color-border-tertiary)';let nameColor='var(--color-text-secondary)';let numColor='var(--color-text-primary)';let extra='';
     if(isCompleted&&!isSelected){bg='#1D9E75';border='#1D9E75';nameColor='rgba(255,255,255,0.8)';numColor='white';extra='<div style="font-size:8px;color:white;line-height:1.2">✓</div>';}
     else if(hasSession&&!isSelected){bg='#E1F5EE';border='#5DCAA5';numColor='#0F6E56';}
     if(isSelected){bg='#0F6E56';border='#0F6E56';nameColor='white';numColor='white';extra='';}
     if(isToday&&!isSelected&&!isCompleted&&!hasSession){border='#1D9E75';numColor='#1D9E75';}
-
     html+=`<div class="cal-day-btn" style="background:${bg};border-color:${border}" onclick="rutSelectDate('${ds}')">
       <div class="day-name" style="color:${nameColor}">${DAYS[d.getDay()]}</div>
       <div class="day-num" style="color:${numColor}">${d.getDate()}</div>
@@ -533,43 +578,25 @@ function rutBuildCalStrip(){
 
 function rutSelectDate(ds){rutSelectedDate=ds;rutBuildCalStrip();rutRenderDay();}
 
-// ── VISTA DÍA: DESHABILITAR AGREGAR SI EL ALUMNO YA COMPLETÓ ──
 function rutRenderDay(){
   if(!rutCurrentClientId)return;
   const exs=allEjercicios.filter(e=>String(e._clientId)===String(rutCurrentClientId)&&e.fecha_sesion===rutSelectedDate);
   document.getElementById('rut-prog-total').textContent=exs.length;
   const isToday=rutSelectedDate===TODAY;
   document.getElementById('rut-prog-fecha').textContent=isToday?'Hoy':new Date(rutSelectedDate+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
-
   const dayLogs=allLogs.filter(l=>l.cliente_id==rutCurrentClientId&&l.fecha===rutSelectedDate);
-  // Día completado = hay ejercicios y el alumno guardó logs
   const isCompleted=exs.length>0&&dayLogs.length>0;
-
-  // Mostrar/ocultar botón agregar y banner
   document.getElementById('btn-add-ex').style.display=isCompleted?'none':'';
   const banner=document.getElementById('rut-completed-banner');
   banner.style.display=isCompleted?'flex':'none';
-
   const logByEx={};dayLogs.forEach(l=>{logByEx[l.ejercicio_id]=l;});
-
-  if(!exs.length){
-    document.getElementById('rut-exercise-list').innerHTML='<div class="empty">No hay ejercicios para este día.<br>Tocá "+ Agregar" para comenzar.</div>';
-    return;
-  }
-
+  if(!exs.length){document.getElementById('rut-exercise-list').innerHTML='<div class="empty">No hay ejercicios para este día.<br>Tocá "+ Agregar" para comenzar.</div>';return;}
   document.getElementById('rut-exercise-list').innerHTML=exs.map((ex,i)=>{
     const tags=[ex.series?ex.series+' reps':'',ex.peso,ex.tiempo].filter(Boolean);
     const log=logByEx[ex.id];
     const prevLog=allLogs.find(l=>l.ejercicio_id===ex.id&&l.fecha<rutSelectedDate&&l.cliente_id==rutCurrentClientId);
-
-    // Badge de estado del alumno
     let statusBadge='';
-    if(isCompleted){
-      statusBadge=ex.completado
-        ?`<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:#EAF3DE;color:#3B6D11;white-space:nowrap">✓ Completado</span>`
-        :`<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:#FDECEA;color:#D93025;white-space:nowrap">✕ No completado</span>`;
-    }
-
+    if(isCompleted){statusBadge=ex.completado?`<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:#EAF3DE;color:#3B6D11;white-space:nowrap">✓ Completado</span>`:`<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:#FDECEA;color:#D93025;white-space:nowrap">✕ No completado</span>`;}
     return`<div class="exercise-card ${isCompleted&&ex.completado?'done':''}">
       <div class="ex-header">
         <div style="width:22px;height:22px;border-radius:6px;background:var(--green-light);color:var(--green-dark);font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${String.fromCharCode(65+i)}</div>
@@ -578,10 +605,7 @@ function rutRenderDay(){
         <button class="ex-expand" onclick="rutToggleDetail(${ex.id})">${rutOpenDetails[ex.id]?'−':'+'}</button>
         ${!isCompleted?`<button class="ex-delete" onclick="rutRemoveEx(${ex.id})">✕</button>`:''}
       </div>
-      <div class="ex-tags">
-        ${tags.map(t=>`<span class="tag">${t}</span>`).join('')}
-        ${ex.link_youtube?`<a class="yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>`:''}
-      </div>
+      <div class="ex-tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}${ex.link_youtube?`<a class="yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>`:''}</div>
       <div class="ex-details ${rutOpenDetails[ex.id]?'open':''}">
         ${ex.nota?`<div class="ex-note">${ex.nota}</div>`:''}
         ${log?`<div class="log-prev">📊 Alumno registró: ${[log.series_realizadas,log.peso_usado,log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ')||'sin cargas'}</div>`:''}
@@ -671,23 +695,7 @@ async function rutLoadSesionesAlumno(clientId){
   const byDate={};clientLogs.forEach(l=>{if(!byDate[l.fecha])byDate[l.fecha]=[];byDate[l.fecha].push(l);});
   el.innerHTML=Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).map(([fecha,entries])=>{
     const label=new Date(fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
-    return`<div class="section">
-      <div class="log-block-date">📅 ${label}</div>
-      ${entries.map(e=>{
-        const ex=allEjercicios.find(x=>x.id===e.ejercicio_id);
-        const load=[e.series_realizadas,e.peso_usado,e.rpe].filter(Boolean).join(' · ');
-        const nota=e.nota||ex?.devolucion||'';
-        const completado=ex?.completado;
-        return`<div class="log-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding:8px 0">
-          <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
-            <span class="log-ex-name">${ex?ex.nombre:'—'}</span>
-            <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${completado?'#EAF3DE':'#FDECEA'};color:${completado?'#3B6D11':'#D93025'}">${completado?'✓ Completado':'✕ No completado'}</span>
-          </div>
-          ${load?`<div class="log-ex-load">${load}</div>`:''}
-          ${nota?`<div style="font-size:12px;color:var(--color-text-secondary);font-style:italic">"${nota}"</div>`:''}
-        </div>`;
-      }).join('')}
-    </div>`;
+    return`<div class="section"><div class="log-block-date">📅 ${label}</div>${entries.map(e=>{const ex=allEjercicios.find(x=>x.id===e.ejercicio_id);const load=[e.series_realizadas,e.peso_usado,e.rpe].filter(Boolean).join(' · ');const nota=e.nota||ex?.devolucion||'';const completado=ex?.completado;return`<div class="log-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding:8px 0"><div style="display:flex;justify-content:space-between;width:100%;align-items:center"><span class="log-ex-name">${ex?ex.nombre:'—'}</span><span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${completado?'#EAF3DE':'#FDECEA'};color:${completado?'#3B6D11':'#D93025'}">${completado?'✓ Completado':'✕ No completado'}</span></div>${load?`<div class="log-ex-load">${load}</div>`:''}${nota?`<div style="font-size:12px;color:var(--color-text-secondary);font-style:italic">"${nota}"</div>`:''}</div>`;}).join('')}</div>`;
   }).join('');
 }
 
@@ -723,12 +731,7 @@ async function cobConfirmarPago(id){
   catch(e){showToast('Error',true);}
 }
 async function addCobro(){
-  const cliente_id=document.getElementById('cob-client').value;
-  const monto=parseFloat(document.getElementById('cob-monto').value);
-  const medio_pago=document.getElementById('cob-medio').value;
-  const mes=document.getElementById('cob-mes').value.trim();
-  const fecha_pago=document.getElementById('cob-fecha').value;
-  const estado=document.getElementById('cob-estado').value;
+  const cliente_id=document.getElementById('cob-client').value;const monto=parseFloat(document.getElementById('cob-monto').value);const medio_pago=document.getElementById('cob-medio').value;const mes=document.getElementById('cob-mes').value.trim();const fecha_pago=document.getElementById('cob-fecha').value;const estado=document.getElementById('cob-estado').value;
   if(!monto||!mes||!fecha_pago){showToast('Completá todos los campos',true);return;}
   try{const res=await dbPost('cobros',{cliente_id,monto,medio_pago,mes,fecha_pago,estado});allCobros.unshift(res[0]);document.getElementById('cob-monto').value='';document.getElementById('cob-mes').value='';cobRenderCobros();showToast('Cobro registrado ✓');}
   catch(e){showToast('Error: '+e.message.slice(0,60),true);}
@@ -737,32 +740,21 @@ function cobRenderCal(){
   const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   document.getElementById('cob-cal-title').textContent=months[cobCalMonth]+' '+cobCalYear;
   const days=['Lu','Ma','Mi','Ju','Vi','Sa','Do'];
-  const firstDay=new Date(cobCalYear,cobCalMonth,1).getDay();
-  const offset=firstDay===0?6:firstDay-1;
-  const daysInMonth=new Date(cobCalYear,cobCalMonth+1,0).getDate();
-  const now=new Date();
+  const firstDay=new Date(cobCalYear,cobCalMonth,1).getDay();const offset=firstDay===0?6:firstDay-1;const daysInMonth=new Date(cobCalYear,cobCalMonth+1,0).getDate();const now=new Date();
   const sessionDays=new Set(allSesiones.filter(t=>{const d=new Date(t.fecha+'T00:00:00');return d.getFullYear()===cobCalYear&&d.getMonth()===cobCalMonth;}).map(t=>parseInt(t.fecha.split('-')[2])));
   let html=days.map(d=>`<div class="cal-day-name">${d}</div>`).join('');
   for(let i=0;i<offset;i++)html+='<div class="cal-grid-day empty">·</div>';
-  for(let d=1;d<=daysInMonth;d++){
-    const isToday=now.getFullYear()===cobCalYear&&now.getMonth()===cobCalMonth&&now.getDate()===d;
-    html+=`<div class="cal-grid-day ${sessionDays.has(d)?'has-s':''} ${isToday?'is-today':''}">${d}</div>`;
-  }
-  document.getElementById('cob-cal-grid').innerHTML=html;
-  cobRenderSessions();
+  for(let d=1;d<=daysInMonth;d++){const isToday=now.getFullYear()===cobCalYear&&now.getMonth()===cobCalMonth&&now.getDate()===d;html+=`<div class="cal-grid-day ${sessionDays.has(d)?'has-s':''} ${isToday?'is-today':''}">${d}</div>`;}
+  document.getElementById('cob-cal-grid').innerHTML=html;cobRenderSessions();
 }
 function cobRenderSessions(){
-  const now=new Date();now.setHours(0,0,0,0);
-  const upcoming=allSesiones.filter(t=>new Date(t.fecha+'T00:00:00')>=now).slice(0,8);
+  const now=new Date();now.setHours(0,0,0,0);const upcoming=allSesiones.filter(t=>new Date(t.fecha+'T00:00:00')>=now).slice(0,8);
   if(!upcoming.length){document.getElementById('cob-session-list').innerHTML='<div class="empty">No hay sesiones próximas</div>';return;}
   document.getElementById('cob-session-list').innerHTML=upcoming.map(t=>{const cl=clientes.find(x=>x.id===t.cliente_id);const name=cl?cl.nombre:'—';const d=new Date(t.fecha+'T00:00:00');const label=d.toLocaleDateString('es-UY',{weekday:'short',day:'numeric',month:'short'});return`<div class="session-item"><div class="session-dot"></div><div class="session-info"><span style="font-weight:500">${name}</span>${t.notas?` · ${t.notas}`:''}<div class="session-time">${label} a las ${t.hora||'—'}</div></div><button class="session-delete" onclick="cobDeleteSesion(${t.id})">✕</button></div>`;}).join('');
 }
 function cobChangeMonth(dir){cobCalMonth+=dir;if(cobCalMonth>11){cobCalMonth=0;cobCalYear++;}if(cobCalMonth<0){cobCalMonth=11;cobCalYear--;}cobRenderCal();}
 async function addTurno(){
-  const cliente_id=document.getElementById('cob-t-client').value;
-  const fecha=document.getElementById('cob-t-fecha').value;
-  const hora=document.getElementById('cob-t-hora').value;
-  const notas=document.getElementById('cob-t-nota').value.trim();
+  const cliente_id=document.getElementById('cob-t-client').value;const fecha=document.getElementById('cob-t-fecha').value;const hora=document.getElementById('cob-t-hora').value;const notas=document.getElementById('cob-t-nota').value.trim();
   if(!fecha||!hora){showToast('Elegí fecha y hora',true);return;}
   try{const res=await dbPost('sesiones',{cliente_id,fecha,hora,notas:notas||null});allSesiones.push(res[0]);allSesiones.sort((a,b)=>a.fecha.localeCompare(b.fecha));document.getElementById('cob-t-nota').value='';cobRenderCal();showToast('Sesión agendada ✓');}
   catch(e){showToast('Error: '+e.message.slice(0,60),true);}
