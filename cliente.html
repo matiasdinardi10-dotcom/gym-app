@@ -39,9 +39,25 @@
   #app { display: none; max-width: 430px; margin: 0 auto; min-height: 100vh; }
   .app-header { background: white; padding: 1rem 1.25rem 0.75rem; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 10; }
   .header-top { display: flex; align-items: center; justify-content: space-between; }
+  .header-left { flex: 1; min-width: 0; }
   .header-greeting { font-size: 18px; font-weight: 600; color: var(--text); }
   .header-date { font-size: 13px; color: var(--text2); margin-top: 2px; }
-  .btn-logout { font-size: 12px; color: var(--text2); background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
+  .btn-logout { font-size: 12px; color: var(--text2); background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 8px; flex-shrink: 0; }
+
+  /* ── STREAK BADGE ── */
+  .streak-badge {
+    display: flex; align-items: center; gap: 5px;
+    background: linear-gradient(135deg, #FF6B35, #FF8C42);
+    color: white; border-radius: 20px;
+    padding: 5px 12px; font-size: 13px; font-weight: 700;
+    flex-shrink: 0; cursor: default;
+    box-shadow: 0 2px 8px rgba(255,107,53,0.35);
+  }
+  .streak-badge.zero {
+    background: #f0f0f5; color: var(--text2);
+    box-shadow: none; font-weight: 500;
+  }
+  .streak-fire { font-size: 15px; }
 
   .day-strip { display: flex; gap: 6px; overflow-x: auto; padding: 0.75rem 1.25rem; scrollbar-width: none; background: white; border-bottom: 0.5px solid var(--border); }
   .day-strip::-webkit-scrollbar { display: none; }
@@ -70,113 +86,35 @@
   .dot-pending { background: #ccc; }
   .empty-day { text-align: center; padding: 3rem 1rem; color: var(--text2); font-size: 14px; }
 
-  /* ── VISTA DÍA COMPLETADO ── */
-  .completed-day-pill {
-    background: var(--green);
-    border-radius: var(--radius);
-    padding: 1rem 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    margin-bottom: 0.75rem;
-    user-select: none;
-  }
+  .completed-day-pill { background: var(--green); border-radius: var(--radius); padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; margin-bottom: 0.75rem; user-select: none; }
   .completed-day-pill-left { display: flex; align-items: center; gap: 12px; }
   .completed-day-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
   .completed-day-title { font-size: 16px; font-weight: 600; color: white; }
   .completed-day-sub { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 2px; }
   .completed-day-arrow { font-size: 18px; color: rgba(255,255,255,0.7); transition: transform 0.2s; }
   .completed-day-arrow.open { transform: rotate(180deg); }
-
-  /* Contenido expandido del día completado */
   .completed-day-content { display: none; }
   .completed-day-content.open { display: block; }
 
-  /* Tarjeta de ejercicio completado */
-  .done-ex-card {
-    background: white;
-    border-radius: var(--radius);
-    margin-bottom: 0.6rem;
-    border: 1px solid var(--border);
-    overflow: hidden;
-  }
+  .done-ex-card { background: white; border-radius: var(--radius); margin-bottom: 0.6rem; border: 1px solid var(--border); overflow: hidden; }
   .done-ex-card.is-done { border-color: #5DCAA5; }
   .done-ex-card.is-missed { border-color: #f5a0a0; }
-
-  .done-ex-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 1rem 1.25rem 0.75rem;
-  }
-  .done-ex-letter {
-    width: 36px; height: 36px; border-radius: 10px;
-    background: var(--green-light); color: var(--green-dark);
-    font-weight: 700; font-size: 15px;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
+  .done-ex-header { display: flex; align-items: center; gap: 12px; padding: 1rem 1.25rem 0.75rem; }
+  .done-ex-letter { width: 36px; height: 36px; border-radius: 10px; background: var(--green-light); color: var(--green-dark); font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .done-ex-letter.missed { background: var(--red-light); color: var(--red); }
   .done-ex-name { font-size: 15px; font-weight: 600; color: var(--text); flex: 1; }
-  .done-ex-badge {
-    font-size: 11px; padding: 3px 10px; border-radius: 20px; white-space: nowrap;
-  }
+  .done-ex-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
   .done-ex-badge.done { background: var(--green-light); color: var(--green-dark); }
   .done-ex-badge.missed { background: var(--red-light); color: var(--red); }
-
-  /* Lo que el profe programó */
-  .done-ex-prescribed {
-    padding: 0 1.25rem 0.75rem;
-    display: flex; flex-wrap: wrap; gap: 6px;
-  }
-  .prescribed-tag {
-    font-size: 12px; padding: 4px 10px; border-radius: 20px;
-    background: #f0f0f5; color: var(--text2);
-  }
-  .prescribed-note {
-    width: 100%;
-    font-size: 12px; color: var(--text2);
-    padding: 6px 10px;
-    background: #f9f9f9;
-    border-radius: 8px;
-    border-left: 3px solid var(--green);
-    margin-top: 2px;
-  }
-
-  /* Lo que el alumno registró */
-  .done-ex-logged {
-    margin: 0 1rem 1rem;
-    background: #f2f2f7;
-    border-radius: 10px;
-    padding: 0.75rem 1rem;
-  }
-  .done-ex-logged-title {
-    font-size: 10px; font-weight: 600; color: var(--text2);
-    text-transform: uppercase; letter-spacing: 0.05em;
-    margin-bottom: 6px;
-  }
-  .done-ex-series-row {
-    font-size: 13px; color: var(--text);
-    padding: 3px 0;
-    border-bottom: 0.5px solid var(--border);
-  }
+  .done-ex-prescribed { padding: 0 1.25rem 0.75rem; display: flex; flex-wrap: wrap; gap: 6px; }
+  .prescribed-tag { font-size: 12px; padding: 4px 10px; border-radius: 20px; background: #f0f0f5; color: var(--text2); }
+  .prescribed-note { width: 100%; font-size: 12px; color: var(--text2); padding: 6px 10px; background: #f9f9f9; border-radius: 8px; border-left: 3px solid var(--green); margin-top: 2px; }
+  .done-ex-logged { margin: 0 1rem 1rem; background: #f2f2f7; border-radius: 10px; padding: 0.75rem 1rem; }
+  .done-ex-logged-title { font-size: 10px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .done-ex-series-row { font-size: 13px; color: var(--text); padding: 3px 0; border-bottom: 0.5px solid var(--border); }
   .done-ex-series-row:last-of-type { border-bottom: none; }
-  .done-ex-comment {
-    font-size: 12px; color: var(--text2);
-    font-style: italic;
-    margin-top: 6px;
-    padding-top: 6px;
-    border-top: 0.5px solid var(--border);
-  }
-
-  /* YouTube link en vista completada */
-  .done-yt-link {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: 11px; color: #C0392B;
-    text-decoration: none;
-    background: #FEF2F2; padding: 3px 8px; border-radius: 20px;
-    margin: 0 1.25rem 0.75rem;
-  }
+  .done-ex-comment { font-size: 12px; color: var(--text2); font-style: italic; margin-top: 6px; padding-top: 6px; border-top: 0.5px solid var(--border); }
+  .done-yt-link { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #C0392B; text-decoration: none; background: #FEF2F2; padding: 3px 8px; border-radius: 20px; margin: 0 1.25rem 0.75rem; }
 
   #view-session { display: none; }
   .session-header { background: white; padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 10; }
@@ -267,26 +205,22 @@
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-logo">
     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
   </div>
   <div class="login-title">Mi Entrenamiento</div>
   <div class="login-sub" id="login-sub-text">Ingresá con tu cuenta</div>
-
   <div style="display:flex;gap:4px;background:#f0f0f0;border-radius:12px;padding:4px;width:100%;max-width:360px;margin-bottom:1.25rem">
     <button id="tab-login" onclick="switchAuthTab('login')" style="flex:1;padding:8px;border:none;border-radius:8px;background:white;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-sans);color:#111">Ingresar</button>
     <button id="tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:8px;border:none;border-radius:8px;background:transparent;font-size:14px;color:#888;cursor:pointer;font-family:var(--font-sans)">Registrarse</button>
   </div>
-
   <div class="login-card" id="form-login">
     <div class="login-field"><label>Email</label><input type="email" id="login-email" placeholder="tu@email.com" onkeydown="if(event.key==='Enter')doLogin()" /></div>
     <div class="login-field"><label>Contraseña</label><input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" /></div>
     <button class="btn-login" onclick="doLogin()">Ingresar</button>
     <div class="login-error" id="login-error"></div>
   </div>
-
   <div class="login-card" id="form-register" style="display:none">
     <div class="login-field"><label>Nombre completo</label><input type="text" id="reg-nombre" placeholder="Juan Pérez" /></div>
     <div class="login-field"><label>Email</label><input type="email" id="reg-email" placeholder="tu@email.com" /></div>
@@ -299,15 +233,20 @@
   </div>
 </div>
 
-<!-- APP -->
 <div id="app">
   <div class="app-header">
     <div class="header-top">
-      <div>
+      <div class="header-left">
         <div class="header-greeting" id="header-name">Hola 👋</div>
         <div class="header-date" id="header-date"></div>
       </div>
-      <button class="btn-logout" onclick="doLogout()">Salir</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="streak-badge zero" id="streak-badge">
+          <span class="streak-fire">🔥</span>
+          <span id="streak-count">0</span>
+        </div>
+        <button class="btn-logout" onclick="doLogout()">Salir</button>
+      </div>
     </div>
   </div>
 
@@ -362,12 +301,55 @@ let sessionExs = [];
 let sessionIdx = 0;
 let sessionState = {};
 let currentExIdForFile = null;
-let completedDayExpanded = false; // estado del acordeón del día completado
+let completedDayExpanded = false;
 
 function isDayClosed(date) {
   const exs = ejercicios.filter(e => e.fecha_sesion === date);
   if (!exs.length) return false;
   return logs.some(l => l.fecha === date && exs.some(e => e.id === l.ejercicio_id));
+}
+
+// ─── RACHA ──────────────────────────────────────────────────────────
+// Cuenta días consecutivos hacia atrás desde hoy donde el alumno guardó sesión
+function calcStreak() {
+  const logDates = new Set(logs.map(l => l.fecha));
+  let streak = 0;
+  const d = new Date();
+  // Si hoy ya entrenó, empieza desde hoy; sino desde ayer
+  const todayStr = d.toISOString().split('T')[0];
+  if (!logDates.has(todayStr)) d.setDate(d.getDate() - 1);
+
+  while (true) {
+    const ds = d.toISOString().split('T')[0];
+    if (!logDates.has(ds)) break;
+    streak++;
+    d.setDate(d.getDate() - 1);
+    if (streak > 365) break; // tope de seguridad
+  }
+  return streak;
+}
+
+function renderStreakBadge() {
+  const streak = calcStreak();
+  const badge = document.getElementById('streak-badge');
+  const count = document.getElementById('streak-count');
+  count.textContent = streak;
+  if (streak === 0) {
+    badge.className = 'streak-badge zero';
+    badge.title = 'Empezá a entrenar para iniciar tu racha';
+  } else if (streak < 3) {
+    badge.className = 'streak-badge';
+    badge.style.background = 'linear-gradient(135deg, #FF6B35, #FF8C42)';
+    badge.title = `${streak} día${streak>1?'s':''} seguido${streak>1?'s':''}`;
+  } else if (streak < 7) {
+    badge.className = 'streak-badge';
+    badge.style.background = 'linear-gradient(135deg, #E67E22, #F39C12)';
+    badge.title = `¡${streak} días seguidos! Vas bien 💪`;
+  } else {
+    badge.className = 'streak-badge';
+    badge.style.background = 'linear-gradient(135deg, #C0392B, #E74C3C)';
+    badge.title = `¡${streak} días seguidos! Sos una bestia 🔥`;
+  }
 }
 
 // ─── AUTH ──
@@ -434,7 +416,6 @@ function doLogout() {
   document.getElementById('app').style.display = 'none';
 }
 
-// ─── INIT ──
 async function initApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
@@ -444,11 +425,11 @@ async function initApp() {
   const rutinaIds = rutinas.map(r => r.id);
   ejercicios = rutinaIds.length ? await dbGet('ejercicios', `rutina_id=in.(${rutinaIds.join(',')})&order=id.asc`) : [];
   logs = await dbGet('logs_entrenamiento', `cliente_id=eq.${currentCliente.id}&order=fecha.desc`);
+  renderStreakBadge();
   buildDayStrip();
   showHome();
 }
 
-// ─── DAY STRIP ──
 function buildDayStrip() {
   const exDates = new Set(ejercicios.filter(e => e.fecha_sesion).map(e => e.fecha_sesion));
   const logDates = new Set(logs.map(l => l.fecha));
@@ -482,7 +463,6 @@ function selectDay(ds) {
   showHome();
 }
 
-// ─── HOME ──
 function showHome() {
   document.getElementById('view-home').style.display = 'block';
   document.getElementById('view-session').style.display = 'none';
@@ -503,7 +483,6 @@ function renderHome() {
   document.getElementById('home-loading').style.display = 'none';
   const el = document.getElementById('home-content');
   el.style.display = 'block';
-
   const isToday = selectedDate === TODAY;
   const dateLabel = isToday ? 'Hoy' : new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-UY', {weekday:'long', day:'numeric', month:'long'});
 
@@ -515,51 +494,30 @@ function renderHome() {
   const isClosed = isDayClosed(selectedDate);
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-  // ── DÍA COMPLETADO: vista especial ──
   if (isClosed) {
     const done = exs.filter(e => e.completado === true).length;
     const missed = exs.filter(e => e.completado === false).length;
-
-    // Construir tarjetas expandidas de cada ejercicio
     const exCards = exs.map((ex, i) => {
       const log = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
       const isExDone = ex.completado === true;
       const letter = letters[i] || (i+1);
-
-      // Lo que el profe programó
-      const prescribedTags = [
-        ex.series ? `${ex.series} reps` : '',
-        ex.peso ? `${ex.peso}` : '',
-        ex.tiempo ? `${ex.tiempo}` : ''
-      ].filter(Boolean);
-
-      // Lo que el alumno registró — parsear series_realizadas
+      const prescribedTags = [ex.series?`${ex.series} reps`:'', ex.peso?`${ex.peso}`:'', ex.tiempo?`${ex.tiempo}`:''].filter(Boolean);
       let seriesRows = '';
       if (log?.series_realizadas) {
-        const parts = log.series_realizadas.split(' | ');
-        seriesRows = parts.map(p => `<div class="done-ex-series-row">${p}</div>`).join('');
+        seriesRows = log.series_realizadas.split(' | ').map(p => `<div class="done-ex-series-row">${p}</div>`).join('');
       } else if (log?.peso_usado || log?.rpe) {
-        seriesRows = `<div class="done-ex-series-row">${[log.peso_usado, log.rpe ? 'RPE '+log.rpe : ''].filter(Boolean).join(' · ')}</div>`;
+        seriesRows = `<div class="done-ex-series-row">${[log.peso_usado, log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ')}</div>`;
       }
-
       const comment = ex.devolucion || log?.nota || '';
-
-      return `<div class="done-ex-card ${isExDone ? 'is-done' : 'is-missed'}">
+      return `<div class="done-ex-card ${isExDone?'is-done':'is-missed'}">
         <div class="done-ex-header">
-          <div class="done-ex-letter ${isExDone ? '' : 'missed'}">${letter}</div>
+          <div class="done-ex-letter ${isExDone?'':'missed'}">${letter}</div>
           <div class="done-ex-name">${ex.nombre}</div>
-          <span class="done-ex-badge ${isExDone ? 'done' : 'missed'}">${isExDone ? '✓ Hecho' : '✕ No hecho'}</span>
+          <span class="done-ex-badge ${isExDone?'done':'missed'}">${isExDone?'✓ Hecho':'✕ No hecho'}</span>
         </div>
-        ${prescribedTags.length ? `<div class="done-ex-prescribed">
-          ${prescribedTags.map(t => `<span class="prescribed-tag">📋 ${t}</span>`).join('')}
-          ${ex.nota ? `<div class="prescribed-note">${ex.nota}</div>` : ''}
-        </div>` : ex.nota ? `<div class="done-ex-prescribed"><div class="prescribed-note">${ex.nota}</div></div>` : ''}
-        ${ex.link_youtube ? `<a class="done-yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>` : ''}
-        ${seriesRows || comment ? `<div class="done-ex-logged">
-          <div class="done-ex-logged-title">Lo que registraste</div>
-          ${seriesRows}
-          ${comment ? `<div class="done-ex-comment">💬 "${comment}"</div>` : ''}
-        </div>` : ''}
+        ${prescribedTags.length?`<div class="done-ex-prescribed">${prescribedTags.map(t=>`<span class="prescribed-tag">📋 ${t}</span>`).join('')}${ex.nota?`<div class="prescribed-note">${ex.nota}</div>`:''}</div>`:ex.nota?`<div class="done-ex-prescribed"><div class="prescribed-note">${ex.nota}</div></div>`:''}
+        ${ex.link_youtube?`<a class="done-yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>`:''}
+        ${seriesRows||comment?`<div class="done-ex-logged"><div class="done-ex-logged-title">Lo que registraste</div>${seriesRows}${comment?`<div class="done-ex-comment">💬 "${comment}"</div>`:''}</div>`:''}
       </div>`;
     }).join('');
 
@@ -572,15 +530,12 @@ function renderHome() {
             <div class="completed-day-sub">${done} hechos · ${missed} no hechos · ${exs.length} ejercicios</div>
           </div>
         </div>
-        <div class="completed-day-arrow ${completedDayExpanded ? 'open' : ''}" id="completed-day-arrow">▾</div>
+        <div class="completed-day-arrow ${completedDayExpanded?'open':''}" id="completed-day-arrow">▾</div>
       </div>
-      <div class="completed-day-content ${completedDayExpanded ? 'open' : ''}" id="completed-day-content">
-        ${exCards}
-      </div>`;
+      <div class="completed-day-content ${completedDayExpanded?'open':''}" id="completed-day-content">${exCards}</div>`;
     return;
   }
 
-  // ── DÍA ABIERTO: vista normal ──
   exs.forEach(ex => {
     if (!sessionState[ex.id]) sessionState[ex.id] = { status: null, comment: '', series: [], attachments: [] };
   });
@@ -596,13 +551,13 @@ function renderHome() {
     const cardCls = st?.status === 'done' ? 'done' : st?.status === 'missed' ? 'missed' : '';
     const comment = st?.comment || '';
     const log = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
-    const loadInfo = log ? [log.series_realizadas, log.peso_usado, log.rpe ? 'RPE '+log.rpe : ''].filter(Boolean).join(' · ') : '';
+    const loadInfo = log ? [log.series_realizadas, log.peso_usado, log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ') : '';
     return `<div class="ex-preview ${cardCls}" style="cursor:pointer" onclick="openExercise(${i})">
-      <div class="ex-letter">${letters[i] || (i+1)}</div>
+      <div class="ex-letter">${letters[i]||(i+1)}</div>
       <div class="ex-preview-info">
         <div class="ex-preview-name">${ex.nombre}</div>
-        ${loadInfo ? `<div class="ex-preview-tags">${loadInfo}</div>` : ex.series||ex.peso ? `<div class="ex-preview-tags">${[ex.series?ex.series+' reps':'',ex.peso,ex.tiempo].filter(Boolean).join(' · ')}</div>` : ''}
-        ${comment ? `<div style="font-size:11px;color:var(--text2);margin-top:2px;font-style:italic">"${comment.slice(0,50)}${comment.length>50?'…':''}"</div>` : ''}
+        ${loadInfo?`<div class="ex-preview-tags">${loadInfo}</div>`:ex.series||ex.peso?`<div class="ex-preview-tags">${[ex.series?ex.series+' reps':'',ex.peso,ex.tiempo].filter(Boolean).join(' · ')}</div>`:''}
+        ${comment?`<div style="font-size:11px;color:var(--text2);margin-top:2px;font-style:italic">"${comment.slice(0,50)}${comment.length>50?'…':''}"</div>`:''}
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
         <div class="ex-status-dot ${dotClass}"></div>
@@ -618,17 +573,15 @@ function renderHome() {
     </div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:0.75rem">Tocá un ejercicio para marcarlo 👇</div>
     ${exItems}
-    ${allMarked ? `<button style="width:100%;padding:0.9rem;border-radius:14px;border:none;background:var(--orange);color:white;font-size:16px;font-weight:600;cursor:pointer;margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>` : ''}
+    ${allMarked?`<button style="width:100%;padding:0.9rem;border-radius:14px;border:none;background:var(--orange);color:white;font-size:16px;font-weight:600;cursor:pointer;margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>`:''}
     <button class="btn-save-session" style="margin-top:0.5rem" onclick="saveFinalSession()">💾 Guardar sesión</button>`;
 }
 
-// ─── SESSION ──
 function openExercise(idx) {
   if (isDayClosed(selectedDate)) return;
   sessionIdx = idx;
   document.getElementById('view-home').style.display = 'none';
   document.getElementById('view-session').style.display = 'block';
-  document.getElementById('view-summary').style.display = 'none';
   renderCard();
   window.scrollTo(0, 0);
 }
@@ -668,13 +621,9 @@ function renderCard() {
 
   const exLogs = logs.filter(l => l.ejercicio_id === ex.id && l.fecha < selectedDate).slice(0, 5);
   const histHtml = exLogs.map(l => {
-    const d = new Date(l.fecha + 'T00:00:00').toLocaleDateString('es-UY', {weekday:'short', day:'numeric', month:'short'});
-    const load = [l.series_realizadas, l.peso_usado, l.rpe ? 'RPE '+l.rpe : ''].filter(Boolean).join(' · ');
-    return `<div class="history-entry">
-      <div class="history-date">📅 ${d}</div>
-      ${load ? `<div class="history-load">${load}</div>` : ''}
-      ${l.nota ? `<div class="history-comment">"${l.nota}"</div>` : ''}
-    </div>`;
+    const d = new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'short',day:'numeric',month:'short'});
+    const load = [l.series_realizadas, l.peso_usado, l.rpe?'RPE '+l.rpe:''].filter(Boolean).join(' · ');
+    return `<div class="history-entry"><div class="history-date">📅 ${d}</div>${load?`<div class="history-load">${load}</div>`:''}</div>`;
   }).join('');
 
   let attachHtml = '';
@@ -688,19 +637,19 @@ function renderCard() {
   document.getElementById('session-body').innerHTML = `
     <div class="ex-card">
       <div class="ex-card-header">
-        <div class="ex-card-letter">${letters[sessionIdx] || sessionIdx+1}</div>
+        <div class="ex-card-letter">${letters[sessionIdx]||sessionIdx+1}</div>
         <div>
           <div class="ex-card-name">${ex.nombre}</div>
           <div class="ex-card-links">
-            ${exLogs.length ? `<span class="ex-card-link" onclick="toggleHistory('hist-${ex.id}')">🕐 Historial</span>` : ''}
-            ${ex.link_youtube ? `<a class="ex-card-link yt" href="${ex.link_youtube}" target="_blank">▶ Video</a>` : ''}
+            ${exLogs.length?`<span class="ex-card-link" onclick="toggleHistory('hist-${ex.id}')">🕐 Historial</span>`:''}
+            ${ex.link_youtube?`<a class="ex-card-link yt" href="${ex.link_youtube}" target="_blank">▶ Video</a>`:''}
           </div>
         </div>
       </div>
-      ${ex.nota ? `<div class="ex-card-note">${ex.nota}</div>` : ''}
-      ${prevLog ? `<div style="font-size:11px;color:var(--green-dark);background:var(--green-light);padding:6px 10px;border-radius:8px;margin-bottom:1rem">📊 Última vez (${new Date(prevLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'})}): ${[prevLog.series_realizadas,prevLog.peso_usado,prevLog.rpe?'RPE '+prevLog.rpe:''].filter(Boolean).join(' · ')}</div>` : ''}
+      ${ex.nota?`<div class="ex-card-note">${ex.nota}</div>`:''}
+      ${prevLog?`<div style="font-size:11px;color:var(--green-dark);background:var(--green-light);padding:6px 10px;border-radius:8px;margin-bottom:1rem">📊 Última vez (${new Date(prevLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'})}): ${[prevLog.series_realizadas,prevLog.peso_usado,prevLog.rpe?'RPE '+prevLog.rpe:''].filter(Boolean).join(' · ')}</div>`:''}
       <div class="series-list">${seriesHtml}</div>
-      ${histHtml ? `<button class="history-btn" onclick="toggleHistory('hist-${ex.id}')">🕐 Ver historial de este ejercicio</button><div class="history-content" id="hist-${ex.id}">${histHtml}</div>` : ''}
+      ${histHtml?`<button class="history-btn" onclick="toggleHistory('hist-${ex.id}')">🕐 Ver historial de este ejercicio</button><div class="history-content" id="hist-${ex.id}">${histHtml}</div>`:''}
       <label class="attach-btn" onclick="openFileInput(${ex.id})">📎 Adjuntar foto o video</label>
       ${attachHtml}
       <div class="action-btns">
@@ -764,7 +713,6 @@ function handleFileUpload(event) {
   event.target.value = '';
 }
 
-// ─── SUMMARY ──
 function showSummary() {
   document.getElementById('view-session').style.display = 'none';
   document.getElementById('view-summary').style.display = 'block';
@@ -784,10 +732,10 @@ function showSummary() {
       <div class="summary-item-name">
         <span style="background:var(--green-light);color:var(--green-dark);width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px">${letters[i]}</span>
         ${ex.nombre}
-        ${statusCls ? `<span class="summary-status ${statusCls}">${statusLabel}</span>` : ''}
+        ${statusCls?`<span class="summary-status ${statusCls}">${statusLabel}</span>`:''}
       </div>
-      ${seriesSummary ? `<div style="font-size:12px;color:var(--text2);margin-bottom:4px;line-height:1.6">${seriesSummary}</div>` : ''}
-      ${st?.comment ? `<div class="summary-comment">"${st.comment}"</div>` : ''}
+      ${seriesSummary?`<div style="font-size:12px;color:var(--text2);margin-bottom:4px;line-height:1.6">${seriesSummary}</div>`:''}
+      ${st?.comment?`<div class="summary-comment">"${st.comment}"</div>`:''}
     </div>`;
   }).join('');
   document.getElementById('summary-content').innerHTML = `
@@ -799,7 +747,6 @@ function showSummary() {
     ${items}`;
 }
 
-// ─── GUARDAR SESIÓN ──
 async function saveFinalSession() {
   if (document.getElementById('view-session').style.display !== 'none') saveCurrentCard();
   document.getElementById('view-home').style.display = 'none';
@@ -815,7 +762,6 @@ async function saveFinalSession() {
       const seriesSummary = st.series?.filter(s => s.peso || s.reps).map((s, i) =>
         `S${i+1}: ${[s.peso?s.peso+'kg':'', s.reps?s.reps+' reps':'', s.rpe?'RPE '+s.rpe:''].filter(Boolean).join(' ')}`
       ).join(' | ') || null;
-
       if (seriesSummary || st.comment) {
         const existing = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
         if (existing) {
@@ -831,15 +777,14 @@ async function saveFinalSession() {
           logs.unshift(newLog[0]);
         }
       }
-
       await dbPatch('ejercicios', ex.id, {completado: isCompleted, devolucion: st.comment||null});
       const localEx = ejercicios.find(e => e.id === ex.id);
       if (localEx) { localEx.completado = isCompleted; localEx.devolucion = st.comment||null; }
     }
-
     showToast('Sesión guardada ✓');
     btn.textContent = '✓ Sesión guardada';
     logs = await dbGet('logs_entrenamiento', `cliente_id=eq.${currentCliente.id}&order=fecha.desc`);
+    renderStreakBadge(); // actualizar racha después de guardar
     buildDayStrip();
     setTimeout(() => showHome(), 1500);
   } catch(e) {
