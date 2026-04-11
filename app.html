@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#00E676" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="MD Training" />
 <title>MD Pro Training</title>
+<link rel="manifest" href="/manifest.json" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 <style>
 :root {
@@ -36,7 +42,7 @@ button,input,textarea,select { font-family:var(--font-body); }
 #login-screen.hidden { display:none !important; }
 .login-logo { width:82px; height:82px; background:linear-gradient(135deg,#00E676,#00C853); border-radius:24px; display:flex; align-items:center; justify-content:center; margin-bottom:1.5rem; animation:pulse-glow 3s ease-in-out infinite; }
 .login-logo svg { width:44px; height:44px; color:#000; }
-.login-title { font-family:var(--font-display); font-size:36px; font-weight:800; letter-spacing:-1px; margin-bottom:0.4rem; }
+.login-title { font-family:var(--font-display); font-size:26px; font-weight:800; letter-spacing:-0.5px; margin-bottom:0.4rem; white-space:nowrap; }
 .login-title .accent { color:var(--green); }
 .login-sub { font-size:14px; color:var(--text2); margin-bottom:2rem; font-weight:300; }
 .auth-tabs { display:flex; gap:4px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; padding:4px; width:100%; max-width:360px; margin-bottom:1.25rem; }
@@ -1811,6 +1817,13 @@ window.onload = async () => {
   }
   document.getElementById('login-screen').style.display='flex';
 };
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>
