@@ -3,184 +3,521 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-<title>Mi Gym App</title>
+<title>Mi Gym App — Profe</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --color-text-primary: #111;
-    --color-text-secondary: #666;
-    --color-background-primary: #fff;
-    --color-background-secondary: #f5f5f5;
-    --color-border-secondary: #ccc;
-    --color-border-tertiary: #e8e8e8;
-    --border-radius-md: 8px;
-    --border-radius-lg: 12px;
-    --green: #1D9E75;
-    --green-light: #E1F5EE;
-    --green-dark: #0F6E56;
-    --nav-height: 64px;
+    --green: #00E676;
+    --green-dim: #00C853;
+    --green-glow: rgba(0,230,118,0.18);
+    --green-glow-strong: rgba(0,230,118,0.32);
+    --bg: #080C0A;
+    --bg2: #0D1210;
+    --surface: rgba(255,255,255,0.04);
+    --surface-hover: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.07);
+    --border-green: rgba(0,230,118,0.22);
+    --text: #F0F4F2;
+    --text2: rgba(240,244,242,0.45);
+    --text3: rgba(240,244,242,0.22);
+    --red: #FF4444;
+    --orange: #FF8C00;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --nav-height: 68px;
   }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--font-sans); background: #f9f9f9; }
-  select, input, textarea, button { font-family: var(--font-sans); }
-  .screen { display: none; max-width: 420px; margin: 0 auto; padding: 1rem 1rem calc(var(--nav-height) + 1rem); min-height: 100vh; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; top: -30%; right: -20%;
+    width: 60vw; height: 60vw;
+    background: radial-gradient(circle, rgba(0,230,118,0.05) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  select, input, textarea, button { font-family: var(--font-body); }
+
+  /* ── LAYOUT ── */
+  .screen {
+    display: none; max-width: 420px; margin: 0 auto;
+    padding: 1.25rem 1.25rem calc(var(--nav-height) + 1.25rem);
+    min-height: 100vh; position: relative; z-index: 1;
+  }
   .screen.active { display: block; }
-  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height); background: white; border-top: 0.5px solid var(--color-border-tertiary); display: flex; z-index: 50; max-width: 420px; margin: 0 auto; }
-  .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: none; background: transparent; cursor: pointer; color: var(--color-text-secondary); font-size: 10px; font-family: var(--font-sans); transition: color 0.15s; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: var(--nav-height);
+    background: rgba(8,12,10,0.92);
+    backdrop-filter: blur(24px);
+    border-top: 1px solid var(--border);
+    display: flex; z-index: 50; max-width: 420px; margin: 0 auto;
+  }
+  .nav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 4px; border: none;
+    background: transparent; cursor: pointer; color: var(--text2);
+    font-family: var(--font-body); transition: all 0.2s;
+  }
   .nav-btn.active { color: var(--green); }
   .nav-btn svg { width: 22px; height: 22px; }
-  .nav-label { font-size: 10px; font-weight: 500; }
-  .page-title { font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 1rem; }
-  .section { background: white; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
-  .section-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); margin-bottom: 0.75rem; }
-  .form-input { width: 100%; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 14px; background: var(--color-background-secondary); color: var(--color-text-primary); margin-bottom: 0.6rem; }
-  .form-input:focus { outline: none; border-color: var(--green); }
+  .nav-label { font-size: 10px; font-weight: 600; font-family: var(--font-display); letter-spacing: 0.05em; text-transform: uppercase; }
+
+  /* ── PAGE TITLE ── */
+  .page-title {
+    font-family: var(--font-display); font-size: 24px; font-weight: 800;
+    color: var(--text); margin-bottom: 1.25rem; letter-spacing: -0.5px;
+  }
+
+  /* ── SECTIONS ── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem; margin-bottom: 0.75rem;
+  }
+  .section-title {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text2); margin-bottom: 0.85rem;
+    font-family: var(--font-display);
+  }
+
+  /* ── FORM INPUTS ── */
+  .form-input {
+    width: 100%; padding: 0.7rem 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    font-size: 14px; background: rgba(255,255,255,0.04);
+    color: var(--text); margin-bottom: 0.6rem; transition: all 0.2s;
+  }
+  .form-input:focus { outline: none; border-color: var(--green); background: rgba(0,230,118,0.03); box-shadow: 0 0 0 3px var(--green-glow); }
+  .form-input::placeholder { color: var(--text3); }
+  select.form-input option { background: #1a2420; color: var(--text); }
+
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0.6rem; }
   .row2 .form-input { margin-bottom: 0; }
-  .btn-green { width: 100%; padding: 0.75rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--green); background: transparent; font-size: 14px; color: var(--green-dark); cursor: pointer; margin-top: 0.25rem; }
-  .btn-green:hover { background: var(--green-light); }
-  .btn-primary { width: 100%; padding: 0.75rem; border-radius: var(--border-radius-md); border: none; background: var(--green); color: white; font-size: 14px; cursor: pointer; }
-  .btn-cancel { width: 100%; padding: 0.7rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; font-size: 14px; cursor: pointer; margin-top: 0.5rem; }
-  .badge { font-size: 11px; padding: 3px 9px; border-radius: 20px; }
-  .badge-activo { background: #EAF3DE; color: #3B6D11; }
-  .badge-nuevo { background: #E6F1FB; color: #185FA5; }
-  .badge-pagado { background: #EAF3DE; color: #3B6D11; }
-  .badge-pendiente { background: #FAEEDA; color: #854F0B; }
-  .empty { text-align: center; padding: 2rem; font-size: 13px; color: var(--color-text-secondary); }
-  .loading { text-align: center; padding: 1rem; font-size: 13px; color: var(--color-text-secondary); }
-  .tag { font-size: 11px; padding: 3px 8px; border-radius: 20px; background: var(--color-background-secondary); color: var(--color-text-secondary); }
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: flex-end; justify-content: center; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: white; border-radius: 16px 16px 0 0; padding: 1.5rem; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
-  .modal h2 { font-size: 16px; font-weight: 500; margin-bottom: 1rem; }
-  .toast { position: fixed; bottom: calc(var(--nav-height) + 1rem); left: 50%; transform: translateX(-50%); background: var(--green); color: white; padding: 0.6rem 1.2rem; border-radius: var(--border-radius-md); font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; white-space: nowrap; }
-  .toast.show { opacity: 1; }
-  .toast.error { background: #993C1D; }
-  .search { width: 100%; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 14px; background: var(--color-background-secondary); color: var(--color-text-primary); margin-bottom: 1rem; }
-  .search:focus { outline: none; border-color: var(--green); }
-  .client-card { background: white; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 0.75rem; cursor: pointer; }
-  .client-row { display: flex; align-items: center; gap: 12px; }
-  .avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 14px; flex-shrink: 0; position: relative; }
-  .avatar-lg { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 18px; flex-shrink: 0; }
-  .av-teal{background:#E1F5EE;color:#0F6E56} .av-blue{background:#E6F1FB;color:#185FA5} .av-coral{background:#FAECE7;color:#993C1D} .av-purple{background:#EEEDFE;color:#534AB7} .av-amber{background:#FAEEDA;color:#854F0B}
 
-  /* ── ACTIVITY DOT ── */
-  .activity-dot {
-    position: absolute; bottom: 0; right: 0;
-    width: 13px; height: 13px; border-radius: 50%;
-    border: 2px solid white;
+  /* ── BUTTONS ── */
+  .btn-green {
+    width: 100%; padding: 0.8rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-green);
+    background: rgba(0,230,118,0.08);
+    font-size: 14px; font-weight: 600; color: var(--green);
+    cursor: pointer; margin-top: 0.25rem; transition: all 0.2s;
+    font-family: var(--font-display);
   }
-  .activity-dot.trained-today { background: #1D9E75; }   /* entrenó hoy */
-  .activity-dot.has-session { background: #F39C12; }      /* tiene sesión pero no la hizo */
-  .activity-dot.inactive { background: #ccc; }            /* sin sesión hoy */
+  .btn-green:hover { background: rgba(0,230,118,0.14); }
+  .btn-green:active { transform: scale(0.99); }
+
+  .btn-primary {
+    width: 100%; padding: 0.8rem; border-radius: var(--radius-sm); border: none;
+    background: linear-gradient(135deg, var(--green), var(--green-dim));
+    color: #000; font-size: 14px; font-weight: 700; cursor: pointer;
+    font-family: var(--font-display); transition: all 0.2s;
+    box-shadow: 0 4px 16px var(--green-glow-strong);
+  }
+  .btn-primary:active { transform: scale(0.99); }
+
+  .btn-cancel {
+    width: 100%; padding: 0.75rem; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: transparent;
+    font-size: 14px; color: var(--text2); cursor: pointer; margin-top: 0.5rem;
+    transition: all 0.2s;
+  }
+  .btn-cancel:hover { border-color: rgba(255,255,255,0.15); color: var(--text); }
+
+  .btn-add {
+    width: 100%; padding: 0.8rem; border-radius: var(--radius-sm);
+    border: 1px dashed var(--border);
+    background: transparent; font-size: 14px; color: var(--text2);
+    cursor: pointer; margin-top: 0.5rem; transition: all 0.2s;
+    font-family: var(--font-body);
+  }
+  .btn-add:hover { border-color: var(--border-green); color: var(--green); }
+
+  .btn-danger {
+    padding: 0.5rem 1rem; border-radius: var(--radius-sm);
+    border: 1px solid rgba(255,68,68,0.3); background: rgba(255,68,68,0.06);
+    color: var(--red); font-size: 13px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-danger:hover { background: rgba(255,68,68,0.12); }
+
+  /* ── BADGES ── */
+  .badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+  .badge-activo { background: rgba(0,230,118,0.12); color: var(--green); border: 1px solid rgba(0,230,118,0.2); }
+  .badge-nuevo { background: rgba(100,150,255,0.12); color: #7EB3FF; border: 1px solid rgba(100,150,255,0.2); }
+  .badge-pagado { background: rgba(0,230,118,0.12); color: var(--green); border: 1px solid rgba(0,230,118,0.2); }
+  .badge-pendiente { background: rgba(255,140,0,0.12); color: var(--orange); border: 1px solid rgba(255,140,0,0.2); }
+
+  .empty { text-align: center; padding: 2rem; font-size: 13px; color: var(--text2); }
+  .loading { text-align: center; padding: 1rem; font-size: 13px; color: var(--text2); }
+  .tag { font-size: 11px; padding: 3px 8px; border-radius: 20px; background: rgba(255,255,255,0.06); color: var(--text2); border: 1px solid var(--border); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+    z-index: 100; align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #0E1A16; border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0; padding: 1.75rem;
+    width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto;
+  }
+  .modal h2 { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 1.25rem; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: calc(var(--nav-height) + 1rem); left: 50%; transform: translateX(-50%);
+    background: rgba(0,230,118,0.12); backdrop-filter: blur(20px);
+    color: var(--green); border: 1px solid rgba(0,230,118,0.25);
+    padding: 0.7rem 1.4rem; border-radius: 20px; font-size: 13px; font-weight: 600;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200;
+    white-space: nowrap; font-family: var(--font-display);
+  }
+  .toast.show { opacity: 1; }
+  .toast.error { background: rgba(255,68,68,0.12); color: var(--red); border-color: rgba(255,68,68,0.25); }
+
+  /* ── SEARCH ── */
+  .search {
+    width: 100%; padding: 0.7rem 1rem;
+    border-radius: var(--radius-sm); border: 1px solid var(--border);
+    font-size: 14px; background: rgba(255,255,255,0.04);
+    color: var(--text); margin-bottom: 1rem; transition: all 0.2s;
+  }
+  .search:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px var(--green-glow); }
+  .search::placeholder { color: var(--text3); }
+
+  /* ── CLIENT CARDS ── */
+  .client-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem 1.25rem;
+    margin-bottom: 0.6rem; cursor: pointer; transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .client-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--border); transition: all 0.2s;
+  }
+  .client-card:hover { border-color: var(--border-green); }
+  .client-card:hover::before { background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+  .client-row { display: flex; align-items: center; gap: 12px; }
+  .avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; flex-shrink: 0;
+    position: relative; font-family: var(--font-display);
+  }
+  .avatar-lg {
+    width: 56px; height: 56px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 18px; flex-shrink: 0;
+    position: relative; font-family: var(--font-display);
+  }
+  .av-teal { background: rgba(0,230,118,0.12); color: var(--green); border: 1px solid rgba(0,230,118,0.2); }
+  .av-blue { background: rgba(100,150,255,0.12); color: #7EB3FF; border: 1px solid rgba(100,150,255,0.2); }
+  .av-coral { background: rgba(255,100,80,0.12); color: #FF8070; border: 1px solid rgba(255,100,80,0.2); }
+  .av-purple { background: rgba(160,130,255,0.12); color: #B09FFF; border: 1px solid rgba(160,130,255,0.2); }
+  .av-amber { background: rgba(255,180,0,0.12); color: #FFB800; border: 1px solid rgba(255,180,0,0.2); }
+
+  /* Activity dot */
+  .activity-dot {
+    position: absolute; bottom: 1px; right: 1px;
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid var(--bg);
+  }
+  .activity-dot.trained-today { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .activity-dot.has-session { background: var(--orange); }
+  .activity-dot.inactive { background: #333; }
 
   .client-info { flex: 1; min-width: 0; }
-  .client-name { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
-  .client-sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
-  .arrow { font-size: 16px; color: var(--color-text-secondary); }
+  .client-name { font-size: 15px; font-weight: 600; color: var(--text); font-family: var(--font-display); }
+  .client-sub { font-size: 12px; color: var(--text2); margin-top: 3px; }
+  .arrow { font-size: 14px; color: var(--text2); }
+
+  /* Activity legend */
+  .activity-legend { display: flex; gap: 12px; align-items: center; margin-bottom: 0.85rem; font-size: 11px; color: var(--text2); flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
   .detail-view { display: none; }
   .detail-view.active { display: block; }
   .list-view.hidden { display: none; }
-  .back-btn { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--color-text-secondary); cursor: pointer; margin-bottom: 1.25rem; background: none; border: none; padding: 0; }
-  .field-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .back-btn {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 14px; color: var(--text2); cursor: pointer;
+    margin-bottom: 1.25rem; background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 6px 14px; width: fit-content; transition: all 0.2s;
+    font-family: var(--font-body);
+  }
+  .back-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+  .field-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+  }
   .field-row:last-child { border-bottom: none; }
-  .field-label { font-size: 13px; color: var(--color-text-secondary); }
-  .field-value { font-size: 13px; color: var(--color-text-primary); font-weight: 500; }
-  .btn-add { width: 100%; padding: 0.75rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; font-size: 14px; color: var(--color-text-secondary); cursor: pointer; margin-top: 0.5rem; }
-  .btn-danger { padding: 0.5rem 1rem; border-radius: var(--border-radius-md); border: 0.5px solid #993C1D; background: transparent; color: #993C1D; font-size: 13px; cursor: pointer; }
-  .client-selector { width: 100%; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 14px; background: var(--color-background-secondary); color: var(--color-text-primary); margin-bottom: 1rem; }
-  .sub-tab-bar { display: flex; gap: 4px; margin-bottom: 1.25rem; background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 4px; }
-  .sub-tab { flex: 1; padding: 6px 4px; border: none; background: transparent; font-size: 11px; color: var(--color-text-secondary); border-radius: 6px; cursor: pointer; }
-  .sub-tab.active { background: white; color: var(--color-text-primary); font-weight: 500; border: 0.5px solid var(--color-border-tertiary); }
+  .field-label { font-size: 12px; color: var(--text2); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-display); }
+  .field-value { font-size: 13px; color: var(--text); font-weight: 500; }
+
+  /* ── RUTINAS ── */
+  .client-selector {
+    width: 100%; padding: 0.7rem 1rem;
+    border-radius: var(--radius-sm); border: 1px solid var(--border);
+    font-size: 14px; background: rgba(255,255,255,0.04);
+    color: var(--text); margin-bottom: 1rem;
+  }
+  .client-selector option { background: #1a2420; }
+
+  /* Sub tabs */
+  .sub-tab-bar {
+    display: flex; gap: 4px; margin-bottom: 1.25rem;
+    background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 4px;
+  }
+  .sub-tab {
+    flex: 1; padding: 7px 4px; border: none; background: transparent;
+    font-size: 11px; color: var(--text2); border-radius: 7px; cursor: pointer;
+    transition: all 0.2s; font-family: var(--font-display); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .sub-tab.active {
+    background: rgba(0,230,118,0.1); color: var(--green);
+    border: 1px solid rgba(0,230,118,0.2);
+  }
   .sub-view { display: none; }
   .sub-view.active { display: block; }
+
+  /* Cal strip */
   .cal-strip { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 1rem; scrollbar-width: none; }
   .cal-strip::-webkit-scrollbar { display: none; }
-  .cal-day-btn { flex-shrink: 0; width: 44px; text-align: center; border-radius: var(--border-radius-md); padding: 6px 0; cursor: pointer; border: 0.5px solid var(--color-border-tertiary); background: white; }
-  .cal-day-btn .day-name { font-size: 10px; color: var(--color-text-secondary); }
-  .cal-day-btn .day-num { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
-  .cal-day-btn.today { border-color: var(--green); }
+  .cal-day-btn {
+    flex-shrink: 0; width: 48px; text-align: center;
+    border-radius: var(--radius-sm); padding: 7px 0; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface); transition: all 0.2s;
+  }
+  .cal-day-btn .day-name { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; }
+  .cal-day-btn .day-num { font-size: 16px; font-weight: 700; color: var(--text); font-family: var(--font-display); }
+  .cal-day-btn.today { border-color: var(--border-green); }
   .cal-day-btn.today .day-num { color: var(--green); }
   .cal-day-btn.selected { outline: 2px solid var(--green); outline-offset: 2px; }
-  .exercise-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 0.85rem 1rem; margin-bottom: 0.6rem; }
-  .exercise-card.done { border-color: #5DCAA5; background: #f0faf6; }
+
+  /* Day header in rutinas */
+  .rut-day-header {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;
+  }
+  .rut-day-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--text); }
+  .rut-day-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  .btn-add-ex {
+    font-size: 12px; padding: 6px 14px; border-radius: 20px;
+    border: 1px solid var(--border-green); background: rgba(0,230,118,0.08);
+    color: var(--green); cursor: pointer; white-space: nowrap;
+    transition: all 0.2s; font-family: var(--font-display); font-weight: 600;
+  }
+  .btn-add-ex:hover { background: rgba(0,230,118,0.14); }
+
+  /* Completed banner */
+  #rut-completed-banner {
+    font-size: 13px; color: var(--green);
+    background: rgba(0,230,118,0.06); border: 1px solid rgba(0,230,118,0.2);
+    padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 0.75rem;
+    display: none; align-items: center; gap: 8px;
+  }
+
+  /* Exercise cards */
+  .exercise-card {
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 0.85rem 1rem; margin-bottom: 0.6rem;
+    background: var(--surface); transition: all 0.2s;
+  }
+  .exercise-card.done { border-color: rgba(0,230,118,0.2); background: rgba(0,230,118,0.03); }
   .ex-header { display: flex; align-items: center; gap: 10px; }
-  .ex-name { font-size: 14px; font-weight: 500; flex: 1; }
-  .ex-expand { font-size: 18px; color: var(--color-text-secondary); cursor: pointer; background: none; border: none; padding: 0 4px; }
-  .ex-delete { font-size: 13px; color: var(--color-text-secondary); background: none; border: none; cursor: pointer; }
+  .ex-name { font-size: 14px; font-weight: 600; flex: 1; font-family: var(--font-display); }
+  .ex-expand {
+    font-size: 18px; color: var(--text2); cursor: pointer;
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .ex-expand:hover { border-color: var(--border-green); color: var(--green); }
+  .ex-delete {
+    font-size: 13px; color: var(--text2); background: rgba(255,68,68,0.06);
+    border: 1px solid rgba(255,68,68,0.2); cursor: pointer;
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .ex-delete:hover { background: rgba(255,68,68,0.12); color: var(--red); }
   .ex-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; margin-left: 32px; align-items: center; }
-  .yt-link { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 3px 8px; border-radius: 20px; background: #FEF2F2; color: #C0392B; text-decoration: none; border: 0.5px solid #FECACA; }
+  .yt-link {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; padding: 3px 8px; border-radius: 20px;
+    background: rgba(255,68,68,0.08); color: #FF6666; text-decoration: none;
+    border: 1px solid rgba(255,68,68,0.2);
+  }
   .ex-details { margin-top: 10px; margin-left: 32px; display: none; }
   .ex-details.open { display: block; }
-  .ex-note { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 8px; padding: 6px 8px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); }
-  .log-prev { font-size: 11px; color: var(--green-dark); background: var(--green-light); padding: 4px 8px; border-radius: var(--border-radius-md); margin-bottom: 8px; }
+  .ex-note {
+    font-size: 12px; color: var(--text2); margin-bottom: 8px;
+    padding: 8px 10px; background: rgba(0,230,118,0.04);
+    border-radius: var(--radius-sm); border-left: 2px solid var(--green);
+  }
+  .log-prev {
+    font-size: 11px; color: var(--green); background: rgba(0,230,118,0.08);
+    border: 1px solid rgba(0,230,118,0.15);
+    padding: 6px 10px; border-radius: var(--radius-sm); margin-bottom: 8px;
+  }
+
+  /* Autocomplete */
   .autocomplete-wrap { position: relative; margin-bottom: 0.6rem; }
-  .autocomplete-wrap input { width: 100%; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 14px; background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .autocomplete-wrap input {
+    width: 100%; padding: 0.7rem 1rem; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); font-size: 14px;
+    background: rgba(255,255,255,0.04); color: var(--text); transition: all 0.2s;
+  }
   .autocomplete-wrap input:focus { outline: none; border-color: var(--green); }
-  .autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); z-index: 150; max-height: 180px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-  .autocomplete-item { padding: 10px 14px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
-  .autocomplete-item:hover { background: #f0faf6; }
-  .yt-badge { font-size: 10px; background: #FEF2F2; color: #C0392B; padding: 2px 6px; border-radius: 10px; }
-  .yt-preview { display: flex; align-items: center; gap: 8px; background: #FEF2F2; border-radius: var(--border-radius-md); padding: 8px 10px; margin-bottom: 0.6rem; font-size: 12px; color: #C0392B; }
-  .log-block-date { font-size: 11px; font-weight: 600; color: var(--color-text-secondary); text-transform: capitalize; margin-bottom: 6px; }
-  .log-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .autocomplete-list {
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: #0E1A16; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); z-index: 150; max-height: 180px;
+    overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .autocomplete-item {
+    padding: 10px 14px; font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border); transition: background 0.15s;
+  }
+  .autocomplete-item:last-child { border-bottom: none; }
+  .autocomplete-item:hover { background: rgba(0,230,118,0.06); }
+  .yt-badge { font-size: 10px; background: rgba(255,68,68,0.1); color: #FF6666; padding: 2px 6px; border-radius: 10px; }
+  .yt-preview {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,68,68,0.06); border: 1px solid rgba(255,68,68,0.15);
+    border-radius: var(--radius-sm); padding: 8px 10px;
+    margin-bottom: 0.6rem; font-size: 12px; color: #FF6666;
+  }
+
+  /* Log entries */
+  .log-block-date {
+    font-size: 11px; font-weight: 700; color: var(--text2);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
+    font-family: var(--font-display);
+  }
+  .log-row {
+    display: flex; justify-content: space-between; font-size: 13px;
+    padding: 6px 0; border-bottom: 1px solid var(--border);
+  }
   .log-row:last-child { border-bottom: none; }
-  .log-ex-name { font-weight: 500; }
-  .log-ex-load { color: var(--green-dark); font-size: 12px; }
-  .bib-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .log-ex-name { font-weight: 600; font-family: var(--font-display); }
+  .log-ex-load { color: var(--green); font-size: 12px; }
+
+  /* Biblioteca */
+  .bib-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+  }
   .bib-item:last-child { border-bottom: none; }
-  .bib-name { font-size: 14px; font-weight: 500; flex: 1; }
-  .bib-delete { background: none; border: none; color: var(--color-text-secondary); cursor: pointer; font-size: 14px; }
-  .btn-add-ex { font-size: 12px; padding: 5px 12px; border-radius: var(--border-radius-md); border: 0.5px solid var(--green); background: transparent; color: var(--green-dark); cursor: pointer; white-space: nowrap; }
-  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0.75rem; }
-  .metric { background: white; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 0.75rem 1rem; }
-  .metric-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
-  .metric-value { font-size: 20px; font-weight: 500; }
-  .payment-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .bib-name { font-size: 14px; font-weight: 600; flex: 1; font-family: var(--font-display); }
+  .bib-delete {
+    background: rgba(255,68,68,0.06); border: 1px solid rgba(255,68,68,0.2);
+    color: var(--red); cursor: pointer; font-size: 14px;
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .bib-delete:hover { background: rgba(255,68,68,0.12); }
+
+  /* ── COBROS ── */
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 0.75rem; }
+  .metric {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem 1.25rem;
+  }
+  .metric-label { font-size: 11px; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--font-display); }
+  .metric-value { font-family: var(--font-display); font-size: 22px; font-weight: 800; }
+  .metric-value.green { color: var(--green); text-shadow: 0 0 16px var(--green-glow); }
+  .metric-value.orange { color: var(--orange); }
+
+  .payment-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+  }
   .payment-row:last-child { border-bottom: none; }
-  .pay-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+  .pay-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; font-family: var(--font-display); }
   .pay-info { flex: 1; min-width: 0; }
-  .pay-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .pay-detail { font-size: 11px; color: var(--color-text-secondary); }
-  .pay-amount { font-size: 14px; font-weight: 500; white-space: nowrap; }
-  .btn-confirm { font-size: 11px; padding: 4px 10px; border-radius: var(--border-radius-md); border: 0.5px solid var(--green); background: transparent; cursor: pointer; color: var(--green-dark); white-space: nowrap; }
+  .pay-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-display); }
+  .pay-detail { font-size: 11px; color: var(--text2); }
+  .pay-amount { font-size: 14px; font-weight: 700; white-space: nowrap; font-family: var(--font-display); }
+  .btn-confirm {
+    font-size: 11px; padding: 4px 10px; border-radius: 20px;
+    border: 1px solid var(--border-green); background: rgba(0,230,118,0.08);
+    cursor: pointer; color: var(--green); white-space: nowrap;
+    font-family: var(--font-display); font-weight: 600; transition: all 0.2s;
+  }
+  .btn-confirm:hover { background: rgba(0,230,118,0.14); }
+
+  /* Calendar grid */
   .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
-  .cal-day-name { text-align: center; font-size: 10px; color: var(--color-text-secondary); padding: 4px 0; }
-  .cal-grid-day { text-align: center; font-size: 12px; padding: 6px 2px; border-radius: var(--border-radius-md); color: var(--color-text-secondary); }
-  .cal-grid-day.has-s { font-weight: 500; background: var(--green-light); color: var(--green-dark); }
-  .cal-grid-day.is-today { border: 0.5px solid var(--color-border-secondary); color: var(--color-text-primary); }
+  .cal-day-name { text-align: center; font-size: 10px; color: var(--text2); padding: 4px 0; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.05em; }
+  .cal-grid-day { text-align: center; font-size: 12px; padding: 6px 2px; border-radius: 6px; color: var(--text2); }
+  .cal-grid-day.has-s { font-weight: 700; background: rgba(0,230,118,0.12); color: var(--green); }
+  .cal-grid-day.is-today { border: 1px solid var(--border-green); color: var(--text); }
   .cal-grid-day.empty { opacity: 0; }
   .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
-  .cal-title { font-size: 15px; font-weight: 500; }
-  .cal-nav { background: none; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); width: 28px; height: 28px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
-  .session-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
-  .session-item:last-child { border-bottom: none; }
-  .session-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
-  .session-info { flex: 1; font-size: 13px; }
-  .session-time { font-size: 11px; color: var(--color-text-secondary); }
-  .session-delete { background: none; border: none; color: var(--color-text-secondary); cursor: pointer; font-size: 14px; }
+  .cal-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+  .cal-nav {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); width: 32px; height: 32px;
+    cursor: pointer; font-size: 16px; display: flex; align-items: center;
+    justify-content: center; color: var(--text2); transition: all 0.2s;
+  }
+  .cal-nav:hover { border-color: var(--border-green); color: var(--green); }
 
-  /* ── LEYENDA DE ACTIVIDAD ── */
-  .activity-legend { display: flex; gap: 12px; align-items: center; margin-bottom: 0.75rem; font-size: 11px; color: var(--color-text-secondary); flex-wrap: wrap; }
-  .legend-item { display: flex; align-items: center; gap: 4px; }
-  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .session-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+  }
+  .session-item:last-child { border-bottom: none; }
+  .session-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); flex-shrink: 0; }
+  .session-info { flex: 1; font-size: 13px; }
+  .session-time { font-size: 11px; color: var(--text2); }
+  .session-delete {
+    background: none; border: none; color: var(--text2); cursor: pointer; font-size: 14px;
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; background: rgba(255,68,68,0.04); border: 1px solid rgba(255,68,68,0.1);
+    transition: all 0.2s;
+  }
+  .session-delete:hover { background: rgba(255,68,68,0.12); color: var(--red); }
+
+  /* Status badge in rutinas */
+  .status-badge-done { font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(0,230,118,0.1);color:var(--green);border:1px solid rgba(0,230,118,0.2);white-space:nowrap;font-weight:500; }
+  .status-badge-missed { font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(255,68,68,0.08);color:var(--red);border:1px solid rgba(255,68,68,0.2);white-space:nowrap;font-weight:500; }
 </style>
 </head>
 <body>
 
 <div class="screen active" id="screen-clientes">
   <div class="list-view" id="cl-list">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
       <h1 class="page-title" style="margin:0">Mis clientes</h1>
-      <span id="cl-count" style="font-size:13px;color:var(--color-text-secondary)">—</span>
+      <span id="cl-count" style="font-size:12px;color:var(--text2);font-family:var(--font-display);font-weight:600"></span>
     </div>
-    <!-- Leyenda de actividad -->
     <div class="activity-legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div> Entrenó hoy</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#F39C12"></div> Sesión pendiente</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#ccc"></div> Sin sesión hoy</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green);box-shadow:0 0 6px var(--green)"></div> Entrenó hoy</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Sesión pendiente</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#333"></div> Sin sesión hoy</div>
     </div>
-    <input class="search" type="text" placeholder="Buscar cliente..." id="cl-search" oninput="filterClients()" />
+    <input class="search" type="text" placeholder="🔍 Buscar cliente..." id="cl-search" oninput="filterClients()" />
     <div id="cl-list-items"><div class="loading">Cargando…</div></div>
     <button class="btn-add" onclick="openClientModal()">+ Agregar cliente</button>
   </div>
@@ -192,45 +529,50 @@
 
 <div class="screen" id="screen-rutinas">
   <h1 class="page-title">Rutinas</h1>
-  <select class="client-selector" id="rut-sel-cliente" onchange="rutOnClientChange(this.value)"></select>
+  <select class="client-selector form-input" id="rut-sel-cliente" onchange="rutOnClientChange(this.value)"></select>
   <div class="sub-tab-bar">
-    <button class="sub-tab active" onclick="rutSwitchTab('sesion')">Armar rutina</button>
+    <button class="sub-tab active" onclick="rutSwitchTab('sesion')">Rutina</button>
     <button class="sub-tab" onclick="rutSwitchTab('sesiones')">Sesiones</button>
     <button class="sub-tab" onclick="rutSwitchTab('biblioteca')">Biblioteca</button>
-    <button class="sub-tab" onclick="rutSwitchTab('feedback')">Comentarios</button>
+    <button class="sub-tab" onclick="rutSwitchTab('feedback')">Feedback</button>
   </div>
+
   <div class="sub-view active" id="rut-sesion">
     <div class="cal-strip" id="rut-cal-strip"></div>
-    <div class="section" style="margin-bottom:0.75rem;display:flex;align-items:center;justify-content:space-between">
+    <div class="rut-day-header">
       <div>
-        <div style="font-size:15px;font-weight:500" id="rut-prog-fecha">hoy</div>
-        <div style="font-size:12px;color:var(--color-text-secondary)"><span id="rut-prog-total">0</span> ejercicios programados</div>
+        <div class="rut-day-title" id="rut-prog-fecha">Hoy</div>
+        <div class="rut-day-sub"><span id="rut-prog-total">0</span> ejercicios programados</div>
       </div>
       <button class="btn-add-ex" id="btn-add-ex" onclick="openExModal()">+ Agregar</button>
     </div>
-    <div id="rut-completed-banner" style="display:none;font-size:13px;color:#0F6E56;background:#E1F5EE;padding:10px 14px;border-radius:8px;margin-bottom:0.75rem;">✅ El alumno ya completó esta sesión.</div>
+    <div id="rut-completed-banner">✅ El alumno ya completó esta sesión.</div>
     <div id="rut-exercise-list"><div class="loading">Cargando…</div></div>
   </div>
+
   <div class="sub-view" id="rut-sesiones">
-    <select class="client-selector" id="rut-sel-sesiones" onchange="rutLoadSesionesAlumno(this.value)"></select>
+    <select class="client-selector form-input" id="rut-sel-sesiones" onchange="rutLoadSesionesAlumno(this.value)"></select>
     <div id="rut-sesiones-content"><div class="loading">Cargando…</div></div>
   </div>
+
   <div class="sub-view" id="rut-historial">
-    <select class="client-selector" id="rut-sel-historial" onchange="rutLoadHistorial(this.value)"></select>
+    <select class="client-selector form-input" id="rut-sel-historial" onchange="rutLoadHistorial(this.value)"></select>
     <div id="rut-historial-content"><div class="loading">Cargando…</div></div>
   </div>
+
   <div class="sub-view" id="rut-biblioteca">
     <div class="section">
       <div class="section-title">Agregar ejercicio</div>
-      <input class="form-input" id="bib-nombre" placeholder="Nombre (ej: Sentadilla)" />
+      <input class="form-input" id="bib-nombre" placeholder="Nombre del ejercicio" />
       <input class="form-input" id="bib-yt" placeholder="▶ Link de YouTube" />
       <button class="btn-green" onclick="addToBiblioteca()">+ Guardar en biblioteca</button>
     </div>
     <div class="section">
-      <div class="section-title">Mis ejercicios guardados</div>
+      <div class="section-title">Ejercicios guardados</div>
       <div id="bib-list"><div class="loading">Cargando…</div></div>
     </div>
   </div>
+
   <div class="sub-view" id="rut-feedback">
     <div class="section">
       <div class="section-title">Comentarios de clientes</div>
@@ -247,7 +589,7 @@
   </div>
   <div class="sub-view active" id="cob-cobros">
     <div class="metrics" id="cob-summary">
-      <div class="metric"><div class="metric-label">Cobrado este mes</div><div class="metric-value">$—</div></div>
+      <div class="metric"><div class="metric-label">Cobrado este mes</div><div class="metric-value green">$—</div></div>
       <div class="metric"><div class="metric-label">Por cobrar</div><div class="metric-value">$—</div></div>
     </div>
     <div class="section">
@@ -265,7 +607,7 @@
         </select>
       </div>
       <div class="row2" style="margin-top:0.6rem">
-        <input class="form-input" style="margin:0" type="text" id="cob-mes" placeholder="Concepto (ej: Mayo)" />
+        <input class="form-input" style="margin:0" type="text" id="cob-mes" placeholder="Concepto" />
         <input class="form-input" style="margin:0" type="date" id="cob-fecha" />
       </div>
       <select class="form-input" style="margin-top:0.6rem" id="cob-estado">
@@ -305,6 +647,7 @@
   </div>
 </div>
 
+<!-- MODAL CLIENTE -->
 <div class="modal-overlay" id="cl-modal">
   <div class="modal">
     <h2 id="cl-modal-title">Agregar cliente</h2>
@@ -321,6 +664,7 @@
   </div>
 </div>
 
+<!-- MODAL EJERCICIO -->
 <div class="modal-overlay" id="ex-modal">
   <div class="modal">
     <h2>Agregar ejercicio</h2>
@@ -334,13 +678,14 @@
       <input class="form-input" style="margin:0" type="text" id="ex-f-peso" placeholder="Peso" />
     </div>
     <input class="form-input" style="margin-top:0.6rem" type="text" id="ex-f-tiempo" placeholder="Tiempo (ej: 30 min)" />
-    <textarea class="form-input" style="resize:none;min-height:50px;margin-top:0.6rem" id="ex-f-nota" placeholder="Indicaciones..."></textarea>
-    <input class="form-input" type="text" id="ex-f-yt" placeholder="▶ Link YouTube (auto si está en biblioteca)" />
+    <textarea class="form-input" style="resize:none;min-height:60px;margin-top:0.6rem" id="ex-f-nota" placeholder="Indicaciones para el alumno..."></textarea>
+    <input class="form-input" type="text" id="ex-f-yt" placeholder="▶ Link YouTube" />
     <button class="btn-green" onclick="addExercise()">+ Agregar a la sesión</button>
     <button class="btn-cancel" onclick="closeExModal()">Cancelar</button>
   </div>
 </div>
 
+<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <button class="nav-btn active" id="nav-clientes" onclick="switchScreen('clientes')">
     <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m0 0a4 4 0 118 0m-8 0A4 4 0 0112 12a4 4 0 014 4"/></svg>
@@ -369,7 +714,7 @@ async function dbDelete(t,id){const r=await fetch(`${URL_}/rest/v1/${t}?id=eq.${
 
 let clientes=[],allEjercicios=[],allLogs=[],allSesiones=[],allCobros=[],biblioteca=[];
 const AV_CLS=['av-teal','av-blue','av-coral','av-purple','av-amber'];
-const DAYS=['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
+const DAYS=['DO','LU','MA','MI','JU','VI','SÁ'];
 const TODAY=new Date().toISOString().split('T')[0];
 function avClass(n){let h=0;for(let c of n)h+=c.charCodeAt(0);return AV_CLS[h%AV_CLS.length];}
 function initials(n){return n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();}
@@ -378,21 +723,18 @@ function showToast(msg,err=false){const t=document.getElementById('toast');t.tex
 const PROFE_EMAIL='matiasdinardi10@gmail.com';
 (function checkAccess(){const rol=sessionStorage.getItem('rol');const email=sessionStorage.getItem('auth_email');if(!rol||email!==PROFE_EMAIL){window.location.href='login.html';}})();
 
-// ── ACTIVIDAD DEL CLIENTE HOY ──────────────────────────────────────
-// Devuelve: 'trained' | 'pending' | 'none'
-function getClientActivityToday(clientId) {
-  const cid = parseInt(clientId);
-  // ¿Tiene ejercicios programados hoy?
-  const hasSessionToday = allEjercicios.some(e => String(e._clientId) === String(cid) && e.fecha_sesion === TODAY);
-  if (!hasSessionToday) return 'none';
-  // ¿Ya guardó logs hoy?
-  const trainedToday = allLogs.some(l => l.cliente_id === cid && l.fecha === TODAY);
-  return trainedToday ? 'trained' : 'pending';
+function getClientActivityToday(clientId){
+  const cid=parseInt(clientId);
+  const hasSessionToday=allEjercicios.some(e=>String(e._clientId)===String(cid)&&e.fecha_sesion===TODAY);
+  if(!hasSessionToday)return 'none';
+  const trainedToday=allLogs.some(l=>l.cliente_id===cid&&l.fecha===TODAY);
+  return trainedToday?'trained':'pending';
 }
 
-function activityDot(status) {
-  const cls = status === 'trained' ? 'trained-today' : status === 'pending' ? 'has-session' : 'inactive';
-  return `<div class="activity-dot ${cls}" title="${status==='trained'?'Entrenó hoy':status==='pending'?'Tiene sesión hoy pero no la completó':'Sin sesión hoy'}"></div>`;
+function activityDot(status){
+  const cls=status==='trained'?'trained-today':status==='pending'?'has-session':'inactive';
+  const title=status==='trained'?'Entrenó hoy':status==='pending'?'Tiene sesión pendiente':'Sin sesión hoy';
+  return`<div class="activity-dot ${cls}" title="${title}"></div>`;
 }
 
 async function init(){
@@ -430,13 +772,11 @@ function clRenderList(){
   document.getElementById('cl-count').textContent=`${activos} activo${activos!==1?'s':''}`;
   clRenderFiltered();
 }
-
 function clRenderFiltered(){
   if(!clFiltered.length){document.getElementById('cl-list-items').innerHTML='<div class="empty">No hay clientes aún.</div>';return;}
-  // Ordenar: primero los que entrenaron hoy, luego los que tienen sesión pendiente, luego el resto
   const sorted=[...clFiltered].sort((a,b)=>{
     const order={'trained':0,'pending':1,'none':2};
-    return order[getClientActivityToday(a.id)] - order[getClientActivityToday(b.id)];
+    return order[getClientActivityToday(a.id)]-order[getClientActivityToday(b.id)];
   });
   document.getElementById('cl-list-items').innerHTML=sorted.map(c=>{
     const activity=getClientActivityToday(c.id);
@@ -453,21 +793,22 @@ function clRenderFiltered(){
     </div>`;
   }).join('');
 }
-
 function filterClients(){
   const q=document.getElementById('cl-search').value.toLowerCase();
   clFiltered=clientes.filter(c=>c.nombre.toLowerCase().includes(q)||(c.objetivo||'').toLowerCase().includes(q));
   clRenderFiltered();
 }
-
 function clShowDetail(id){
   const c=clientes.find(x=>x.id===id);if(!c)return;
   const activity=getClientActivityToday(c.id);
-  const activityText = activity==='trained' ? '✅ Entrenó hoy' : activity==='pending' ? '⏳ Tiene sesión pendiente hoy' : '—';
+  const activityText=activity==='trained'?'✅ Entrenó hoy':activity==='pending'?'⏳ Sesión pendiente hoy':'—';
   document.getElementById('cl-detail-content').innerHTML=`
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:1.5rem">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:1.5rem">
       <div class="avatar-lg ${avClass(c.nombre)}" style="position:relative">${initials(c.nombre)}${activityDot(activity)}</div>
-      <div><div style="font-size:19px;font-weight:500">${c.nombre}</div><div style="font-size:13px;color:var(--color-text-secondary);margin-top:3px">${c.objetivo||'—'}</div></div>
+      <div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:800">${c.nombre}</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:3px">${c.objetivo||'—'}</div>
+      </div>
     </div>
     <div class="section">
       <div class="section-title">Datos personales</div>
@@ -485,7 +826,6 @@ function clShowDetail(id){
   document.getElementById('cl-list').classList.add('hidden');
   document.getElementById('cl-detail').classList.add('active');
 }
-
 function showClientList(){document.getElementById('cl-list').classList.remove('hidden');document.getElementById('cl-detail').classList.remove('active');}
 function openClientModal(){
   clEditingId=null;document.getElementById('cl-modal-title').textContent='Agregar cliente';
@@ -529,7 +869,6 @@ async function deleteClient(id){
   catch(e){showToast('Error al eliminar',true);}
 }
 
-// ── RUTINAS ──
 let rutCurrentClientId=null;let rutSelectedDate=TODAY;let rutOpenDetails={};
 function rutSwitchTab(tab){
   document.querySelectorAll('.sub-tab').forEach(t=>t.classList.remove('active'));
@@ -538,11 +877,7 @@ function rutSwitchTab(tab){
   document.querySelectorAll('#screen-rutinas .sub-tab')[tabs.indexOf(tab)].classList.add('active');
   document.getElementById('rut-'+tab).classList.add('active');
   if(tab==='feedback')rutRenderFeedback();
-  if(tab==='sesiones'){
-    const sel=document.getElementById('rut-sel-sesiones');
-    if(sel)sel.innerHTML=clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
-    rutLoadSesionesAlumno(clientes[0]?.id);
-  }
+  if(tab==='sesiones'){const sel=document.getElementById('rut-sel-sesiones');if(sel)sel.innerHTML=clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');rutLoadSesionesAlumno(clientes[0]?.id);}
   if(tab==='biblioteca')rutRenderBiblioteca();
 }
 async function rutOnClientChange(id){rutCurrentClientId=parseInt(id);rutOpenDetails={};rutBuildCalStrip();rutRenderDay();}
@@ -550,8 +885,7 @@ async function rutOnClientChange(id){rutCurrentClientId=parseInt(id);rutOpenDeta
 function rutBuildCalStrip(){
   const exsByDate={};
   allEjercicios.filter(e=>String(e._clientId)===String(rutCurrentClientId)&&e.fecha_sesion).forEach(e=>{
-    if(!exsByDate[e.fecha_sesion])exsByDate[e.fecha_sesion]=[];
-    exsByDate[e.fecha_sesion].push(e);
+    if(!exsByDate[e.fecha_sesion])exsByDate[e.fecha_sesion]=[];exsByDate[e.fecha_sesion].push(e);
   });
   const logDates=new Set(allLogs.filter(l=>l.cliente_id==rutCurrentClientId).map(l=>l.fecha));
   const today=new Date();let html='';
@@ -562,20 +896,19 @@ function rutBuildCalStrip(){
     const isCompleted=hasSession&&logDates.has(ds);
     const isSelected=ds===rutSelectedDate;
     const isToday=ds===TODAY;
-    let bg='white';let border='var(--color-border-tertiary)';let nameColor='var(--color-text-secondary)';let numColor='var(--color-text-primary)';let extra='';
-    if(isCompleted&&!isSelected){bg='#1D9E75';border='#1D9E75';nameColor='rgba(255,255,255,0.8)';numColor='white';extra='<div style="font-size:8px;color:white;line-height:1.2">✓</div>';}
-    else if(hasSession&&!isSelected){bg='#E1F5EE';border='#5DCAA5';numColor='#0F6E56';}
-    if(isSelected){bg='#0F6E56';border='#0F6E56';nameColor='white';numColor='white';extra='';}
-    if(isToday&&!isSelected&&!isCompleted&&!hasSession){border='#1D9E75';numColor='#1D9E75';}
+    let bg='var(--surface)';let border='var(--border)';let nameC='var(--text2)';let numC='var(--text)';let extra='';
+    if(isCompleted&&!isSelected){bg='rgba(0,230,118,0.12)';border='rgba(0,230,118,0.3)';nameC='rgba(0,230,118,0.7)';numC='var(--green)';extra='<div style="font-size:9px;color:var(--green);margin-top:2px">✓</div>';}
+    else if(hasSession&&!isSelected){bg='rgba(0,230,118,0.05)';border='rgba(0,230,118,0.15)';numC='rgba(0,230,118,0.6)';}
+    if(isSelected){bg='rgba(0,230,118,0.18)';border='var(--green)';nameC='var(--green)';numC='var(--green)';extra='';
+      if(isCompleted)extra='<div style="font-size:9px;color:var(--green);margin-top:2px">✓</div>';}
+    if(isToday&&!isSelected&&!isCompleted&&!hasSession){border='rgba(0,230,118,0.2)';numC='var(--green)';}
     html+=`<div class="cal-day-btn" style="background:${bg};border-color:${border}" onclick="rutSelectDate('${ds}')">
-      <div class="day-name" style="color:${nameColor}">${DAYS[d.getDay()]}</div>
-      <div class="day-num" style="color:${numColor}">${d.getDate()}</div>
-      ${extra}
+      <div class="day-name" style="color:${nameC}">${DAYS[d.getDay()]}</div>
+      <div class="day-num" style="color:${numC}">${d.getDate()}</div>${extra}
     </div>`;
   }
   document.getElementById('rut-cal-strip').innerHTML=html;
 }
-
 function rutSelectDate(ds){rutSelectedDate=ds;rutBuildCalStrip();rutRenderDay();}
 
 function rutRenderDay(){
@@ -587,8 +920,7 @@ function rutRenderDay(){
   const dayLogs=allLogs.filter(l=>l.cliente_id==rutCurrentClientId&&l.fecha===rutSelectedDate);
   const isCompleted=exs.length>0&&dayLogs.length>0;
   document.getElementById('btn-add-ex').style.display=isCompleted?'none':'';
-  const banner=document.getElementById('rut-completed-banner');
-  banner.style.display=isCompleted?'flex':'none';
+  document.getElementById('rut-completed-banner').style.display=isCompleted?'flex':'none';
   const logByEx={};dayLogs.forEach(l=>{logByEx[l.ejercicio_id]=l;});
   if(!exs.length){document.getElementById('rut-exercise-list').innerHTML='<div class="empty">No hay ejercicios para este día.<br>Tocá "+ Agregar" para comenzar.</div>';return;}
   document.getElementById('rut-exercise-list').innerHTML=exs.map((ex,i)=>{
@@ -596,26 +928,25 @@ function rutRenderDay(){
     const log=logByEx[ex.id];
     const prevLog=allLogs.find(l=>l.ejercicio_id===ex.id&&l.fecha<rutSelectedDate&&l.cliente_id==rutCurrentClientId);
     let statusBadge='';
-    if(isCompleted){statusBadge=ex.completado?`<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:#EAF3DE;color:#3B6D11;white-space:nowrap">✓ Completado</span>`:`<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:#FDECEA;color:#D93025;white-space:nowrap">✕ No completado</span>`;}
+    if(isCompleted){statusBadge=ex.completado?`<span class="status-badge-done">✓ Completado</span>`:`<span class="status-badge-missed">✕ No completado</span>`;}
     return`<div class="exercise-card ${isCompleted&&ex.completado?'done':''}">
       <div class="ex-header">
-        <div style="width:22px;height:22px;border-radius:6px;background:var(--green-light);color:var(--green-dark);font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${String.fromCharCode(65+i)}</div>
+        <div style="width:26px;height:26px;border-radius:8px;background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);color:var(--green);font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-display)">${String.fromCharCode(65+i)}</div>
         <span class="ex-name">${ex.nombre}</span>
         ${statusBadge}
         <button class="ex-expand" onclick="rutToggleDetail(${ex.id})">${rutOpenDetails[ex.id]?'−':'+'}</button>
         ${!isCompleted?`<button class="ex-delete" onclick="rutRemoveEx(${ex.id})">✕</button>`:''}
       </div>
-      <div class="ex-tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}${ex.link_youtube?`<a class="yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>`:''}</div>
+      <div class="ex-tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}${ex.link_youtube?`<a class="yt-link" href="${ex.link_youtube}" target="_blank">▶ Video</a>`:''}</div>
       <div class="ex-details ${rutOpenDetails[ex.id]?'open':''}">
         ${ex.nota?`<div class="ex-note">${ex.nota}</div>`:''}
         ${log?`<div class="log-prev">📊 Alumno registró: ${[log.series_realizadas,log.peso_usado,log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ')||'sin cargas'}</div>`:''}
-        ${ex.devolucion?`<div style="font-size:12px;color:var(--color-text-secondary);padding:6px 8px;background:#f9f9f9;border-radius:8px;border-left:3px solid var(--green);margin-top:4px;font-style:italic">💬 "${ex.devolucion}"</div>`:''}
+        ${ex.devolucion?`<div style="font-size:12px;color:var(--text2);padding:8px 10px;background:rgba(0,230,118,0.04);border-radius:8px;border-left:2px solid var(--green);margin-top:6px;font-style:italic">💬 "${ex.devolucion}"</div>`:''}
         ${!isCompleted&&prevLog?`<div class="log-prev">📅 Última vez: ${[prevLog.series_realizadas,prevLog.peso_usado,prevLog.rpe].filter(Boolean).join(' · ')}</div>`:''}
       </div>
     </div>`;
   }).join('');
 }
-
 function rutToggleDetail(id){rutOpenDetails[id]=!rutOpenDetails[id];rutRenderDay();}
 async function rutRemoveEx(id){
   if(!confirm('¿Eliminar este ejercicio?'))return;
@@ -635,7 +966,7 @@ function onNameInput(val){
 function rutSelectExercise(n,yt){
   document.getElementById('ex-f-name').value=n;document.getElementById('ex-f-yt').value=yt||'';
   document.getElementById('ex-autocomplete-list').style.display='none';
-  if(yt){document.getElementById('ex-yt-preview').innerHTML=`<div class="yt-preview">▶ Video vinculado: <a href="${yt}" target="_blank" style="color:#C0392B;font-weight:500">${n}</a></div>`;document.getElementById('ex-yt-preview').style.display='block';}
+  if(yt){document.getElementById('ex-yt-preview').innerHTML=`<div class="yt-preview">▶ Video: <a href="${yt}" target="_blank" style="color:#FF6666;font-weight:600">${n}</a></div>`;document.getElementById('ex-yt-preview').style.display='block';}
 }
 document.addEventListener('click',e=>{if(!e.target.closest('.autocomplete-wrap'))document.getElementById('ex-autocomplete-list').style.display='none';});
 function openExModal(){document.getElementById('ex-modal').classList.add('open');document.getElementById('ex-yt-preview').style.display='none';}
@@ -659,19 +990,18 @@ async function addExercise(){
 }
 
 async function rutLoadHistorial(clientId){
-  const cid=parseInt(clientId);
-  const clientLogs=allLogs.filter(l=>l.cliente_id===cid);
+  const cid=parseInt(clientId);const clientLogs=allLogs.filter(l=>l.cliente_id===cid);
   if(!clientLogs.length){document.getElementById('rut-historial-content').innerHTML='<div class="empty">No hay registros aún.</div>';return;}
   const byDate={};clientLogs.forEach(l=>{if(!byDate[l.fecha])byDate[l.fecha]=[];byDate[l.fecha].push(l);});
   document.getElementById('rut-historial-content').innerHTML=Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).map(([fecha,entries])=>{
     const label=new Date(fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
-    return`<div class="section"><div class="log-block-date">📅 ${label}</div>${entries.map(e=>{const ex=allEjercicios.find(x=>x.id===e.ejercicio_id);const load=[e.series_realizadas,e.peso_usado,e.rpe].filter(Boolean).join(' · ');return`<div class="log-row"><span class="log-ex-name">${ex?ex.nombre:'—'}</span><span class="log-ex-load">${load||'—'}</span></div>`;}).join('')}</div>`;
+    return`<div class="section"><div class="log-block-date">📅 ${label.toUpperCase()}</div>${entries.map(e=>{const ex=allEjercicios.find(x=>x.id===e.ejercicio_id);const load=[e.series_realizadas,e.peso_usado,e.rpe].filter(Boolean).join(' · ');return`<div class="log-row"><span class="log-ex-name">${ex?ex.nombre:'—'}</span><span class="log-ex-load">${load||'—'}</span></div>`;}).join('')}</div>`;
   }).join('');
 }
 
 function rutRenderBiblioteca(){
   if(!biblioteca.length){document.getElementById('bib-list').innerHTML='<div class="empty">Tu biblioteca está vacía.</div>';return;}
-  document.getElementById('bib-list').innerHTML=biblioteca.map(b=>`<div class="bib-item"><div><div class="bib-name">${b.nombre}</div>${b.link_youtube?`<div style="font-size:11px"><a href="${b.link_youtube}" target="_blank" style="color:#C0392B;text-decoration:none">▶ Ver video</a></div>`:''}</div><button class="bib-delete" onclick="deleteBib(${b.id})">✕</button></div>`).join('');
+  document.getElementById('bib-list').innerHTML=biblioteca.map(b=>`<div class="bib-item"><div><div class="bib-name">${b.nombre}</div>${b.link_youtube?`<div style="font-size:11px;margin-top:3px"><a href="${b.link_youtube}" target="_blank" style="color:#FF6666;text-decoration:none">▶ Ver video</a></div>`:''}</div><button class="bib-delete" onclick="deleteBib(${b.id})">✕</button></div>`).join('');
 }
 async function addToBiblioteca(){
   const nombre=document.getElementById('bib-nombre').value.trim();
@@ -695,7 +1025,7 @@ async function rutLoadSesionesAlumno(clientId){
   const byDate={};clientLogs.forEach(l=>{if(!byDate[l.fecha])byDate[l.fecha]=[];byDate[l.fecha].push(l);});
   el.innerHTML=Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).map(([fecha,entries])=>{
     const label=new Date(fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
-    return`<div class="section"><div class="log-block-date">📅 ${label}</div>${entries.map(e=>{const ex=allEjercicios.find(x=>x.id===e.ejercicio_id);const load=[e.series_realizadas,e.peso_usado,e.rpe].filter(Boolean).join(' · ');const nota=e.nota||ex?.devolucion||'';const completado=ex?.completado;return`<div class="log-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding:8px 0"><div style="display:flex;justify-content:space-between;width:100%;align-items:center"><span class="log-ex-name">${ex?ex.nombre:'—'}</span><span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${completado?'#EAF3DE':'#FDECEA'};color:${completado?'#3B6D11':'#D93025'}">${completado?'✓ Completado':'✕ No completado'}</span></div>${load?`<div class="log-ex-load">${load}</div>`:''}${nota?`<div style="font-size:12px;color:var(--color-text-secondary);font-style:italic">"${nota}"</div>`:''}</div>`;}).join('')}</div>`;
+    return`<div class="section"><div class="log-block-date">📅 ${label.toUpperCase()}</div>${entries.map(e=>{const ex=allEjercicios.find(x=>x.id===e.ejercicio_id);const load=[e.series_realizadas,e.peso_usado,e.rpe].filter(Boolean).join(' · ');const nota=e.nota||ex?.devolucion||'';const completado=ex?.completado;return`<div class="log-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding:8px 0"><div style="display:flex;justify-content:space-between;width:100%;align-items:center"><span class="log-ex-name">${ex?ex.nombre:'—'}</span><span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${completado?'rgba(0,230,118,0.1)':'rgba(255,68,68,0.08)'};color:${completado?'var(--green)':'var(--red)';border:1px solid ${completado?'rgba(0,230,118,0.2)':'rgba(255,68,68,0.2)'}">${completado?'✓ Completado':'✕ No completado'}</span></div>${load?`<div class="log-ex-load">${load}</div>`:''}${nota?`<div style="font-size:12px;color:var(--text2);font-style:italic">"${nota}"</div>`:''}</div>`;}).join('')}</div>`;
   }).join('');
 }
 
@@ -703,10 +1033,9 @@ function rutRenderFeedback(){
   const withFb=allEjercicios.filter(e=>e.devolucion&&e.devolucion.trim());
   const el=document.getElementById('rut-feedback-list');
   if(!withFb.length){el.innerHTML='<div class="empty">Cuando tus clientes dejen comentarios, van a aparecer acá.</div>';return;}
-  el.innerHTML=withFb.map(e=>{const cl=clientes.find(c=>String(c.id)===String(e._clientId));return`<div style="padding:0.75rem 0;border-bottom:0.5px solid var(--color-border-tertiary)"><div style="font-size:13px;font-weight:500">${cl?cl.nombre:'—'}</div><div style="font-size:12px;color:var(--green-dark);margin:3px 0">${e.nombre}</div><div style="font-size:13px;color:var(--color-text-secondary)">${e.devolucion}</div></div>`;}).join('');
+  el.innerHTML=withFb.map(e=>{const cl=clientes.find(c=>String(c.id)===String(e._clientId));return`<div style="padding:0.85rem 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:700;font-family:var(--font-display)">${cl?cl.nombre:'—'}</div><div style="font-size:12px;color:var(--green);margin:4px 0;font-weight:500">${e.nombre}</div><div style="font-size:13px;color:var(--text2)">${e.devolucion}</div></div>`;}).join('');
 }
 
-// ── COBROS Y TURNOS ──
 let cobCalMonth=new Date().getMonth();let cobCalYear=new Date().getFullYear();
 function cobSwitchTab(tab){
   document.querySelectorAll('#screen-cobros .sub-tab').forEach(t=>t.classList.remove('active'));
@@ -720,11 +1049,11 @@ function cobRenderCobros(){
   const now=new Date();const mesActual=now.getMonth();const anioActual=now.getFullYear();
   const cobradoMes=allCobros.filter(c=>c.estado==='pagado'&&c.fecha_pago&&new Date(c.fecha_pago).getMonth()===mesActual&&new Date(c.fecha_pago).getFullYear()===anioActual).reduce((s,c)=>s+(c.monto||0),0);
   const porCobrar=allCobros.filter(c=>c.estado==='pendiente').reduce((s,c)=>s+(c.monto||0),0);
-  document.getElementById('cob-summary').innerHTML=`<div class="metric"><div class="metric-label">Cobrado este mes</div><div class="metric-value">$${cobradoMes.toLocaleString()}</div></div><div class="metric"><div class="metric-label">Por cobrar</div><div class="metric-value" style="color:${porCobrar>0?'#854F0B':'inherit'}">$${porCobrar.toLocaleString()}</div></div>`;
+  document.getElementById('cob-summary').innerHTML=`<div class="metric"><div class="metric-label">Cobrado este mes</div><div class="metric-value green">$${cobradoMes.toLocaleString()}</div></div><div class="metric"><div class="metric-label">Por cobrar</div><div class="metric-value ${porCobrar>0?'orange':''}">$${porCobrar.toLocaleString()}</div></div>`;
   const byClient={};allCobros.forEach(c=>{if(!byClient[c.cliente_id])byClient[c.cliente_id]=c;});
   const rows=Object.values(byClient);
   document.getElementById('cob-payment-list').innerHTML=!rows.length?'<div class="empty">Sin cobros registrados</div>':rows.map(c=>{const cl=clientes.find(x=>x.id===c.cliente_id);const name=cl?cl.nombre:'—';return`<div class="payment-row"><div class="pay-avatar ${avClass(name)}">${initials(name)}</div><div class="pay-info"><div class="pay-name">${name}</div><div class="pay-detail">${c.mes||'—'} · ${c.medio_pago||'—'}</div></div><span class="pay-amount">$${(c.monto||0).toLocaleString()}</span><span class="badge badge-${c.estado}">${c.estado==='pagado'?'Pagado':'Pendiente'}</span>${c.estado==='pendiente'?`<button class="btn-confirm" onclick="cobConfirmarPago(${c.id})">Confirmar</button>`:''}</div>`;}).join('');
-  document.getElementById('cob-history').innerHTML=!allCobros.length?'<div class="empty">Sin historial</div>':allCobros.slice(0,10).map(c=>{const cl=clientes.find(x=>x.id===c.cliente_id);const name=cl?cl.nombre:'—';return`<div class="payment-row"><div class="pay-avatar ${avClass(name)}" style="width:28px;height:28px;font-size:10px">${initials(name)}</div><div class="pay-info"><div class="pay-name" style="font-size:12px">${name} · ${c.mes||'—'}</div><div class="pay-detail">${c.fecha_pago?c.fecha_pago.split('-').reverse().join('/'):'—'} · ${c.medio_pago||'—'}</div></div><span class="pay-amount" style="font-size:13px">$${(c.monto||0).toLocaleString()}</span><span class="badge badge-${c.estado}">${c.estado==='pagado'?'Pagado':'Pendiente'}</span></div>`;}).join('');
+  document.getElementById('cob-history').innerHTML=!allCobros.length?'<div class="empty">Sin historial</div>':allCobros.slice(0,10).map(c=>{const cl=clientes.find(x=>x.id===c.cliente_id);const name=cl?cl.nombre:'—';return`<div class="payment-row"><div class="pay-avatar ${avClass(name)}" style="width:30px;height:30px;font-size:10px">${initials(name)}</div><div class="pay-info"><div class="pay-name" style="font-size:12px">${name} · ${c.mes||'—'}</div><div class="pay-detail">${c.fecha_pago?c.fecha_pago.split('-').reverse().join('/'):'—'} · ${c.medio_pago||'—'}</div></div><span class="pay-amount" style="font-size:13px">$${(c.monto||0).toLocaleString()}</span><span class="badge badge-${c.estado}">${c.estado==='pagado'?'Pagado':'Pendiente'}</span></div>`;}).join('');
 }
 async function cobConfirmarPago(id){
   try{await dbPatch('cobros',id,{estado:'pagado',fecha_pago:TODAY});const c=allCobros.find(x=>x.id===id);if(c){c.estado='pagado';c.fecha_pago=TODAY;}cobRenderCobros();showToast('Pago confirmado ✓');}
@@ -739,7 +1068,7 @@ async function addCobro(){
 function cobRenderCal(){
   const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   document.getElementById('cob-cal-title').textContent=months[cobCalMonth]+' '+cobCalYear;
-  const days=['Lu','Ma','Mi','Ju','Vi','Sa','Do'];
+  const days=['LU','MA','MI','JU','VI','SÁ','DO'];
   const firstDay=new Date(cobCalYear,cobCalMonth,1).getDay();const offset=firstDay===0?6:firstDay-1;const daysInMonth=new Date(cobCalYear,cobCalMonth+1,0).getDate();const now=new Date();
   const sessionDays=new Set(allSesiones.filter(t=>{const d=new Date(t.fecha+'T00:00:00');return d.getFullYear()===cobCalYear&&d.getMonth()===cobCalMonth;}).map(t=>parseInt(t.fecha.split('-')[2])));
   let html=days.map(d=>`<div class="cal-day-name">${d}</div>`).join('');
@@ -750,7 +1079,7 @@ function cobRenderCal(){
 function cobRenderSessions(){
   const now=new Date();now.setHours(0,0,0,0);const upcoming=allSesiones.filter(t=>new Date(t.fecha+'T00:00:00')>=now).slice(0,8);
   if(!upcoming.length){document.getElementById('cob-session-list').innerHTML='<div class="empty">No hay sesiones próximas</div>';return;}
-  document.getElementById('cob-session-list').innerHTML=upcoming.map(t=>{const cl=clientes.find(x=>x.id===t.cliente_id);const name=cl?cl.nombre:'—';const d=new Date(t.fecha+'T00:00:00');const label=d.toLocaleDateString('es-UY',{weekday:'short',day:'numeric',month:'short'});return`<div class="session-item"><div class="session-dot"></div><div class="session-info"><span style="font-weight:500">${name}</span>${t.notas?` · ${t.notas}`:''}<div class="session-time">${label} a las ${t.hora||'—'}</div></div><button class="session-delete" onclick="cobDeleteSesion(${t.id})">✕</button></div>`;}).join('');
+  document.getElementById('cob-session-list').innerHTML=upcoming.map(t=>{const cl=clientes.find(x=>x.id===t.cliente_id);const name=cl?cl.nombre:'—';const d=new Date(t.fecha+'T00:00:00');const label=d.toLocaleDateString('es-UY',{weekday:'short',day:'numeric',month:'short'});return`<div class="session-item"><div class="session-dot"></div><div class="session-info"><span style="font-weight:600;font-family:var(--font-display)">${name}</span>${t.notas?` · ${t.notas}`:''}<div class="session-time">${label.toUpperCase()} a las ${t.hora||'—'}</div></div><button class="session-delete" onclick="cobDeleteSesion(${t.id})">✕</button></div>`;}).join('');
 }
 function cobChangeMonth(dir){cobCalMonth+=dir;if(cobCalMonth>11){cobCalMonth=0;cobCalYear++;}if(cobCalMonth<0){cobCalMonth=11;cobCalYear--;}cobRenderCal();}
 async function addTurno(){
