@@ -33,6 +33,7 @@ button,input,textarea,select { font-family:var(--font-body); }
 
 /* LOGIN */
 #login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:2rem; position:relative; z-index:1; }
+#login-screen.hidden { display:none !important; }
 .login-logo { width:72px; height:72px; background:linear-gradient(135deg,#00E676,#00C853); border-radius:22px; display:flex; align-items:center; justify-content:center; margin-bottom:1.5rem; animation:pulse-glow 3s ease-in-out infinite; }
 .login-logo svg { width:38px; height:38px; color:#000; }
 .login-title { font-family:var(--font-display); font-size:28px; font-weight:800; letter-spacing:-0.5px; margin-bottom:0.3rem; }
@@ -862,6 +863,10 @@ async function dbPost(t,b){const r=await fetch(`${SB_URL}/rest/v1/${t}`,{method:
 async function dbPatch(t,id,b){const r=await fetch(`${SB_URL}/rest/v1/${t}?id=eq.${id}`,{method:'PATCH',headers:SBH,body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());}
 async function dbDelete(t,id){const r=await fetch(`${SB_URL}/rest/v1/${t}?id=eq.${id}`,{method:'DELETE',headers:SBH});if(!r.ok)throw new Error(await r.text());}
 
+function hideLogin(){
+  const ls=document.getElementById('login-screen');
+  ls.style.display='none';ls.classList.add('hidden');
+}
 function showToast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('error',err);t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
 // Helpers circuito
@@ -962,7 +967,7 @@ function aRenderStreakBadge(){
   document.getElementById('streak-badge').className=streak===0?'streak-badge zero':'streak-badge';
 }
 async function initAlumno(){
-  document.getElementById('login-screen').style.display='none';
+  hideLogin();
   document.getElementById('panel-alumno').style.display='block';
   document.getElementById('panel-profe').style.display='none';
   document.getElementById('a-header-name').textContent='Hola, '+aCurrentCliente.nombre.split(' ')[0]+' 👋';
@@ -1370,9 +1375,10 @@ function avClass(n){let h=0;for(let c of n)h+=c.charCodeAt(0);return AV_CLS[h%AV
 function initials(n){return n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();}
 
 async function initProfe(){
-  document.getElementById('login-screen').style.display='none';
+  hideLogin();
   document.getElementById('panel-alumno').style.display='none';
   document.getElementById('panel-profe').style.display='block';
+  window.scrollTo(0,0);
   try{
     [pClientes,pBiblioteca,pAllCobros,pAllSesiones]=await Promise.all([dbGet('clientes','order=nombre.asc'),dbGet('biblioteca_ejercicios','order=nombre.asc'),dbGet('cobros','order=fecha_pago.desc'),dbGet('sesiones','order=fecha.asc')]);
     const rutinas=await dbGet('rutinas','');const rm={};rutinas.forEach(r=>{rm[r.id]=r.cliente_id;});
