@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Gym App</title>
+<title>MD Pro Training</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 <style>
 :root {
@@ -34,9 +34,10 @@ button,input,textarea,select { font-family:var(--font-body); }
 /* LOGIN */
 #login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:2rem; position:relative; z-index:1; }
 #login-screen.hidden { display:none !important; }
-.login-logo { width:72px; height:72px; background:linear-gradient(135deg,#00E676,#00C853); border-radius:22px; display:flex; align-items:center; justify-content:center; margin-bottom:1.5rem; animation:pulse-glow 3s ease-in-out infinite; }
-.login-logo svg { width:38px; height:38px; color:#000; }
-.login-title { font-family:var(--font-display); font-size:28px; font-weight:800; letter-spacing:-0.5px; margin-bottom:0.3rem; }
+.login-logo { width:82px; height:82px; background:linear-gradient(135deg,#00E676,#00C853); border-radius:24px; display:flex; align-items:center; justify-content:center; margin-bottom:1.5rem; animation:pulse-glow 3s ease-in-out infinite; }
+.login-logo svg { width:44px; height:44px; color:#000; }
+.login-title { font-family:var(--font-display); font-size:36px; font-weight:800; letter-spacing:-1px; margin-bottom:0.4rem; }
+.login-title .accent { color:var(--green); }
 .login-sub { font-size:14px; color:var(--text2); margin-bottom:2rem; font-weight:300; }
 .auth-tabs { display:flex; gap:4px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; padding:4px; width:100%; max-width:360px; margin-bottom:1.25rem; }
 .auth-tab-btn { flex:1; padding:9px; border:none; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.2s; color:var(--text2); background:transparent; }
@@ -544,7 +545,7 @@ select.form-input option { background:#1a2420; color:var(--text); }
   <div class="login-logo">
     <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
   </div>
-  <div class="login-title">Gym App</div>
+  <div class="login-title"><span class="accent">MD</span> Pro Training</div>
   <div class="login-sub" id="login-sub-text">Ingresá con tu cuenta</div>
   <div class="auth-tabs" style="max-width:360px">
     <button id="tab-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">Ingresar</button>
