@@ -942,9 +942,14 @@ async function doRegister(){
 }
 function doLogout(){
   sessionStorage.clear();aCurrentCliente=null;aEjercicios=[];aLogs=[];aSessionState={};
-  document.getElementById('login-screen').style.display='flex';
+  const ls=document.getElementById('login-screen');
+  ls.style.display='flex';ls.classList.remove('hidden');
   document.getElementById('panel-alumno').style.display='none';
   document.getElementById('panel-profe').style.display='none';
+  document.getElementById('login-email').value='';
+  document.getElementById('login-password').value='';
+  document.getElementById('login-error').style.display='none';
+  window.scrollTo(0,0);
 }
 
 // ════ PANEL ALUMNO ════
