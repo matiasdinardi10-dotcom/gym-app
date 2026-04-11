@@ -4,235 +4,722 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Mi Entrenamiento</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --green: #1D9E75;
-    --green-light: #E1F5EE;
-    --green-dark: #0F6E56;
-    --red: #D93025;
-    --red-light: #FDECEA;
-    --orange: #E67E22;
-    --bg: #f2f2f7;
-    --text: #111;
-    --text2: #666;
-    --border: #e8e8e8;
+    --green: #00E676;
+    --green-dim: #00C853;
+    --green-glow: rgba(0,230,118,0.18);
+    --green-glow-strong: rgba(0,230,118,0.35);
+    --bg: #080C0A;
+    --bg2: #0E1410;
+    --surface: rgba(255,255,255,0.04);
+    --surface-hover: rgba(255,255,255,0.07);
+    --surface-active: rgba(0,230,118,0.08);
+    --border: rgba(255,255,255,0.07);
+    --border-green: rgba(0,230,118,0.25);
+    --text: #F0F4F2;
+    --text2: rgba(240,244,242,0.45);
+    --text3: rgba(240,244,242,0.25);
+    --red: #FF4444;
+    --red-dim: rgba(255,68,68,0.15);
+    --orange: #FF8C00;
     --radius: 16px;
+    --radius-sm: 10px;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
   }
+
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { font-family: var(--font-sans); background: var(--bg); min-height: 100vh; }
-  button, input, textarea, select { font-family: var(--font-sans); }
 
-  #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; }
-  .login-logo { width: 72px; height: 72px; background: var(--green); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
-  .login-logo svg { width: 38px; height: 38px; color: white; }
-  .login-title { font-size: 24px; font-weight: 600; color: var(--text); margin-bottom: 0.4rem; }
-  .login-sub { font-size: 14px; color: var(--text2); margin-bottom: 2rem; }
-  .login-card { background: white; border-radius: var(--radius); padding: 1.5rem; width: 100%; max-width: 360px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    min-height: 100vh;
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* Ambient background glow */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -30%;
+    right: -20%;
+    width: 60vw;
+    height: 60vw;
+    background: radial-gradient(circle, rgba(0,230,118,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -20%;
+    left: -20%;
+    width: 50vw;
+    height: 50vw;
+    background: radial-gradient(circle, rgba(0,180,90,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  button, input, textarea, select { font-family: var(--font-body); }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 100vh; padding: 2rem;
+    position: relative; z-index: 1;
+  }
+
+  .login-logo {
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg, #00E676, #00C853);
+    border-radius: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 40px var(--green-glow-strong), 0 8px 32px rgba(0,0,0,0.4);
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 40px var(--green-glow-strong), 0 8px 32px rgba(0,0,0,0.4); }
+    50% { box-shadow: 0 0 60px rgba(0,230,118,0.5), 0 8px 32px rgba(0,0,0,0.4); }
+  }
+  .login-logo svg { width: 38px; height: 38px; color: #000; }
+
+  .login-title {
+    font-family: var(--font-display);
+    font-size: 28px; font-weight: 800;
+    color: var(--text); margin-bottom: 0.3rem;
+    letter-spacing: -0.5px;
+  }
+  .login-sub {
+    font-size: 14px; color: var(--text2);
+    margin-bottom: 2rem; font-weight: 300;
+  }
+
+  /* Auth tabs */
+  .auth-tabs {
+    display: flex; gap: 4px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 4px;
+    width: 100%; max-width: 360px; margin-bottom: 1.25rem;
+  }
+  .auth-tab-btn {
+    flex: 1; padding: 9px; border: none;
+    border-radius: 8px;
+    font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+    font-family: var(--font-body);
+    color: var(--text2); background: transparent;
+  }
+  .auth-tab-btn.active {
+    background: rgba(0,230,118,0.12);
+    color: var(--green);
+    border: 1px solid var(--border-green);
+  }
+
+  .login-card {
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    width: 100%; max-width: 360px;
+  }
+
   .login-field { margin-bottom: 1rem; }
-  .login-field label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .login-field input { width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); font-size: 16px; background: #f9f9f9; color: var(--text); }
-  .login-field input:focus { outline: none; border-color: var(--green); background: white; }
-  .btn-login { width: 100%; padding: 0.9rem; border-radius: 12px; border: none; background: var(--green); color: white; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 0.5rem; }
-  .login-error { font-size: 13px; color: var(--red); text-align: center; margin-top: 0.75rem; display: none; }
+  .login-field label {
+    display: block; font-size: 11px; font-weight: 500;
+    color: var(--text2); margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .login-field input {
+    width: 100%; padding: 0.8rem 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    font-size: 15px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+    transition: all 0.2s;
+  }
+  .login-field input:focus {
+    outline: none;
+    border-color: var(--green);
+    background: rgba(0,230,118,0.04);
+    box-shadow: 0 0 0 3px var(--green-glow);
+  }
+  .login-field input::placeholder { color: var(--text3); }
 
-  #app { display: none; max-width: 430px; margin: 0 auto; min-height: 100vh; }
-  .app-header { background: white; padding: 1rem 1.25rem 0.75rem; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 10; }
+  .btn-login {
+    width: 100%; padding: 0.95rem;
+    border-radius: var(--radius-sm); border: none;
+    background: linear-gradient(135deg, #00E676, #00C853);
+    color: #000; font-size: 15px; font-weight: 700;
+    cursor: pointer; margin-top: 0.5rem;
+    font-family: var(--font-display);
+    letter-spacing: 0.03em;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px var(--green-glow-strong);
+  }
+  .btn-login:active { transform: scale(0.98); }
+
+  .login-error {
+    font-size: 13px; color: var(--red);
+    text-align: center; margin-top: 0.75rem; display: none;
+  }
+
+  /* ── APP ── */
+  #app { display: none; max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative; z-index: 1; }
+
+  /* ── HEADER ── */
+  .app-header {
+    padding: 1.25rem 1.25rem 1rem;
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(8,12,10,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
   .header-top { display: flex; align-items: center; justify-content: space-between; }
   .header-left { flex: 1; min-width: 0; }
-  .header-greeting { font-size: 18px; font-weight: 600; color: var(--text); }
-  .header-date { font-size: 13px; color: var(--text2); margin-top: 2px; }
-  .btn-logout { font-size: 12px; color: var(--text2); background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 8px; flex-shrink: 0; }
+  .header-greeting {
+    font-family: var(--font-display);
+    font-size: 20px; font-weight: 700;
+    color: var(--text); letter-spacing: -0.3px;
+  }
+  .header-date { font-size: 11px; color: var(--text2); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
 
-  /* ── STREAK BADGE ── */
+  .btn-logout {
+    font-size: 12px; color: var(--text2);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    cursor: pointer; padding: 6px 12px;
+    border-radius: 20px; flex-shrink: 0;
+    transition: all 0.2s;
+    font-family: var(--font-body);
+  }
+  .btn-logout:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+  /* Streak badge */
   .streak-badge {
     display: flex; align-items: center; gap: 5px;
-    background: linear-gradient(135deg, #FF6B35, #FF8C42);
-    color: white; border-radius: 20px;
-    padding: 5px 12px; font-size: 13px; font-weight: 700;
-    flex-shrink: 0; cursor: default;
-    box-shadow: 0 2px 8px rgba(255,107,53,0.35);
+    background: linear-gradient(135deg, rgba(255,140,0,0.2), rgba(255,100,0,0.15));
+    border: 1px solid rgba(255,140,0,0.3);
+    color: #FFA500; border-radius: 20px;
+    padding: 6px 12px; font-size: 13px; font-weight: 700;
+    flex-shrink: 0;
+    font-family: var(--font-display);
   }
-  .streak-badge.zero {
-    background: #f0f0f5; color: var(--text2);
-    box-shadow: none; font-weight: 500;
-  }
-  .streak-fire { font-size: 15px; }
+  .streak-badge.zero { background: rgba(255,255,255,0.04); border-color: var(--border); color: var(--text2); }
 
-  .day-strip { display: flex; gap: 6px; overflow-x: auto; padding: 0.75rem 1.25rem; scrollbar-width: none; background: white; border-bottom: 0.5px solid var(--border); }
+  /* ── DAY STRIP ── */
+  .day-strip {
+    display: flex; gap: 8px; overflow-x: auto;
+    padding: 1rem 1.25rem;
+    scrollbar-width: none;
+    background: rgba(8,12,10,0.7);
+  }
   .day-strip::-webkit-scrollbar { display: none; }
-  .day-btn { flex-shrink: 0; width: 44px; text-align: center; border-radius: 10px; padding: 6px 0; cursor: pointer; border: 1px solid var(--border); background: white; }
-  .day-btn .dn { font-size: 10px; color: var(--text2); }
-  .day-btn .dd { font-size: 15px; font-weight: 500; color: var(--text); }
-  .day-btn.today { border-color: var(--green); }
-  .day-btn.today .dd { color: var(--green); }
-  .day-btn.has-ex { background: var(--green-light); border-color: #5DCAA5; }
-  .day-btn.has-ex .dd { color: var(--green-dark); }
-  .day-btn.is-done { background: var(--green); border-color: var(--green); }
-  .day-btn.is-done .dd, .day-btn.is-done .dn { color: white; }
-  .day-btn.selected { outline: 2px solid var(--green); outline-offset: 2px; }
 
-  #view-home { padding: 1rem 1.25rem; }
-  .ex-preview { background: white; border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.6rem; border: 1px solid var(--border); display: flex; align-items: center; gap: 12px; transition: border-color 0.2s; }
-  .ex-preview.done { border-color: #5DCAA5; background: #f0faf6; }
-  .ex-preview.missed { border-color: #f5a0a0; background: #fff8f8; }
-  .ex-letter { width: 32px; height: 32px; border-radius: 8px; background: var(--green-light); color: var(--green-dark); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .day-btn {
+    flex-shrink: 0; width: 52px; text-align: center;
+    border-radius: var(--radius-sm); padding: 8px 0;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: all 0.2s;
+  }
+  .day-btn .dn { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; }
+  .day-btn .dd { font-size: 17px; font-weight: 600; color: var(--text); font-family: var(--font-display); }
+  .day-btn.today { border-color: var(--border-green); background: var(--surface-active); }
+  .day-btn.today .dd { color: var(--green); }
+  .day-btn.has-ex { background: rgba(0,230,118,0.06); border-color: rgba(0,230,118,0.2); }
+  .day-btn.has-ex .dd { color: var(--green); opacity: 0.7; }
+  .day-btn.is-done { background: linear-gradient(135deg, rgba(0,230,118,0.15), rgba(0,200,83,0.1)); border-color: var(--green); }
+  .day-btn.is-done .dd, .day-btn.is-done .dn { color: var(--green); }
+  .day-btn.selected { background: linear-gradient(135deg, rgba(0,230,118,0.2), rgba(0,200,83,0.15)) !important; border-color: var(--green) !important; box-shadow: 0 0 16px var(--green-glow); }
+  .day-btn.selected .dn, .day-btn.selected .dd { color: var(--green) !important; }
+
+  /* ── HOME VIEW ── */
+  #view-home { padding: 1.25rem; }
+
+  .day-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .day-header-title {
+    font-family: var(--font-display);
+    font-size: 13px; font-weight: 600;
+    color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .day-header-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .day-progress { font-size: 12px; color: var(--text2); font-weight: 500; }
+
+  /* Exercise preview card */
+  .ex-preview {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.6rem;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .ex-preview::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--border); border-radius: 3px 0 0 3px;
+    transition: all 0.2s;
+  }
+  .ex-preview:active { transform: scale(0.99); }
+  .ex-preview.done { background: rgba(0,230,118,0.05); border-color: rgba(0,230,118,0.2); }
+  .ex-preview.done::before { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .ex-preview.missed { background: rgba(255,68,68,0.05); border-color: rgba(255,68,68,0.2); }
+  .ex-preview.missed::before { background: var(--red); }
+
+  .ex-letter {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, rgba(0,230,118,0.15), rgba(0,200,83,0.08));
+    border: 1px solid rgba(0,230,118,0.2);
+    color: var(--green); font-weight: 700; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-family: var(--font-display);
+  }
+  .ex-preview.missed .ex-letter { background: rgba(255,68,68,0.1); border-color: rgba(255,68,68,0.2); color: var(--red); }
   .ex-preview-info { flex: 1; min-width: 0; }
   .ex-preview-name { font-size: 14px; font-weight: 500; color: var(--text); }
-  .ex-preview-tags { font-size: 12px; color: var(--text2); margin-top: 2px; }
-  .ex-status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-  .dot-done { background: var(--green); }
-  .dot-missed { background: var(--red); }
-  .dot-pending { background: #ccc; }
-  .empty-day { text-align: center; padding: 3rem 1rem; color: var(--text2); font-size: 14px; }
+  .ex-preview-tags { font-size: 12px; color: var(--text2); margin-top: 3px; }
 
-  .completed-day-pill { background: var(--green); border-radius: var(--radius); padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; margin-bottom: 0.75rem; user-select: none; }
+  .ex-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-done { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .dot-missed { background: var(--red); }
+  .dot-pending { background: var(--border); }
+
+  .empty-day {
+    text-align: center; padding: 4rem 1rem;
+    color: var(--text2); font-size: 14px;
+  }
+  .empty-day .empty-icon { font-size: 40px; margin-bottom: 1rem; opacity: 0.5; }
+
+  /* ── COMPLETED DAY PILL ── */
+  .completed-day-pill {
+    background: linear-gradient(135deg, rgba(0,230,118,0.1), rgba(0,200,83,0.05));
+    border: 1px solid var(--border-green);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; margin-bottom: 0.75rem;
+    user-select: none;
+    transition: all 0.2s;
+    box-shadow: 0 0 20px var(--green-glow);
+  }
   .completed-day-pill-left { display: flex; align-items: center; gap: 12px; }
-  .completed-day-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-  .completed-day-title { font-size: 16px; font-weight: 600; color: white; }
-  .completed-day-sub { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 2px; }
-  .completed-day-arrow { font-size: 18px; color: rgba(255,255,255,0.7); transition: transform 0.2s; }
+  .completed-day-icon {
+    width: 38px; height: 38px;
+    background: rgba(0,230,118,0.15);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .completed-day-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--green); }
+  .completed-day-sub { font-size: 12px; color: rgba(0,230,118,0.6); margin-top: 2px; }
+  .completed-day-arrow { font-size: 16px; color: var(--green); opacity: 0.6; transition: transform 0.2s; }
   .completed-day-arrow.open { transform: rotate(180deg); }
+
   .completed-day-content { display: none; }
   .completed-day-content.open { display: block; }
 
-  .done-ex-card { background: white; border-radius: var(--radius); margin-bottom: 0.6rem; border: 1px solid var(--border); overflow: hidden; }
-  .done-ex-card.is-done { border-color: #5DCAA5; }
-  .done-ex-card.is-missed { border-color: #f5a0a0; }
+  /* Done exercise cards */
+  .done-ex-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 0.6rem; overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .done-ex-card.is-done { border-color: rgba(0,230,118,0.2); }
+  .done-ex-card.is-missed { border-color: rgba(255,68,68,0.2); }
+
   .done-ex-header { display: flex; align-items: center; gap: 12px; padding: 1rem 1.25rem 0.75rem; }
-  .done-ex-letter { width: 36px; height: 36px; border-radius: 10px; background: var(--green-light); color: var(--green-dark); font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .done-ex-letter.missed { background: var(--red-light); color: var(--red); }
-  .done-ex-name { font-size: 15px; font-weight: 600; color: var(--text); flex: 1; }
-  .done-ex-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
-  .done-ex-badge.done { background: var(--green-light); color: var(--green-dark); }
-  .done-ex-badge.missed { background: var(--red-light); color: var(--red); }
+  .done-ex-letter {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.2);
+    color: var(--green); font-weight: 700; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-family: var(--font-display);
+  }
+  .done-ex-letter.missed { background: rgba(255,68,68,0.1); border-color: rgba(255,68,68,0.2); color: var(--red); }
+  .done-ex-name { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+  .done-ex-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; white-space: nowrap; font-weight: 500; }
+  .done-ex-badge.done { background: rgba(0,230,118,0.12); color: var(--green); border: 1px solid rgba(0,230,118,0.2); }
+  .done-ex-badge.missed { background: rgba(255,68,68,0.1); color: var(--red); border: 1px solid rgba(255,68,68,0.2); }
+
   .done-ex-prescribed { padding: 0 1.25rem 0.75rem; display: flex; flex-wrap: wrap; gap: 6px; }
-  .prescribed-tag { font-size: 12px; padding: 4px 10px; border-radius: 20px; background: #f0f0f5; color: var(--text2); }
-  .prescribed-note { width: 100%; font-size: 12px; color: var(--text2); padding: 6px 10px; background: #f9f9f9; border-radius: 8px; border-left: 3px solid var(--green); margin-top: 2px; }
-  .done-ex-logged { margin: 0 1rem 1rem; background: #f2f2f7; border-radius: 10px; padding: 0.75rem 1rem; }
-  .done-ex-logged-title { font-size: 10px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-  .done-ex-series-row { font-size: 13px; color: var(--text); padding: 3px 0; border-bottom: 0.5px solid var(--border); }
+  .prescribed-tag {
+    font-size: 12px; padding: 4px 10px; border-radius: 20px;
+    background: rgba(255,255,255,0.05); color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .prescribed-note {
+    width: 100%; font-size: 12px; color: var(--text2);
+    padding: 8px 10px; background: rgba(0,230,118,0.04);
+    border-radius: 8px; border-left: 2px solid var(--green);
+    margin-top: 2px;
+  }
+
+  .done-ex-logged {
+    margin: 0 1rem 1rem;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 0.75rem 1rem;
+  }
+  .done-ex-logged-title {
+    font-size: 10px; font-weight: 600; color: var(--text2);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
+    font-family: var(--font-display);
+  }
+  .done-ex-series-row {
+    font-size: 13px; color: var(--green); padding: 4px 0;
+    border-bottom: 1px solid var(--border); font-weight: 500;
+  }
   .done-ex-series-row:last-of-type { border-bottom: none; }
-  .done-ex-comment { font-size: 12px; color: var(--text2); font-style: italic; margin-top: 6px; padding-top: 6px; border-top: 0.5px solid var(--border); }
-  .done-yt-link { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #C0392B; text-decoration: none; background: #FEF2F2; padding: 3px 8px; border-radius: 20px; margin: 0 1.25rem 0.75rem; }
+  .done-ex-comment {
+    font-size: 12px; color: var(--text2); font-style: italic;
+    margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border);
+  }
+  .done-yt-link {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; color: #FF4444; text-decoration: none;
+    background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.2);
+    padding: 4px 10px; border-radius: 20px;
+    margin: 0 1.25rem 0.75rem;
+  }
 
+  /* ── SESSION VIEW ── */
   #view-session { display: none; }
-  .session-header { background: white; padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 10; }
+
+  .session-header {
+    background: rgba(8,12,10,0.9); backdrop-filter: blur(20px);
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
   .session-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
-  .btn-exit { font-size: 14px; color: var(--text2); background: none; border: none; cursor: pointer; }
-  .session-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .btn-exit {
+    font-size: 13px; color: var(--text2);
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    cursor: pointer; padding: 6px 12px; border-radius: 20px;
+    font-family: var(--font-body); transition: all 0.2s;
+  }
+  .btn-exit:hover { color: var(--text); }
+  .session-title { font-size: 14px; font-weight: 600; color: var(--text); font-family: var(--font-display); }
+
   .progress-dots { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
-  .prog-dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.2s; }
-  .prog-dot.current { background: var(--green); transform: scale(1.3); }
-  .prog-dot.done { background: var(--green); }
-  .prog-dot.missed { background: var(--orange); }
+  .prog-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: all 0.3s; }
+  .prog-dot.current { background: var(--green); transform: scale(1.4); box-shadow: 0 0 8px var(--green); }
+  .prog-dot.done { background: var(--green); opacity: 0.6; }
+  .prog-dot.missed { background: var(--orange); opacity: 0.6; }
 
-  .session-body { padding: 1rem 1.25rem; }
-  .ex-card { background: white; border-radius: var(--radius); padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 1rem; }
-  .ex-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
-  .ex-card-letter { width: 40px; height: 40px; border-radius: 10px; background: var(--green-light); color: var(--green-dark); font-weight: 700; font-size: 17px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .ex-card-name { font-size: 18px; font-weight: 600; color: var(--text); }
-  .ex-card-links { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
-  .ex-card-link { font-size: 12px; color: var(--green); text-decoration: none; display: flex; align-items: center; gap: 3px; cursor: pointer; }
-  .ex-card-link.yt { color: #C0392B; }
-  .ex-card-note { background: #f9f9f9; border-radius: 10px; padding: 0.75rem 1rem; font-size: 13px; color: var(--text2); margin-bottom: 1rem; border-left: 3px solid var(--green); }
+  /* Exercise card */
+  .session-body { padding: 1.25rem; }
 
-  .series-list { margin-bottom: 1rem; }
-  .series-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .ex-card {
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .ex-card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 1.25rem; }
+  .ex-card-letter {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, rgba(0,230,118,0.2), rgba(0,200,83,0.1));
+    border: 1px solid rgba(0,230,118,0.3);
+    color: var(--green); font-weight: 800; font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-family: var(--font-display);
+    box-shadow: 0 0 16px var(--green-glow);
+  }
+  .ex-card-name { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--text); }
+  .ex-card-links { display: flex; gap: 8px; margin-top: 5px; flex-wrap: wrap; }
+  .ex-card-link {
+    font-size: 11px; color: var(--green); text-decoration: none;
+    display: flex; align-items: center; gap: 4px; cursor: pointer;
+    background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.15);
+    padding: 3px 10px; border-radius: 20px; transition: all 0.2s;
+  }
+  .ex-card-link:hover { background: rgba(0,230,118,0.14); }
+  .ex-card-link.yt { color: #FF4444; background: rgba(255,68,68,0.08); border-color: rgba(255,68,68,0.2); }
+  .ex-card-note {
+    background: rgba(0,230,118,0.04); border-radius: var(--radius-sm);
+    padding: 0.85rem 1rem; font-size: 13px; color: var(--text2);
+    margin-bottom: 1.25rem; border-left: 2px solid var(--green);
+    line-height: 1.5;
+  }
+
+  /* Series */
+  .series-list { margin-bottom: 1.25rem; }
+  .series-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+  }
   .series-row:last-child { border-bottom: none; }
-  .series-num { width: 24px; height: 24px; border-radius: 6px; background: var(--green-light); color: var(--green-dark); font-weight: 700; font-size: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .series-inputs { display: flex; gap: 6px; flex: 1; }
-  .series-input { flex: 1; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; background: #f9f9f9; color: var(--text); min-width: 0; }
-  .series-input:focus { outline: none; border-color: var(--green); }
-  .series-input::placeholder { color: #bbb; }
+  .series-num {
+    width: 26px; height: 26px; border-radius: 8px;
+    background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.2);
+    color: var(--green); font-weight: 700; font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-family: var(--font-display);
+  }
+  .series-inputs { display: flex; gap: 8px; flex: 1; }
+  .series-input {
+    flex: 1; padding: 7px 10px;
+    border-radius: 8px; border: 1px solid var(--border);
+    font-size: 13px; background: rgba(255,255,255,0.04);
+    color: var(--text); min-width: 0; transition: all 0.2s;
+    font-family: var(--font-body);
+  }
+  .series-input:focus { outline: none; border-color: var(--green); background: rgba(0,230,118,0.04); box-shadow: 0 0 0 3px var(--green-glow); }
+  .series-input::placeholder { color: var(--text3); }
 
-  .attach-btn { display: flex; align-items: center; gap: 8px; background: #f9f9f9; border: 1.5px dashed var(--border); border-radius: 12px; padding: 0.75rem 1rem; cursor: pointer; margin-bottom: 1rem; font-size: 13px; color: var(--text2); width: 100%; }
-  .attach-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
-  .attach-thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); }
+  /* Attach */
+  .attach-btn {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.12);
+    border-radius: var(--radius-sm); padding: 0.85rem 1rem;
+    cursor: pointer; margin-bottom: 1.25rem;
+    font-size: 13px; color: var(--text2); width: 100%;
+    transition: all 0.2s; font-family: var(--font-body);
+  }
+  .attach-btn:hover { background: rgba(0,230,118,0.04); border-color: rgba(0,230,118,0.2); color: var(--green); }
+  .attach-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.25rem; }
+  .attach-thumb { width: 64px; height: 64px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--border); }
   #file-input { display: none; }
 
-  .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
-  .btn-missed { padding: 0.85rem; border-radius: 12px; border: 2px solid var(--red); background: white; color: var(--red); font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
-  .btn-missed.active { background: var(--red); color: white; }
-  .btn-completed { padding: 0.85rem; border-radius: 12px; border: 2px solid var(--green); background: white; color: var(--green-dark); font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
-  .btn-completed.active { background: var(--green); color: white; }
+  /* Action buttons */
+  .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
 
-  .comment-wrap { display: none; margin-bottom: 1rem; }
+  .btn-missed {
+    padding: 0.9rem; border-radius: var(--radius-sm);
+    border: 1px solid rgba(255,68,68,0.3);
+    background: rgba(255,68,68,0.06);
+    color: var(--red); font-size: 14px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 6px; transition: all 0.2s;
+    font-family: var(--font-body);
+  }
+  .btn-missed.active { background: rgba(255,68,68,0.15); border-color: var(--red); box-shadow: 0 0 16px rgba(255,68,68,0.2); }
+  .btn-missed:active { transform: scale(0.98); }
+
+  .btn-completed {
+    padding: 0.9rem; border-radius: var(--radius-sm);
+    border: 1px solid rgba(0,230,118,0.3);
+    background: rgba(0,230,118,0.06);
+    color: var(--green); font-size: 14px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 6px; transition: all 0.2s;
+    font-family: var(--font-body);
+  }
+  .btn-completed.active { background: rgba(0,230,118,0.15); border-color: var(--green); box-shadow: 0 0 16px var(--green-glow); }
+  .btn-completed:active { transform: scale(0.98); }
+
+  /* Comment */
+  .comment-wrap { display: none; margin-bottom: 1.25rem; }
   .comment-wrap.open { display: block; }
-  .comment-wrap textarea { width: 100%; padding: 0.75rem; border-radius: 12px; border: 1.5px solid var(--border); font-size: 14px; resize: none; min-height: 80px; color: var(--text); background: #f9f9f9; }
-  .comment-wrap.green textarea { border-color: var(--green); background: var(--green-light); }
-  .comment-wrap.red textarea { border-color: var(--red); background: var(--red-light); }
-  .comment-wrap textarea:focus { outline: none; }
+  .comment-wrap textarea {
+    width: 100%; padding: 0.85rem; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); font-size: 14px; resize: none;
+    min-height: 80px; color: var(--text);
+    background: rgba(255,255,255,0.04);
+    font-family: var(--font-body); line-height: 1.5;
+    transition: all 0.2s;
+  }
+  .comment-wrap textarea:focus { outline: none; border-color: var(--border-green); background: rgba(0,230,118,0.03); }
+  .comment-wrap.green textarea { border-color: rgba(0,230,118,0.3); }
+  .comment-wrap.red textarea { border-color: rgba(255,68,68,0.3); }
 
-  .history-btn { width: 100%; padding: 0.7rem; border-radius: 12px; border: 1px solid var(--border); background: white; font-size: 13px; color: var(--text2); cursor: pointer; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 6px; }
-  .history-content { display: none; background: #f9f9f9; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
+  /* History */
+  .history-btn {
+    width: 100%; padding: 0.7rem;
+    border-radius: var(--radius-sm); border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03); font-size: 13px; color: var(--text2);
+    cursor: pointer; margin-bottom: 0.75rem;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all 0.2s; font-family: var(--font-body);
+  }
+  .history-btn:hover { border-color: rgba(255,255,255,0.12); color: var(--text); }
+  .history-content { display: none; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 0.75rem; }
   .history-content.open { display: block; }
-  .history-entry { padding: 0.6rem 0; border-bottom: 0.5px solid var(--border); }
+  .history-entry { padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
   .history-entry:last-child { border-bottom: none; }
-  .history-date { font-size: 11px; color: var(--text2); font-weight: 600; }
-  .history-load { font-size: 12px; color: var(--green-dark); margin-top: 2px; }
+  .history-date { font-size: 11px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .history-load { font-size: 12px; color: var(--green); margin-top: 3px; }
   .history-comment { font-size: 12px; color: var(--text2); margin-top: 2px; font-style: italic; }
 
+  /* Nav buttons */
   .session-nav-btns { display: flex; gap: 10px; }
-  .btn-prev { flex: 1; padding: 0.85rem; border-radius: 12px; border: 1px solid var(--border); background: white; font-size: 14px; color: var(--text2); cursor: pointer; }
-  .btn-next { flex: 2; padding: 0.85rem; border-radius: 12px; border: none; background: var(--green); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .btn-summary { flex: 2; padding: 0.85rem; border-radius: 12px; border: none; background: var(--orange); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-prev {
+    flex: 1; padding: 0.9rem; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: rgba(255,255,255,0.04);
+    font-size: 14px; color: var(--text2); cursor: pointer;
+    transition: all 0.2s; font-family: var(--font-body);
+  }
+  .btn-prev:hover { border-color: rgba(255,255,255,0.15); color: var(--text); }
+  .btn-next {
+    flex: 2; padding: 0.9rem; border-radius: var(--radius-sm); border: none;
+    background: linear-gradient(135deg, var(--green), var(--green-dim));
+    color: #000; font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s; font-family: var(--font-display);
+    box-shadow: 0 4px 20px var(--green-glow-strong);
+  }
+  .btn-next:active { transform: scale(0.98); }
+  .btn-summary {
+    flex: 2; padding: 0.9rem; border-radius: var(--radius-sm); border: none;
+    background: linear-gradient(135deg, var(--orange), #FF6B00);
+    color: #000; font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s; font-family: var(--font-display);
+    box-shadow: 0 4px 20px rgba(255,140,0,0.3);
+  }
 
-  #view-summary { display: none; padding: 1rem 1.25rem; }
-  .summary-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
-  .back-btn { background: none; border: none; font-size: 14px; color: var(--text2); cursor: pointer; padding: 0; }
-  .summary-title { font-size: 18px; font-weight: 600; }
-  .summary-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
-  .stat-card { background: white; border-radius: var(--radius); padding: 1rem; text-align: center; }
-  .stat-num { font-size: 32px; font-weight: 700; }
-  .stat-num.green { color: var(--green); }
+  /* ── SUMMARY VIEW ── */
+  #view-summary { display: none; padding: 1.25rem; }
+  .summary-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
+  .back-btn {
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    font-size: 14px; color: var(--text2); cursor: pointer;
+    padding: 6px 12px; border-radius: 20px; font-family: var(--font-body);
+    transition: all 0.2s;
+  }
+  .back-btn:hover { color: var(--text); }
+  .summary-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
+
+  .summary-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem; text-align: center;
+  }
+  .stat-num { font-family: var(--font-display); font-size: 36px; font-weight: 800; }
+  .stat-num.green { color: var(--green); text-shadow: 0 0 20px var(--green-glow); }
   .stat-num.red { color: var(--red); }
-  .stat-label { font-size: 12px; color: var(--text2); margin-top: 4px; }
-  .summary-item { background: white; border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.6rem; }
-  .summary-item-name { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem; }
-  .summary-status { font-size: 11px; padding: 2px 8px; border-radius: 20px; }
-  .summary-status.done { background: var(--green-light); color: var(--green-dark); }
-  .summary-status.missed { background: var(--red-light); color: var(--red); }
-  .summary-comment { font-size: 13px; color: var(--text2); font-style: italic; }
-  .btn-save-session { width: 100%; padding: 1rem; border-radius: 14px; border: none; background: var(--green); color: white; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 0.75rem; }
-  .btn-save-session:disabled { background: #ccc; }
+  .stat-label { font-size: 12px; color: var(--text2); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
 
+  .summary-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.6rem;
+    transition: border-color 0.2s;
+  }
+  .summary-item-name {
+    font-size: 14px; font-weight: 600; color: var(--text);
+    display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem;
+    font-family: var(--font-display);
+  }
+  .summary-status { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+  .summary-status.done { background: rgba(0,230,118,0.12); color: var(--green); border: 1px solid rgba(0,230,118,0.2); }
+  .summary-status.missed { background: rgba(255,68,68,0.1); color: var(--red); border: 1px solid rgba(255,68,68,0.2); }
+  .summary-comment { font-size: 13px; color: var(--text2); font-style: italic; line-height: 1.5; }
+
+  .btn-save-session {
+    width: 100%; padding: 1.1rem;
+    border-radius: var(--radius); border: none;
+    background: linear-gradient(135deg, var(--green), var(--green-dim));
+    color: #000; font-size: 16px; font-weight: 700;
+    cursor: pointer; margin-top: 1rem;
+    font-family: var(--font-display); letter-spacing: 0.03em;
+    box-shadow: 0 4px 24px var(--green-glow-strong);
+    transition: all 0.2s;
+  }
+  .btn-save-session:active { transform: scale(0.99); }
+  .btn-save-session:disabled { background: rgba(255,255,255,0.1); color: var(--text2); box-shadow: none; cursor: default; }
+
+  /* Guardar desde home */
+  .btn-save-home {
+    width: 100%; padding: 1rem; border-radius: var(--radius); border: none;
+    background: linear-gradient(135deg, var(--green), var(--green-dim));
+    color: #000; font-size: 15px; font-weight: 700;
+    cursor: pointer; margin-top: 0.75rem;
+    font-family: var(--font-display);
+    box-shadow: 0 4px 20px var(--green-glow-strong);
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-save-home:active { transform: scale(0.99); }
+
+  /* Motivational quote */
+  .motivational {
+    text-align: center; padding: 2rem 1.25rem 0.5rem;
+    font-size: 13px; color: var(--text2); font-style: italic; line-height: 1.5;
+  }
+  .motivational span { color: var(--green); font-style: normal; font-weight: 600; }
+
+  /* Util */
   .loading { text-align: center; padding: 3rem; color: var(--text2); font-size: 14px; }
-  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--green); color: white; padding: 0.6rem 1.2rem; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; white-space: nowrap; }
+  .toast {
+    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+    background: rgba(0,230,118,0.15); backdrop-filter: blur(20px);
+    color: var(--green); border: 1px solid rgba(0,230,118,0.3);
+    padding: 0.7rem 1.4rem; border-radius: 20px; font-size: 13px; font-weight: 600;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200;
+    white-space: nowrap; font-family: var(--font-display);
+  }
   .toast.show { opacity: 1; }
-  .toast.error { background: var(--red); }
+  .toast.error { background: rgba(255,68,68,0.15); color: var(--red); border-color: rgba(255,68,68,0.3); }
+
+  /* Session closed banner */
+  .session-closed-banner {
+    font-size: 13px; color: var(--green);
+    background: rgba(0,230,118,0.06); border: 1px solid rgba(0,230,118,0.2);
+    padding: 10px 14px; border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* Animations */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .ex-preview, .done-ex-card, .summary-item, .stat-card {
+    animation: fadeIn 0.3s ease forwards;
+  }
 </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-logo">
-    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
   </div>
   <div class="login-title">Mi Entrenamiento</div>
   <div class="login-sub" id="login-sub-text">Ingresá con tu cuenta</div>
-  <div style="display:flex;gap:4px;background:#f0f0f0;border-radius:12px;padding:4px;width:100%;max-width:360px;margin-bottom:1.25rem">
-    <button id="tab-login" onclick="switchAuthTab('login')" style="flex:1;padding:8px;border:none;border-radius:8px;background:white;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-sans);color:#111">Ingresar</button>
-    <button id="tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:8px;border:none;border-radius:8px;background:transparent;font-size:14px;color:#888;cursor:pointer;font-family:var(--font-sans)">Registrarse</button>
+
+  <div class="auth-tabs" style="max-width:360px">
+    <button id="tab-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">Ingresar</button>
+    <button id="tab-register" class="auth-tab-btn" onclick="switchAuthTab('register')">Registrarse</button>
   </div>
+
   <div class="login-card" id="form-login">
     <div class="login-field"><label>Email</label><input type="email" id="login-email" placeholder="tu@email.com" onkeydown="if(event.key==='Enter')doLogin()" /></div>
     <div class="login-field"><label>Contraseña</label><input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" /></div>
-    <button class="btn-login" onclick="doLogin()">Ingresar</button>
+    <button class="btn-login" onclick="doLogin()">Ingresar →</button>
     <div class="login-error" id="login-error"></div>
   </div>
+
   <div class="login-card" id="form-register" style="display:none">
     <div class="login-field"><label>Nombre completo</label><input type="text" id="reg-nombre" placeholder="Juan Pérez" /></div>
     <div class="login-field"><label>Email</label><input type="email" id="reg-email" placeholder="tu@email.com" /></div>
     <div class="login-field"><label>Contraseña</label><input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" /></div>
     <div class="login-field"><label>Edad</label><input type="number" id="reg-edad" placeholder="25" /></div>
-    <div class="login-field"><label>Objetivo</label><input type="text" id="reg-objetivo" placeholder="Ej: Bajar de peso" /></div>
-    <button class="btn-login" onclick="doRegister()">Crear cuenta</button>
+    <div class="login-field"><label>Objetivo</label><input type="text" id="reg-objetivo" placeholder="Ej: Ganar masa muscular" /></div>
+    <button class="btn-login" onclick="doRegister()">Crear cuenta →</button>
     <div class="login-error" id="reg-error"></div>
     <div id="reg-success" style="font-size:13px;color:var(--green);text-align:center;margin-top:0.75rem;display:none">✓ Cuenta creada. Ya podés ingresar.</div>
   </div>
 </div>
 
+<!-- APP -->
 <div id="app">
   <div class="app-header">
     <div class="header-top">
@@ -242,8 +729,7 @@
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <div class="streak-badge zero" id="streak-badge">
-          <span class="streak-fire">🔥</span>
-          <span id="streak-count">0</span>
+          <span>🔥</span><span id="streak-count">0</span>
         </div>
         <button class="btn-logout" onclick="doLogout()">Salir</button>
       </div>
@@ -254,7 +740,7 @@
 
   <div id="view-home">
     <div class="loading" id="home-loading">Cargando tu rutina…</div>
-    <div id="home-content" style="display:none;padding:1rem 1.25rem"></div>
+    <div id="home-content" style="display:none;padding:1.25rem"></div>
   </div>
 
   <div id="view-session">
@@ -262,7 +748,7 @@
       <div class="session-nav">
         <button class="btn-exit" onclick="exitSession()">← Salir</button>
         <span class="session-title" id="session-label">Sesión</span>
-        <span style="font-size:13px;color:var(--text2)" id="session-counter"></span>
+        <span style="font-size:13px;color:var(--text2);font-family:var(--font-display);font-weight:600" id="session-counter"></span>
       </div>
       <div class="progress-dots" id="progress-dots"></div>
     </div>
@@ -272,7 +758,7 @@
   <div id="view-summary">
     <div class="summary-header">
       <button class="back-btn" onclick="showHome()">←</button>
-      <div class="summary-title">Resumen de sesión</div>
+      <div class="summary-title">Resumen 💪</div>
     </div>
     <div id="summary-content"></div>
     <button class="btn-save-session" id="btn-save-session" onclick="saveFinalSession()">💾 Guardar sesión del día</button>
@@ -292,7 +778,14 @@ async function dbPost(t,b){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}`,{m
 async function dbPatch(t,id,b){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());}
 
 const TODAY = new Date().toISOString().split('T')[0];
-const DAYS = ['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
+const DAYS = ['DO','LU','MA','MI','JU','VI','SÁ'];
+const QUOTES = [
+  '"La constancia construye <span>fuerza</span>."',
+  '"Cada rep te acerca a tu mejor versión."',
+  '"El dolor de hoy es la <span>fuerza</span> de mañana."',
+  '"No pares cuando estés cansado. Para cuando <span>termines</span>."',
+  '"Pequeños progresos, <span>grandes resultados</span>."',
+];
 
 let currentCliente = null;
 let ejercicios = [], logs = [];
@@ -309,22 +802,17 @@ function isDayClosed(date) {
   return logs.some(l => l.fecha === date && exs.some(e => e.id === l.ejercicio_id));
 }
 
-// ─── RACHA ──────────────────────────────────────────────────────────
-// Cuenta días consecutivos hacia atrás desde hoy donde el alumno guardó sesión
 function calcStreak() {
   const logDates = new Set(logs.map(l => l.fecha));
   let streak = 0;
   const d = new Date();
-  // Si hoy ya entrenó, empieza desde hoy; sino desde ayer
-  const todayStr = d.toISOString().split('T')[0];
-  if (!logDates.has(todayStr)) d.setDate(d.getDate() - 1);
-
+  if (!logDates.has(d.toISOString().split('T')[0])) d.setDate(d.getDate() - 1);
   while (true) {
     const ds = d.toISOString().split('T')[0];
     if (!logDates.has(ds)) break;
     streak++;
     d.setDate(d.getDate() - 1);
-    if (streak > 365) break; // tope de seguridad
+    if (streak > 365) break;
   }
   return streak;
 }
@@ -336,19 +824,9 @@ function renderStreakBadge() {
   count.textContent = streak;
   if (streak === 0) {
     badge.className = 'streak-badge zero';
-    badge.title = 'Empezá a entrenar para iniciar tu racha';
-  } else if (streak < 3) {
-    badge.className = 'streak-badge';
-    badge.style.background = 'linear-gradient(135deg, #FF6B35, #FF8C42)';
-    badge.title = `${streak} día${streak>1?'s':''} seguido${streak>1?'s':''}`;
-  } else if (streak < 7) {
-    badge.className = 'streak-badge';
-    badge.style.background = 'linear-gradient(135deg, #E67E22, #F39C12)';
-    badge.title = `¡${streak} días seguidos! Vas bien 💪`;
   } else {
     badge.className = 'streak-badge';
-    badge.style.background = 'linear-gradient(135deg, #C0392B, #E74C3C)';
-    badge.title = `¡${streak} días seguidos! Sos una bestia 🔥`;
+    badge.title = `${streak} día${streak>1?'s':''} seguido${streak>1?'s':''}! 🔥`;
   }
 }
 
@@ -357,8 +835,8 @@ function switchAuthTab(tab) {
   const isLogin = tab === 'login';
   document.getElementById('form-login').style.display = isLogin ? 'block' : 'none';
   document.getElementById('form-register').style.display = isLogin ? 'none' : 'block';
-  document.getElementById('tab-login').style.cssText = `flex:1;padding:8px;border:none;border-radius:8px;background:${isLogin?'white':'transparent'};font-size:14px;font-weight:${isLogin?'500':'400'};cursor:pointer;font-family:var(--font-sans);color:${isLogin?'#111':'#888'}`;
-  document.getElementById('tab-register').style.cssText = `flex:1;padding:8px;border:none;border-radius:8px;background:${isLogin?'transparent':'white'};font-size:14px;font-weight:${isLogin?'400':'500'};cursor:pointer;font-family:var(--font-sans);color:${isLogin?'#888':'#111'}`;
+  document.getElementById('tab-login').className = 'auth-tab-btn' + (isLogin ? ' active' : '');
+  document.getElementById('tab-register').className = 'auth-tab-btn' + (!isLogin ? ' active' : '');
   document.getElementById('login-sub-text').textContent = isLogin ? 'Ingresá con tu cuenta' : 'Creá tu cuenta y empezá hoy';
 }
 
@@ -420,7 +898,8 @@ async function initApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('header-name').textContent = 'Hola, ' + currentCliente.nombre.split(' ')[0] + ' 👋';
-  document.getElementById('header-date').textContent = new Date().toLocaleDateString('es-UY', {weekday:'long', day:'numeric', month:'long'});
+  const now = new Date();
+  document.getElementById('header-date').textContent = now.toLocaleDateString('es-UY', {weekday:'long', day:'numeric', month:'long'}).toUpperCase();
   const rutinas = await dbGet('rutinas', `cliente_id=eq.${currentCliente.id}`);
   const rutinaIds = rutinas.map(r => r.id);
   ejercicios = rutinaIds.length ? await dbGet('ejercicios', `rutina_id=in.(${rutinaIds.join(',')})&order=id.asc`) : [];
@@ -444,7 +923,7 @@ function buildDayStrip() {
     html += `<div class="day-btn ${cls}" onclick="selectDay('${ds}')">
       <div class="dn">${DAYS[d.getDay()]}</div>
       <div class="dd">${d.getDate()}</div>
-      ${isClosed ? `<div style="font-size:8px;color:white">✓</div>` : ''}
+      ${isClosed ? `<div style="font-size:9px;color:var(--green);margin-top:2px">✓</div>` : ''}
     </div>`;
   }
   document.getElementById('day-strip').innerHTML = html;
@@ -455,12 +934,8 @@ function buildDayStrip() {
 }
 
 function selectDay(ds) {
-  selectedDate = ds;
-  sessionState = {};
-  sessionExs = [];
-  completedDayExpanded = false;
-  buildDayStrip();
-  showHome();
+  selectedDate = ds; sessionState = {}; sessionExs = []; completedDayExpanded = false;
+  buildDayStrip(); showHome();
 }
 
 function showHome() {
@@ -484,10 +959,14 @@ function renderHome() {
   const el = document.getElementById('home-content');
   el.style.display = 'block';
   const isToday = selectedDate === TODAY;
-  const dateLabel = isToday ? 'Hoy' : new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-UY', {weekday:'long', day:'numeric', month:'long'});
+  const dateLabel = isToday ? 'HOY' : new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-UY', {weekday:'long', day:'numeric', month:'long'}).toUpperCase();
+
+  // Motivational quote
+  const quote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
 
   if (!exs.length) {
-    el.innerHTML = `<div class="empty-day">📅 ${dateLabel}<br><br>No hay ejercicios programados para este día.</div>`;
+    el.innerHTML = `<div class="empty-day"><div class="empty-icon">📅</div>${dateLabel}<br><br>No hay ejercicios programados.</div>
+    <div class="motivational">${quote}</div>`;
     return;
   }
 
@@ -515,7 +994,7 @@ function renderHome() {
           <div class="done-ex-name">${ex.nombre}</div>
           <span class="done-ex-badge ${isExDone?'done':'missed'}">${isExDone?'✓ Hecho':'✕ No hecho'}</span>
         </div>
-        ${prescribedTags.length?`<div class="done-ex-prescribed">${prescribedTags.map(t=>`<span class="prescribed-tag">📋 ${t}</span>`).join('')}${ex.nota?`<div class="prescribed-note">${ex.nota}</div>`:''}</div>`:ex.nota?`<div class="done-ex-prescribed"><div class="prescribed-note">${ex.nota}</div></div>`:''}
+        ${prescribedTags.length?`<div class="done-ex-prescribed">${prescribedTags.map(t=>`<span class="prescribed-tag">${t}</span>`).join('')}${ex.nota?`<div class="prescribed-note">${ex.nota}</div>`:''}</div>`:ex.nota?`<div class="done-ex-prescribed"><div class="prescribed-note">${ex.nota}</div></div>`:''}
         ${ex.link_youtube?`<a class="done-yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>`:''}
         ${seriesRows||comment?`<div class="done-ex-logged"><div class="done-ex-logged-title">Lo que registraste</div>${seriesRows}${comment?`<div class="done-ex-comment">💬 "${comment}"</div>`:''}</div>`:''}
       </div>`;
@@ -526,13 +1005,14 @@ function renderHome() {
         <div class="completed-day-pill-left">
           <div class="completed-day-icon">💪</div>
           <div>
-            <div class="completed-day-title">${dateLabel} · ✓ Completado</div>
+            <div class="completed-day-title">${dateLabel} · COMPLETADO</div>
             <div class="completed-day-sub">${done} hechos · ${missed} no hechos · ${exs.length} ejercicios</div>
           </div>
         </div>
         <div class="completed-day-arrow ${completedDayExpanded?'open':''}" id="completed-day-arrow">▾</div>
       </div>
-      <div class="completed-day-content ${completedDayExpanded?'open':''}" id="completed-day-content">${exCards}</div>`;
+      <div class="completed-day-content ${completedDayExpanded?'open':''}" id="completed-day-content">${exCards}</div>
+      <div class="motivational">${quote}</div>`;
     return;
   }
 
@@ -547,34 +1027,37 @@ function renderHome() {
   const exItems = exs.map((ex, i) => {
     const st = sessionState[ex.id];
     const dotClass = st?.status === 'done' ? 'dot-done' : st?.status === 'missed' ? 'dot-missed' : 'dot-pending';
-    const statusText = st?.status === 'done' ? '✓' : st?.status === 'missed' ? '✕' : '›';
     const cardCls = st?.status === 'done' ? 'done' : st?.status === 'missed' ? 'missed' : '';
     const comment = st?.comment || '';
     const log = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
     const loadInfo = log ? [log.series_realizadas, log.peso_usado, log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ') : '';
-    return `<div class="ex-preview ${cardCls}" style="cursor:pointer" onclick="openExercise(${i})">
+    return `<div class="ex-preview ${cardCls}" onclick="openExercise(${i})">
       <div class="ex-letter">${letters[i]||(i+1)}</div>
       <div class="ex-preview-info">
         <div class="ex-preview-name">${ex.nombre}</div>
         ${loadInfo?`<div class="ex-preview-tags">${loadInfo}</div>`:ex.series||ex.peso?`<div class="ex-preview-tags">${[ex.series?ex.series+' reps':'',ex.peso,ex.tiempo].filter(Boolean).join(' · ')}</div>`:''}
-        ${comment?`<div style="font-size:11px;color:var(--text2);margin-top:2px;font-style:italic">"${comment.slice(0,50)}${comment.length>50?'…':''}"</div>`:''}
+        ${comment?`<div style="font-size:11px;color:var(--text2);margin-top:3px;font-style:italic">"${comment.slice(0,50)}${comment.length>50?'…':''}"</div>`:''}
       </div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px">
         <div class="ex-status-dot ${dotClass}"></div>
-        <span style="font-size:12px;color:var(--text2)">${statusText}</span>
+        <span style="font-size:12px;color:var(--text2)">›</span>
       </div>
     </div>`;
   }).join('');
 
   el.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
-      <span style="font-size:15px;font-weight:600;color:var(--text);text-transform:capitalize">${dateLabel}</span>
-      <span style="font-size:12px;color:var(--text2)">${done}/${exs.length} hechos</span>
+    <div class="day-header">
+      <div class="day-header-title">
+        <div class="dot"></div>
+        ${dateLabel}
+      </div>
+      <div class="day-progress">${done}/${exs.length} hechos</div>
     </div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:0.75rem">Tocá un ejercicio para marcarlo 👇</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:1rem">Tocá un ejercicio para marcarlo 👇</div>
     ${exItems}
-    ${allMarked?`<button style="width:100%;padding:0.9rem;border-radius:14px;border:none;background:var(--orange);color:white;font-size:16px;font-weight:600;cursor:pointer;margin-top:0.75rem" onclick="showSummaryFromHome()">📋 Ver resumen</button>`:''}
-    <button class="btn-save-session" style="margin-top:0.5rem" onclick="saveFinalSession()">💾 Guardar sesión</button>`;
+    ${allMarked?`<button style="width:100%;padding:0.9rem;border-radius:var(--radius);border:none;background:linear-gradient(135deg,var(--orange),#FF6B00);color:#000;font-size:15px;font-weight:700;cursor:pointer;margin-top:0.75rem;font-family:var(--font-display);box-shadow:0 4px 20px rgba(255,140,0,0.3)" onclick="showSummaryFromHome()">📋 Ver resumen</button>`:''}
+    <button class="btn-save-home" onclick="saveFinalSession()">💾 Guardar sesión</button>
+    <div class="motivational">${quote}</div>`;
 }
 
 function openExercise(idx) {
@@ -582,14 +1065,9 @@ function openExercise(idx) {
   sessionIdx = idx;
   document.getElementById('view-home').style.display = 'none';
   document.getElementById('view-session').style.display = 'block';
-  renderCard();
-  window.scrollTo(0, 0);
+  renderCard(); window.scrollTo(0,0);
 }
-
-function showSummaryFromHome() {
-  document.getElementById('view-home').style.display = 'none';
-  showSummary();
-}
+function showSummaryFromHome() { document.getElementById('view-home').style.display = 'none'; showSummary(); }
 
 function renderCard() {
   const ex = sessionExs[sessionIdx];
@@ -597,7 +1075,7 @@ function renderCard() {
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const isLast = sessionIdx === sessionExs.length - 1;
 
-  document.getElementById('session-counter').textContent = `${sessionIdx + 1}/${sessionExs.length}`;
+  document.getElementById('session-counter').textContent = `${sessionIdx + 1} / ${sessionExs.length}`;
   document.getElementById('progress-dots').innerHTML = sessionExs.map((e, i) => {
     const st = sessionState[e.id];
     let cls = i === sessionIdx ? 'current' : st?.status === 'done' ? 'done' : st?.status === 'missed' ? 'missed' : '';
@@ -623,7 +1101,7 @@ function renderCard() {
   const histHtml = exLogs.map(l => {
     const d = new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'short',day:'numeric',month:'short'});
     const load = [l.series_realizadas, l.peso_usado, l.rpe?'RPE '+l.rpe:''].filter(Boolean).join(' · ');
-    return `<div class="history-entry"><div class="history-date">📅 ${d}</div>${load?`<div class="history-load">${load}</div>`:''}</div>`;
+    return `<div class="history-entry"><div class="history-date">📅 ${d.toUpperCase()}</div>${load?`<div class="history-load">${load}</div>`:''}</div>`;
   }).join('');
 
   let attachHtml = '';
@@ -647,9 +1125,9 @@ function renderCard() {
         </div>
       </div>
       ${ex.nota?`<div class="ex-card-note">${ex.nota}</div>`:''}
-      ${prevLog?`<div style="font-size:11px;color:var(--green-dark);background:var(--green-light);padding:6px 10px;border-radius:8px;margin-bottom:1rem">📊 Última vez (${new Date(prevLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'})}): ${[prevLog.series_realizadas,prevLog.peso_usado,prevLog.rpe?'RPE '+prevLog.rpe:''].filter(Boolean).join(' · ')}</div>`:''}
+      ${prevLog?`<div style="font-size:12px;color:var(--green);background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.15);padding:8px 12px;border-radius:8px;margin-bottom:1.25rem">📊 Última vez (${new Date(prevLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'})}): ${[prevLog.series_realizadas,prevLog.peso_usado,prevLog.rpe?'RPE '+prevLog.rpe:''].filter(Boolean).join(' · ')}</div>`:''}
       <div class="series-list">${seriesHtml}</div>
-      ${histHtml?`<button class="history-btn" onclick="toggleHistory('hist-${ex.id}')">🕐 Ver historial de este ejercicio</button><div class="history-content" id="hist-${ex.id}">${histHtml}</div>`:''}
+      ${histHtml?`<button class="history-btn" onclick="toggleHistory('hist-${ex.id}')">🕐 Ver historial del ejercicio</button><div class="history-content" id="hist-${ex.id}">${histHtml}</div>`:''}
       <label class="attach-btn" onclick="openFileInput(${ex.id})">📎 Adjuntar foto o video</label>
       ${attachHtml}
       <div class="action-btns">
@@ -657,12 +1135,12 @@ function renderCard() {
         <button class="btn-completed ${state.status==='done'?'active':''}" onclick="setStatus('done')">✓ Completado</button>
       </div>
       <div class="comment-wrap ${commentOpen} ${commentColor}" id="comment-wrap">
-        <textarea id="ex-comment" placeholder="${state.status==='done'?'¿Cómo te fue? Dejá un comentario...':'¿Qué pasó? ¿Alguna dificultad?'}">${state.comment||''}</textarea>
+        <textarea id="ex-comment" placeholder="${state.status==='done'?'¿Cómo te fue? Dejá tu comentario...':'¿Qué pasó? ¿Alguna dificultad?'}">${state.comment||''}</textarea>
       </div>
     </div>
     <div class="session-nav-btns">
       ${sessionIdx > 0 ? `<button class="btn-prev" onclick="navSession(-1)">← Anterior</button>` : '<div></div>'}
-      ${isLast ? `<button class="btn-summary" onclick="saveCardAndSummary()">Ver resumen →</button>` : `<button class="btn-next" onclick="saveCardAndNext()">Siguiente →</button>`}
+      ${isLast ? `<button class="btn-summary" onclick="saveCardAndSummary()">Finalizar →</button>` : `<button class="btn-next" onclick="saveCardAndNext()">Siguiente →</button>`}
     </div>`;
 }
 
@@ -730,11 +1208,11 @@ function showSummary() {
     ).join('<br>') || '';
     return `<div class="summary-item">
       <div class="summary-item-name">
-        <span style="background:var(--green-light);color:var(--green-dark);width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px">${letters[i]}</span>
+        <span style="background:rgba(0,230,118,0.12);color:var(--green);border:1px solid rgba(0,230,118,0.2);width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:12px">${letters[i]}</span>
         ${ex.nombre}
         ${statusCls?`<span class="summary-status ${statusCls}">${statusLabel}</span>`:''}
       </div>
-      ${seriesSummary?`<div style="font-size:12px;color:var(--text2);margin-bottom:4px;line-height:1.6">${seriesSummary}</div>`:''}
+      ${seriesSummary?`<div style="font-size:12px;color:var(--green);margin-bottom:4px;line-height:1.8">${seriesSummary}</div>`:''}
       ${st?.comment?`<div class="summary-comment">"${st.comment}"</div>`:''}
     </div>`;
   }).join('');
@@ -743,7 +1221,7 @@ function showSummary() {
       <div class="stat-card"><div class="stat-num green">${done}</div><div class="stat-label">Completados</div></div>
       <div class="stat-card"><div class="stat-num red">${missed}</div><div class="stat-label">No completados</div></div>
     </div>
-    ${pending > 0 ? `<div style="font-size:13px;color:var(--orange);margin-bottom:1rem;text-align:center">⚠️ ${pending} ejercicio${pending>1?'s':''} sin marcar</div>` : ''}
+    ${pending > 0 ? `<div style="font-size:13px;color:var(--orange);margin-bottom:1rem;text-align:center;padding:10px;background:rgba(255,140,0,0.06);border:1px solid rgba(255,140,0,0.2);border-radius:10px">⚠️ ${pending} ejercicio${pending>1?'s':''} sin marcar</div>` : ''}
     ${items}`;
 }
 
@@ -758,7 +1236,6 @@ async function saveFinalSession() {
       const st = sessionState[ex.id];
       if (!st) continue;
       const isCompleted = st.status === 'done';
-      const isNotCompleted = st.status === 'missed';
       const seriesSummary = st.series?.filter(s => s.peso || s.reps).map((s, i) =>
         `S${i+1}: ${[s.peso?s.peso+'kg':'', s.reps?s.reps+' reps':'', s.rpe?'RPE '+s.rpe:''].filter(Boolean).join(' ')}`
       ).join(' | ') || null;
@@ -770,7 +1247,7 @@ async function saveFinalSession() {
           const newLog = await dbPost('logs_entrenamiento', {cliente_id: currentCliente.id, ejercicio_id: ex.id, fecha: selectedDate, series_realizadas: seriesSummary, peso_usado: st.series?.[0]?.peso||null, rpe: st.series?.[0]?.rpe||null, nota: st.comment||null});
           logs.unshift(newLog[0]);
         }
-      } else if (isCompleted || isNotCompleted) {
+      } else if (isCompleted || st.status === 'missed') {
         const existing = logs.find(l => l.ejercicio_id === ex.id && l.fecha === selectedDate);
         if (!existing) {
           const newLog = await dbPost('logs_entrenamiento', {cliente_id: currentCliente.id, ejercicio_id: ex.id, fecha: selectedDate, series_realizadas: null, peso_usado: null, rpe: null, nota: st.comment||null});
@@ -784,7 +1261,7 @@ async function saveFinalSession() {
     showToast('Sesión guardada ✓');
     btn.textContent = '✓ Sesión guardada';
     logs = await dbGet('logs_entrenamiento', `cliente_id=eq.${currentCliente.id}&order=fecha.desc`);
-    renderStreakBadge(); // actualizar racha después de guardar
+    renderStreakBadge();
     buildDayStrip();
     setTimeout(() => showHome(), 1500);
   } catch(e) {
