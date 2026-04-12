@@ -1072,10 +1072,17 @@ function aInitPullToRefresh(){
       indicator.style.height='52px';
       text.textContent='Actualizando…';
       spin.style.display='block';
-      try{ await aRefreshData(); }catch(e){}
-      spin.style.display='none';
-      text.textContent='✓ Actualizado';
-      setTimeout(()=>{indicator.style.height='0';refreshing=false;},800);
+      try{
+        await aRefreshData();
+        indicator.style.height='0';
+        spin.style.display='none';
+        showToast('✓ Rutina actualizada');
+      }catch(e){
+        indicator.style.height='0';
+        spin.style.display='none';
+        showToast('Error al actualizar',true);
+      }
+      refreshing=false;
     } else {
       indicator.style.height='0';
     }
