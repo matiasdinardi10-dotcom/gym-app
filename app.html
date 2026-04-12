@@ -1539,10 +1539,23 @@ function rutSwitchTab(tab){
   document.querySelectorAll('#p-screen-rutinas .sub-tab')[tabs.indexOf(tab)].classList.add('active');
   document.getElementById('rut-'+tab).classList.add('active');
   if(tab==='feedback')rutRenderFeedback();
-  if(tab==='sesiones'){const sel=document.getElementById('rut-sel-sesiones');if(sel)sel.innerHTML=pClientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');rutLoadSesionesAlumno(pClientes[0]?.id);}
+  if(tab==='sesiones'){
+    // Usar siempre el cliente seleccionado actualmente
+    const sel=document.getElementById('rut-sel-sesiones');
+    if(sel){sel.value=rutCurrentClientId;sel.style.display='none';}
+    rutLoadSesionesAlumno(rutCurrentClientId);
+  }
   if(tab==='biblioteca')rutRenderBiblioteca();
 }
-async function rutOnClientChange(id){rutCurrentClientId=parseInt(id);rutOpenDetails={};rutBuildCalStrip();rutRenderDay();}
+async function rutOnClientChange(id){
+  rutCurrentClientId=parseInt(id);rutOpenDetails={};
+  rutBuildCalStrip();rutRenderDay();
+  // Si el tab de sesiones está activo, actualizarlo también
+  const sesionesTab=document.getElementById('rut-sesiones');
+  if(sesionesTab&&sesionesTab.classList.contains('active')){
+    rutLoadSesionesAlumno(rutCurrentClientId);
+  }
+}
 function rutBuildCalStrip(){
   const exsByDate={};pAllEjercicios.filter(e=>String(e._clientId)===String(rutCurrentClientId)&&e.fecha_sesion).forEach(e=>{if(!exsByDate[e.fecha_sesion])exsByDate[e.fecha_sesion]=[];exsByDate[e.fecha_sesion].push(e);});
   const logDates=new Set(pAllLogs.filter(l=>l.cliente_id==rutCurrentClientId).map(l=>l.fecha));
