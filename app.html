@@ -1341,6 +1341,21 @@ function aOpenFileInput(exId){aCurrentExIdForFile=exId;document.getElementById('
 function aHandleFileUpload(event){
   const files=event.target.files;if(!files.length||!aCurrentExIdForFile)return;
   const state=aSessionState[aCurrentExIdForFile];if(!state.attachments)state.attachments=[];
+  // Guardar lo que el alumno escribió antes de redibujar
+  if(aSessionExs[aSessionIdx]?.id===aCurrentExIdForFile){
+    const numSeries=parseInt(aSessionExs[aSessionIdx].series)||3;
+    state.series=[];
+    for(let s=0;s<numSeries;s++){
+      state.series.push({
+        peso:document.getElementById(`s-peso-${s}`)?.value.trim()||'',
+        reps:document.getElementById(`s-reps-${s}`)?.value.trim()||'',
+        rpe:document.getElementById('s-rpe-general')?.value.trim()||''
+      });
+    }
+    state.rpe=document.getElementById('s-rpe-general')?.value.trim()||'';
+    state.rir=document.getElementById('s-rir-general')?.value.trim()||'';
+    state.comment=document.getElementById('ex-comment')?.value.trim()||'';
+  }
   Array.from(files).forEach(file=>{const reader=new FileReader();reader.onload=e=>{state.attachments.push(e.target.result);if(aSessionExs[aSessionIdx]?.id===aCurrentExIdForFile)aRenderCard();};reader.readAsDataURL(file);});
   event.target.value='';
 }
