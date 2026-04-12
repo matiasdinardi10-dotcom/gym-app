@@ -682,7 +682,6 @@ select.form-input option { background:#1a2420; color:var(--text); }
     <div class="sub-tab-bar">
       <button class="sub-tab active" onclick="rutSwitchTab('sesion')">Rutina</button>
       <button class="sub-tab" onclick="rutSwitchTab('sesiones')">Sesiones</button>
-      <button class="sub-tab" onclick="rutSwitchTab('biblioteca')">Biblioteca</button>
       <button class="sub-tab" onclick="rutSwitchTab('feedback')">Feedback</button>
     </div>
     <div class="p-sub-view active" id="rut-sesion">
@@ -708,23 +707,26 @@ select.form-input option { background:#1a2420; color:var(--text); }
       <select class="client-selector-p form-input" id="rut-sel-historial" onchange="rutLoadHistorial(this.value)"></select>
       <div id="rut-historial-content"><div class="loading">Cargando…</div></div>
     </div>
-    <div class="p-sub-view" id="rut-biblioteca">
-      <div class="p-section">
-        <div class="section-title">Agregar ejercicio</div>
-        <input class="form-input" id="bib-nombre" placeholder="Nombre del ejercicio" />
-        <input class="form-input" id="bib-yt" placeholder="▶ Link de YouTube" />
-        <button class="btn-green-p" onclick="addToBiblioteca()">+ Guardar en biblioteca</button>
-      </div>
-      <div class="p-section">
-        <div class="section-title">Ejercicios guardados</div>
-        <div id="bib-list"><div class="loading">Cargando…</div></div>
-      </div>
-    </div>
     <div class="p-sub-view" id="rut-feedback">
       <div class="p-section">
         <div class="section-title">Comentarios de clientes</div>
         <div id="rut-feedback-list"><div class="loading">Cargando…</div></div>
       </div>
+    </div>
+  </div>
+
+  <!-- BIBLIOTECA -->
+  <div class="p-screen" id="p-screen-biblioteca">
+    <h1 class="page-title">Biblioteca</h1>
+    <div class="p-section">
+      <div class="section-title">Agregar ejercicio</div>
+      <input class="form-input" id="bib-nombre" placeholder="Nombre del ejercicio" />
+      <input class="form-input" id="bib-yt" placeholder="▶ Link de YouTube" />
+      <button class="btn-green-p" onclick="addToBiblioteca()">+ Guardar en biblioteca</button>
+    </div>
+    <div class="p-section">
+      <div class="section-title">Ejercicios guardados</div>
+      <div id="bib-list"><div class="loading">Cargando…</div></div>
     </div>
   </div>
 
@@ -848,6 +850,10 @@ select.form-input option { background:#1a2420; color:var(--text); }
     <button class="nav-btn" id="nav-rutinas" onclick="pSwitchScreen('rutinas')">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
       <span class="nav-label">Rutinas</span>
+    </button>
+    <button class="nav-btn" id="nav-biblioteca" onclick="pSwitchScreen('biblioteca')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+      <span class="nav-label">Biblioteca</span>
     </button>
     <button class="nav-btn" id="nav-cobros" onclick="pSwitchScreen('cobros')">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -1446,6 +1452,7 @@ function pSwitchScreen(name){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('p-screen-'+name).classList.add('active');
   document.getElementById('nav-'+name).classList.add('active');
+  if(name==='biblioteca')rutRenderBiblioteca();
 }
 function pGetActivityToday(clientId){
   const cid=parseInt(clientId);
@@ -1535,26 +1542,23 @@ let rutCurrentClientId=null,rutSelectedDate=TODAY,rutOpenDetails={};
 function rutSwitchTab(tab){
   document.querySelectorAll('.sub-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('#p-screen-rutinas .p-sub-view').forEach(v=>v.classList.remove('active'));
-  const tabs=['sesion','sesiones','biblioteca','feedback'];
+  const tabs=['sesion','sesiones','feedback'];
   document.querySelectorAll('#p-screen-rutinas .sub-tab')[tabs.indexOf(tab)].classList.add('active');
   document.getElementById('rut-'+tab).classList.add('active');
   if(tab==='feedback')rutRenderFeedback();
   if(tab==='sesiones'){
-    // Usar siempre el cliente seleccionado actualmente
     const sel=document.getElementById('rut-sel-sesiones');
     if(sel){sel.value=rutCurrentClientId;sel.style.display='none';}
     rutLoadSesionesAlumno(rutCurrentClientId);
   }
-  if(tab==='biblioteca')rutRenderBiblioteca();
 }
 async function rutOnClientChange(id){
   rutCurrentClientId=parseInt(id);rutOpenDetails={};
   rutBuildCalStrip();rutRenderDay();
-  // Si el tab de sesiones está activo, actualizarlo también
   const sesionesTab=document.getElementById('rut-sesiones');
-  if(sesionesTab&&sesionesTab.classList.contains('active')){
-    rutLoadSesionesAlumno(rutCurrentClientId);
-  }
+  if(sesionesTab&&sesionesTab.classList.contains('active')){rutLoadSesionesAlumno(rutCurrentClientId);}
+  const feedbackTab=document.getElementById('rut-feedback');
+  if(feedbackTab&&feedbackTab.classList.contains('active')){rutRenderFeedback();}
 }
 function rutBuildCalStrip(){
   const exsByDate={};pAllEjercicios.filter(e=>String(e._clientId)===String(rutCurrentClientId)&&e.fecha_sesion).forEach(e=>{if(!exsByDate[e.fecha_sesion])exsByDate[e.fecha_sesion]=[];exsByDate[e.fecha_sesion].push(e);});
@@ -1791,9 +1795,11 @@ async function rutLoadSesionesAlumno(clientId){
 }
 
 function rutRenderFeedback(){
-  const withFb=pAllEjercicios.filter(e=>e.devolucion&&e.devolucion.trim());const el=document.getElementById('rut-feedback-list');
-  if(!withFb.length){el.innerHTML='<div class="empty">Cuando tus clientes dejen comentarios, van a aparecer acá.</div>';return;}
-  el.innerHTML=withFb.map(e=>{const cl=pClientes.find(c=>String(c.id)===String(e._clientId));const nombre=isCircuit(e)?'🔄 '+parseCircuit(e).nombre:e.nombre;return`<div style="padding:0.85rem 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:700;font-family:var(--font-display)">${cl?cl.nombre:'—'}</div><div style="font-size:12px;color:var(--cyan);margin:4px 0;font-weight:500">${nombre}</div><div style="font-size:13px;color:var(--text2)">${e.devolucion}</div></div>`;}).join('');
+  const withFb=pAllEjercicios.filter(e=>String(e._clientId)===String(rutCurrentClientId)&&e.devolucion&&e.devolucion.trim());
+  const el=document.getElementById('rut-feedback-list');
+  const cl=pClientes.find(c=>c.id==rutCurrentClientId);
+  if(!withFb.length){el.innerHTML=`<div class="empty">${cl?cl.nombre+' no':' No'} ha dejado comentarios aún.</div>`;return;}
+  el.innerHTML=withFb.map(e=>{const nombre=isCircuit(e)?'🔄 '+parseCircuit(e).nombre:e.nombre;return`<div style="padding:0.85rem 0;border-bottom:1px solid var(--border)"><div style="font-size:12px;color:var(--green);margin:4px 0;font-weight:500">${nombre}</div><div style="font-size:13px;color:var(--text2)">${e.devolucion}</div></div>`;}).join('');
 }
 
 // COBROS
