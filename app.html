@@ -607,13 +607,13 @@ select.form-input option { background:#1a2420; color:var(--text); }
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <button class="btn-progress" onclick="aShowProgress()">📈 Progreso</button>
+        <button class="btn-progress" id="btn-refresh" onclick="aDoRefresh()" style="color:var(--text2);background:rgba(255,255,255,0.06);border-color:var(--border)">↻</button>
         <div class="streak-badge zero" id="streak-badge"><span>🔥</span><span id="streak-count">0</span></div>
         <button class="btn-logout" onclick="doLogout()">Salir</button>
       </div>
     </div>
   </div>
   <div class="day-strip" id="day-strip"></div>
-  <div id="pull-indicator"><div class="spin" id="pull-spin"></div><span id="pull-text">↓ Deslizá para actualizar</span></div>
   <div id="a-view-home">
     <div class="loading" id="home-loading">Cargando tu rutina…</div>
     <div id="home-content" style="display:none;padding:1.25rem"></div>
@@ -1022,7 +1022,6 @@ async function initAlumno(){
   document.getElementById('a-header-name').textContent='Hola, '+aCurrentCliente.nombre.split(' ')[0]+' 👋';
   document.getElementById('a-header-date').textContent=new Date().toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'}).toUpperCase();
   await aRefreshData();
-  aInitPullToRefresh();
 }
 
 async function aRefreshData(){
@@ -1033,60 +1032,13 @@ async function aRefreshData(){
   aRenderStreakBadge();aBuildDayStrip();aShowHome();
 }
 
-function aInitPullToRefresh(){
-  const panel=document.getElementById('panel-alumno');
-  let startY=0,startX=0,pulling=false,refreshing=false,isHorizontal=false,wasAtTop=false;
-  const indicator=document.getElementById('pull-indicator');
-  const spin=document.getElementById('pull-spin');
-  const text=document.getElementById('pull-text');
-
-  panel.addEventListener('touchstart',e=>{
-    startY=e.touches[0].clientY;
-    startX=e.touches[0].clientX;
-    isHorizontal=false;
-    pulling=false;
-    wasAtTop=window.scrollY===0;
-  },{passive:true});
-
-  panel.addEventListener('touchmove',e=>{
-    if(refreshing||!wasAtTop)return;
-    const dy=e.touches[0].clientY-startY;
-    const dx=Math.abs(e.touches[0].clientX-startX);
-    if(!isHorizontal&&dx>15&&dx>dy)isHorizontal=true;
-    if(isHorizontal)return;
-    if(dy>8){
-      pulling=true;
-      const h=Math.min(dy*0.4,52);
-      indicator.style.height=h+'px';
-      text.textContent=dy>80?'↑ Soltá para actualizar':'↓ Deslizá para actualizar';
-    }
-  },{passive:true});
-
-  panel.addEventListener('touchend',async e=>{
-    if(!pulling){startY=0;startX=0;isHorizontal=false;return;}
-    pulling=false;
-    const dy=e.changedTouches[0].clientY-startY;
-    if(dy>80&&!refreshing&&!isHorizontal){
-      refreshing=true;
-      indicator.style.height='52px';
-      text.textContent='Actualizando…';
-      spin.style.display='block';
-      try{
-        await aRefreshData();
-        indicator.style.height='0';
-        spin.style.display='none';
-        showToast('✓ Rutina actualizada');
-      }catch(e){
-        indicator.style.height='0';
-        spin.style.display='none';
-        showToast('Error al actualizar',true);
-      }
-      refreshing=false;
-    } else {
-      indicator.style.height='0';
-    }
-    startY=0;startX=0;isHorizontal=false;
-  },{passive:true});
+async function aDoRefresh(){
+  const btn=document.getElementById('btn-refresh');
+  btn.textContent='↻';btn.style.opacity='0.5';btn.disabled=true;
+  btn.style.animation='spin 0.7s linear infinite';
+  try{ await aRefreshData(); showToast('✓ Actualizado'); }
+  catch(e){ showToast('Error al actualizar',true); }
+  btn.style.animation='';btn.style.opacity='1';btn.disabled=false;btn.textContent='↻';
 }
 function aBuildDayStrip(){
   const exDates=new Set(aEjercicios.filter(e=>e.fecha_sesion).map(e=>e.fecha_sesion));
