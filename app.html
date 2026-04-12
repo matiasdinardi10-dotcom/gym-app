@@ -314,7 +314,7 @@ button,input,textarea,select { font-family:var(--font-body); }
 .summary-status.done { background:rgba(0,230,118,0.12); color:var(--green); border:1px solid rgba(0,230,118,0.2); }
 .summary-status.missed { background:rgba(255,68,68,0.1); color:var(--red); border:1px solid rgba(255,68,68,0.2); }
 .summary-comment { font-size:13px; color:var(--text2); font-style:italic; line-height:1.5; }
-.btn-save-session { width:100%; padding:1.1rem; border-radius:var(--radius); border:none; background:linear-gradient(135deg,var(--green),var(--green-dim)); color:#000; font-size:16px; font-weight:700; cursor:pointer; margin-top:1rem; font-family:var(--font-display); box-shadow:0 4px 24px var(--green-glow-strong); transition:all 0.2s; }
+.btn-save-session { width:100%; padding:1.1rem; border-radius:var(--radius); border:none; background:linear-gradient(135deg,var(--green),var(--green-dim)); color:#000; font-size:16px; font-weight:700; cursor:pointer; font-family:var(--font-display); box-shadow:0 4px 24px var(--green-glow-strong); transition:all 0.2s; position:sticky; bottom:1rem; margin-top:1rem; z-index:10; }
 .btn-save-session:disabled { background:rgba(255,255,255,0.1); color:var(--text2); box-shadow:none; cursor:default; }
 .btn-save-home { width:100%; padding:1rem; border-radius:var(--radius); border:none; background:linear-gradient(135deg,var(--green),var(--green-dim)); color:#000; font-size:15px; font-weight:700; cursor:pointer; margin-top:0.75rem; font-family:var(--font-display); box-shadow:0 4px 20px var(--green-glow-strong); transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px; }
 
@@ -1361,7 +1361,7 @@ function aHandleFileUpload(event){
 }
 function aShowSummary(){
   document.getElementById('a-view-summary').style.display='block';
-  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}),50);
   const done=aSessionExs.filter(e=>aSessionState[e.id]?.status==='done').length;
   const missed=aSessionExs.filter(e=>aSessionState[e.id]?.status==='missed').length;
   const pending=aSessionExs.length-done-missed;
