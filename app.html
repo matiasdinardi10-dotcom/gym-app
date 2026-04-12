@@ -1361,6 +1361,7 @@ function aHandleFileUpload(event){
 }
 function aShowSummary(){
   document.getElementById('a-view-summary').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
   const done=aSessionExs.filter(e=>aSessionState[e.id]?.status==='done').length;
   const missed=aSessionExs.filter(e=>aSessionState[e.id]?.status==='missed').length;
   const pending=aSessionExs.length-done-missed;
