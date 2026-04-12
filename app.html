@@ -607,8 +607,8 @@ select.form-input option { background:#1a2420; color:var(--text); }
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <button class="btn-progress" onclick="aShowProgress()">📈 Progreso</button>
-        <button class="btn-progress" id="btn-refresh" onclick="aDoRefresh()" style="color:var(--text2);background:rgba(255,255,255,0.06);border-color:var(--border)">↻</button>
         <div class="streak-badge zero" id="streak-badge"><span>🔥</span><span id="streak-count">0</span></div>
+        <button class="btn-logout" id="btn-refresh" onclick="aDoRefresh()">↻</button>
         <button class="btn-logout" onclick="doLogout()">Salir</button>
       </div>
     </div>
