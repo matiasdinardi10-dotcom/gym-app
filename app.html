@@ -1353,6 +1353,8 @@ function aHandleFileUpload(event){
 }
 function aShowSummary(){
   document.getElementById('a-view-summary').style.display='block';
+  const btn=document.getElementById('btn-save-session');
+  btn.disabled=false;btn.textContent='💾 Guardar sesión del día';
   setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}),50);
   const done=aSessionExs.filter(e=>aSessionState[e.id]?.status==='done').length;
   const missed=aSessionExs.filter(e=>aSessionState[e.id]?.status==='missed').length;
@@ -1387,7 +1389,10 @@ function aShowSummary(){
 async function aSaveFinalSession(){
   if(document.getElementById('a-view-session').style.display!=='none')aSaveCurrentCard();
   aHideAllViews();document.getElementById('a-view-summary').style.display='block';
-  const btn=document.getElementById('btn-save-session');btn.disabled=true;btn.textContent='Guardando…';
+  setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}),50);
+  const btn=document.getElementById('btn-save-session');
+  btn.disabled=false;btn.textContent='💾 Guardar sesión del día';
+  btn.disabled=true;btn.textContent='Guardando…';
   try{
     for(const ex of aSessionExs){
       const st=aSessionState[ex.id];if(!st)continue;
