@@ -1065,6 +1065,29 @@ function aToggleCompletedDay(){
   document.getElementById('a-completed-day-arrow')?.classList.toggle('open',aCompletedDayExpanded);
 }
 
+async function aEditDay(){
+  if(!confirm('¿Querés editar esta sesión? Se van a borrar los registros del día para que puedas volver a cargarlos.'))return;
+  try{
+    // Borrar logs del día
+    const logsDelDia=aLogs.filter(l=>l.fecha===aSelectedDate);
+    for(const log of logsDelDia){
+      await dbDelete('logs_entrenamiento',log.id);
+    }
+    // Resetear completado en ejercicios del día
+    const exsDelDia=aEjercicios.filter(e=>e.fecha_sesion===aSelectedDate);
+    for(const ex of exsDelDia){
+      await dbPatch('ejercicios',ex.id,{completado:false,devolucion:null});
+      ex.completado=false;ex.devolucion=null;
+    }
+    // Limpiar logs locales
+    aLogs=aLogs.filter(l=>l.fecha!==aSelectedDate);
+    // Resetear estado de sesión
+    aSessionState={};aSessionExs=[];
+    showToast('Sesión desbloqueada ✓');
+    aBuildDayStrip();aShowHome();
+  }catch(e){showToast('Error al editar',true);console.error(e);}
+}
+
 // Renderiza un circuito en vista "completada" del alumno
 function aRenderDoneCircuit(ex, isClosed){
   const {nombre,modalidad,items}=parseCircuit(ex);
@@ -1138,6 +1161,7 @@ function aRenderHome(){
         <div class="completed-day-arrow ${aCompletedDayExpanded?'open':''}" id="a-completed-day-arrow">▾</div>
       </div>
       <div class="completed-day-content ${aCompletedDayExpanded?'open':''}" id="a-completed-day-content">${exCards}</div>
+      <button onclick="aEditDay()" style="width:100%;padding:0.75rem;border-radius:var(--radius);border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text2);font-size:14px;cursor:pointer;margin-top:0.5rem;font-family:var(--font-display);font-weight:600">✏️ Editar esta sesión</button>
       <div class="motivational">${quote}</div>`;
     return;
   }
