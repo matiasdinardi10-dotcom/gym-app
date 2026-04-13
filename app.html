@@ -1065,26 +1065,33 @@ function aToggleCompletedDay(){
   document.getElementById('a-completed-day-arrow')?.classList.toggle('open',aCompletedDayExpanded);
 }
 
-async function aEditDay(){
-  if(!confirm('¿Querés editar esta sesión? Se van a borrar los registros del día para que puedas volver a cargarlos.'))return;
+async function aEditExercise(exId){
   try{
-    // Borrar logs del día
-    const logsDelDia=aLogs.filter(l=>l.fecha===aSelectedDate);
-    for(const log of logsDelDia){
+    // Borrar solo el log de este ejercicio en este día
+    const log=aLogs.find(l=>l.ejercicio_id===exId&&l.fecha===aSelectedDate);
+    if(log){
       await dbDelete('logs_entrenamiento',log.id);
+      aLogs=aLogs.filter(l=>l.id!==log.id);
     }
-    // Resetear completado en ejercicios del día
-    const exsDelDia=aEjercicios.filter(e=>e.fecha_sesion===aSelectedDate);
-    for(const ex of exsDelDia){
-      await dbPatch('ejercicios',ex.id,{completado:false,devolucion:null});
+    // Resetear completado solo en este ejercicio
+    const ex=aEjercicios.find(e=>e.id===exId);
+    if(ex){
+      await dbPatch('ejercicios',exId,{completado:false,devolucion:null});
       ex.completado=false;ex.devolucion=null;
     }
-    // Limpiar logs locales
-    aLogs=aLogs.filter(l=>l.fecha!==aSelectedDate);
-    // Resetear estado de sesión
-    aSessionState={};aSessionExs=[];
-    showToast('Sesión desbloqueada ✓');
-    aBuildDayStrip();aShowHome();
+    // Precargar el estado con los datos que tenía
+    if(!aSessionState[exId])aSessionState[exId]={status:null,comment:'',series:[],attachments:[]};
+    aSessionExs=aEjercicios.filter(e=>e.fecha_sesion===aSelectedDate);
+    // Abrir directo en ese ejercicio
+    const idx=aSessionExs.findIndex(e=>e.id===exId);
+    if(idx>=0){
+      showToast('Ejercicio desbloqueado ✓');
+      aBuildDayStrip();
+      aSessionIdx=idx;
+      aHideAllViews();
+      document.getElementById('a-view-session').style.display='block';
+      aRenderCard();window.scrollTo(0,0);
+    }
   }catch(e){showToast('Error al editar',true);console.error(e);}
 }
 
@@ -1147,7 +1154,7 @@ function aRenderHome(){
       else if(log?.peso_usado||log?.rpe){seriesRows=`<div class="done-ex-series-row">${[log.peso_usado,log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ')}</div>`;}
       const comment=ex.devolucion||log?.nota||'';
       return`<div class="done-ex-card ${isExDone?'is-done':'is-missed'}">
-        <div class="done-ex-header"><div class="done-ex-letter ${isExDone?'':'missed'}">${letters[i]||i+1}</div><div class="done-ex-name">${ex.nombre}</div><span class="done-ex-badge ${isExDone?'done':'missed'}">${isExDone?'✓ Hecho':'✕ No hecho'}</span></div>
+        <div class="done-ex-header"><div class="done-ex-letter ${isExDone?'':'missed'}">${letters[i]||i+1}</div><div class="done-ex-name">${ex.nombre}</div><span class="done-ex-badge ${isExDone?'done':'missed'}">${isExDone?'✓ Hecho':'✕ No hecho'}</span><button onclick="aEditExercise(${ex.id})" style="margin-left:auto;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text2);cursor:pointer;padding:4px 10px;border-radius:20px;font-size:11px;white-space:nowrap;flex-shrink:0">✏️ Editar</button></div>
         ${prescribedTags.length?`<div class="done-ex-prescribed">${prescribedTags.map(t=>`<span class="prescribed-tag">${t}</span>`).join('')}${ex.nota?`<div class="prescribed-note">${ex.nota}</div>`:''}</div>`:ex.nota?`<div class="done-ex-prescribed"><div class="prescribed-note">${ex.nota}</div></div>`:''}
         ${ex.link_youtube?`<a class="done-yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>`:''}
         ${seriesRows||comment?`<div class="done-ex-logged"><div class="done-ex-logged-title">Lo que registraste</div>${seriesRows}${comment?`<div class="done-ex-comment">💬 "${comment}"</div>`:''}</div>`:''}
@@ -1161,7 +1168,6 @@ function aRenderHome(){
         <div class="completed-day-arrow ${aCompletedDayExpanded?'open':''}" id="a-completed-day-arrow">▾</div>
       </div>
       <div class="completed-day-content ${aCompletedDayExpanded?'open':''}" id="a-completed-day-content">${exCards}</div>
-      <button onclick="aEditDay()" style="width:100%;padding:0.75rem;border-radius:var(--radius);border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text2);font-size:14px;cursor:pointer;margin-top:0.5rem;font-family:var(--font-display);font-weight:600">✏️ Editar esta sesión</button>
       <div class="motivational">${quote}</div>`;
     return;
   }
