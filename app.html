@@ -1067,31 +1067,27 @@ function aToggleCompletedDay(){
 
 async function aEditExercise(exId){
   try{
-    // Borrar solo el log de este ejercicio en este día
     const log=aLogs.find(l=>l.ejercicio_id===exId&&l.fecha===aSelectedDate);
     if(log){
       await dbDelete('logs_entrenamiento',log.id);
       aLogs=aLogs.filter(l=>l.id!==log.id);
     }
-    // Resetear completado solo en este ejercicio
     const ex=aEjercicios.find(e=>e.id===exId);
     if(ex){
       await dbPatch('ejercicios',exId,{completado:false,devolucion:null});
       ex.completado=false;ex.devolucion=null;
     }
-    // Precargar el estado con los datos que tenía
-    if(!aSessionState[exId])aSessionState[exId]={status:null,comment:'',series:[],attachments:[]};
-    aSessionExs=aEjercicios.filter(e=>e.fecha_sesion===aSelectedDate);
-    // Abrir directo en ese ejercicio
-    const idx=aSessionExs.findIndex(e=>e.id===exId);
-    if(idx>=0){
-      showToast('Ejercicio desbloqueado ✓');
-      aBuildDayStrip();
-      aSessionIdx=idx;
-      aHideAllViews();
-      document.getElementById('a-view-session').style.display='block';
-      aRenderCard();window.scrollTo(0,0);
-    }
+    // Inicializar estado solo para este ejercicio
+    aSessionState={};
+    aSessionState[exId]={status:null,comment:'',series:[],attachments:[]};
+    // Sesión solo con este ejercicio
+    aSessionExs=[ex];
+    aSessionIdx=0;
+    showToast('Ejercicio desbloqueado ✓');
+    aBuildDayStrip();
+    aHideAllViews();
+    document.getElementById('a-view-session').style.display='block';
+    aRenderCard();window.scrollTo(0,0);
   }catch(e){showToast('Error al editar',true);console.error(e);}
 }
 
