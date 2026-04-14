@@ -623,27 +623,36 @@ select.form-input option { background:#1a2420; color:var(--text); }
 
 <!-- PANEL ALUMNO -->
 <div id="panel-alumno">
-  <div class="app-header">
+  <!-- Header simple solo para sesión activa -->
+  <div class="app-header" id="a-session-header" style="display:none">
     <div class="header-top">
       <div class="header-left" style="min-width:0;flex:1">
         <div class="header-greeting" id="a-header-name" style="font-size:17px">Hola 👋</div>
         <div class="header-date" id="a-header-date" style="font-size:10px"></div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-        <button class="btn-progress" onclick="aShowProgress()" style="font-size:11px;padding:5px 10px">📈</button>
-        <button class="btn-progress" onclick="aShowTimer()" style="color:var(--cyan);background:rgba(0,188,212,0.08);border-color:rgba(0,188,212,0.3);font-size:11px;padding:5px 10px">⏱</button>
-        <div class="streak-badge zero" id="streak-badge" style="padding:5px 10px;font-size:12px"><span>🔥</span><span id="streak-count">0</span></div>
-        <button class="btn-logout" id="btn-refresh" onclick="aDoRefresh()" style="padding:5px 10px">↻</button>
-        <button class="btn-logout" onclick="doLogout()" style="padding:5px 10px">Salir</button>
-      </div>
     </div>
   </div>
-  <div class="day-strip" id="day-strip"></div>
-  <div id="a-view-home">
+
+  <!-- VISTAS -->
+  <div id="a-view-home" style="padding-bottom:calc(var(--nav-height) + 0.5rem)">
+    <!-- Header inicio -->
+    <div class="app-header" style="position:sticky;top:0;z-index:10;background:rgba(8,12,10,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)">
+      <div class="header-top">
+        <div class="header-left" style="min-width:0;flex:1">
+          <div class="header-greeting" id="a-header-name" style="font-size:17px">Hola 👋</div>
+          <div class="header-date" id="a-header-date" style="font-size:10px"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <button class="btn-logout" id="btn-refresh" onclick="aDoRefresh()" style="padding:5px 10px;font-size:16px">↻</button>
+        </div>
+      </div>
+    </div>
+    <div class="day-strip" id="day-strip"></div>
     <div class="loading" id="home-loading">Cargando tu rutina…</div>
     <div id="home-content" style="display:none;padding:1.25rem"></div>
   </div>
-  <div id="a-view-session">
+
+  <div id="a-view-session" style="display:none">
     <div class="session-header">
       <div class="session-nav">
         <button class="btn-exit" onclick="aExitSession()">← Salir</button>
@@ -654,7 +663,8 @@ select.form-input option { background:#1a2420; color:var(--text); }
     </div>
     <div class="session-body" id="session-body"></div>
   </div>
-  <div id="a-view-summary" style="padding:1.25rem">
+
+  <div id="a-view-summary" style="display:none;padding:1.25rem;padding-bottom:calc(var(--nav-height) + 1.25rem)">
     <div class="a-summary-header">
       <button class="a-back-btn" onclick="aShowHome()">←</button>
       <div class="summary-title">Resumen 💪</div>
@@ -662,9 +672,9 @@ select.form-input option { background:#1a2420; color:var(--text); }
     <div id="summary-content"></div>
     <button class="btn-save-session" id="btn-save-session" onclick="aSaveFinalSession()">💾 Guardar sesión del día</button>
   </div>
-  <div id="a-view-progress" style="padding:1.25rem">
+
+  <div id="a-view-progress" style="display:none;padding:1.25rem;padding-bottom:calc(var(--nav-height) + 1.25rem)">
     <div class="progress-header">
-      <button class="a-back-btn" onclick="aShowHome()">←</button>
       <div class="progress-title">📈 Mi Progreso</div>
     </div>
     <div class="ex-selector-wrap">
@@ -686,7 +696,70 @@ select.form-input option { background:#1a2420; color:var(--text); }
     </div>
     <div id="log-table-wrap"></div>
   </div>
+
   <div id="a-view-timer" style="display:none;min-height:100vh;background:var(--bg)"></div>
+
+  <!-- PERFIL -->
+  <div id="a-view-perfil" style="display:none;padding-bottom:calc(var(--nav-height) + 1.25rem)">
+    <div style="background:linear-gradient(180deg,rgba(0,230,118,0.08) 0%,transparent 100%);padding:2rem 1.25rem 1.5rem">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:1.5rem">
+        <div id="a-perfil-avatar" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-dim));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:24px;font-weight:800;color:#000;flex-shrink:0"></div>
+        <div>
+          <div id="a-perfil-nombre" style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text)"></div>
+          <div id="a-perfil-email" style="font-size:13px;color:var(--text2);margin-top:3px"></div>
+        </div>
+      </div>
+      <!-- Stats -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center">
+          <div id="a-perfil-streak" style="font-family:var(--font-display);font-size:36px;font-weight:800;color:var(--orange)">0</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px;text-transform:uppercase;letter-spacing:0.06em">🔥 Racha actual</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center">
+          <div id="a-perfil-total" style="font-family:var(--font-display);font-size:36px;font-weight:800;color:var(--green)">0</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px;text-transform:uppercase;letter-spacing:0.06em">⚡ Días completados</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Días completados calendario -->
+    <div style="padding:0 1.25rem 1.25rem">
+      <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Actividad reciente</div>
+      <div id="a-perfil-calendar" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+    </div>
+
+    <!-- Info -->
+    <div style="margin:0 1.25rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1rem">
+      <div class="field-row" style="padding:12px 16px"><span class="field-label">Objetivo</span><span class="field-value" id="a-perfil-objetivo">—</span></div>
+      <div class="field-row" style="padding:12px 16px"><span class="field-label">Edad</span><span class="field-value" id="a-perfil-edad">—</span></div>
+      <div class="field-row" style="padding:12px 16px;border-bottom:none"><span class="field-label">Miembro desde</span><span class="field-value" id="a-perfil-desde">—</span></div>
+    </div>
+
+    <!-- Botones -->
+    <div style="padding:0 1.25rem;display:flex;flex-direction:column;gap:8px">
+      <button onclick="doLogout()" style="width:100%;padding:0.9rem;border-radius:var(--radius);border:1px solid rgba(255,68,68,0.3);background:rgba(255,68,68,0.06);color:var(--red);font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font-display)">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <!-- NAV INFERIOR ALUMNO -->
+  <nav class="bottom-nav" id="a-bottom-nav">
+    <button class="nav-btn active" id="a-nav-inicio" onclick="aSwitchTab('inicio')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 21V12h6v9"/></svg>
+      <span class="nav-label">Inicio</span>
+    </button>
+    <button class="nav-btn" id="a-nav-timer" onclick="aSwitchTab('timer')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4l2.5 2.5M9 3h6M12 3v2"/></svg>
+      <span class="nav-label">Timer</span>
+    </button>
+    <button class="nav-btn" id="a-nav-progreso" onclick="aSwitchTab('progreso')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 17l4-8 4 4 4-6 4 10"/></svg>
+      <span class="nav-label">Progreso</span>
+    </button>
+    <button class="nav-btn" id="a-nav-perfil" onclick="aSwitchTab('perfil')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span class="nav-label">Perfil</span>
+    </button>
+  </nav>
 </div>
 
 <!-- PANEL PROFE -->
@@ -1039,16 +1112,17 @@ function aCalcStreak(){
   return streak;
 }
 function aRenderStreakBadge(){
+  // Streak now shown in perfil tab
   const streak=aCalcStreak();
-  document.getElementById('streak-count').textContent=streak;
-  document.getElementById('streak-badge').className=streak===0?'streak-badge zero':'streak-badge';
+  const el=document.getElementById('streak-count');
+  const badge=document.getElementById('streak-badge');
+  if(el)el.textContent=streak;
+  if(badge)badge.className=streak===0?'streak-badge zero':'streak-badge';
 }
 async function initAlumno(){
   hideLogin();
   document.getElementById('panel-alumno').style.display='block';
   document.getElementById('panel-profe').style.display='none';
-  document.getElementById('a-header-name').textContent='Hola, '+aCurrentCliente.nombre.split(' ')[0]+' 👋';
-  document.getElementById('a-header-date').textContent=new Date().toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'}).toUpperCase();
   await aRefreshData();
 }
 
@@ -1057,7 +1131,7 @@ async function aRefreshData(){
   const rutinaIds=rutinas.map(r=>r.id);
   aEjercicios=rutinaIds.length?await dbGet('ejercicios',`rutina_id=in.(${rutinaIds.join(',')})&order=id.asc`):[];
   aLogs=await dbGet('logs_entrenamiento',`cliente_id=eq.${aCurrentCliente.id}&order=fecha.asc`);
-  aRenderStreakBadge();aBuildDayStrip();aShowHome();
+  aBuildDayStrip();aSwitchTab('inicio');
 }
 
 async function aDoRefresh(){
@@ -1092,13 +1166,68 @@ function aSelectDay(ds){
   aSelectedDate=ds;aSessionState={};aSessionExs=[];aCompletedDayExpanded=false;aBuildDayStrip();aShowHome();
 }
 function aHideAllViews(){
-  // Auto-guardar si hay sesión activa
   if(document.getElementById('a-view-session')?.style.display!=='none' && aSessionExs.length){
     aSaveCurrentCard();
   }
-  ['a-view-home','a-view-session','a-view-summary','a-view-progress','a-view-timer'].forEach(id=>document.getElementById(id).style.display='none');
+  ['a-view-home','a-view-session','a-view-summary','a-view-progress','a-view-timer','a-view-perfil'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
 }
-function aShowHome(){aHideAllViews();document.getElementById('a-view-home').style.display='block';document.getElementById('day-strip').style.display='flex';aRenderHome();}
+
+function aSwitchTab(tab){
+  aHideAllViews();
+  document.querySelectorAll('#a-bottom-nav .nav-btn').forEach(b=>b.classList.remove('active'));
+  if(tab==='inicio'){
+    document.getElementById('a-view-home').style.display='block';
+    document.getElementById('a-nav-inicio')?.classList.add('active');
+    aRenderHome();
+  } else if(tab==='timer'){
+    document.getElementById('a-view-timer').style.display='block';
+    document.getElementById('a-nav-timer')?.classList.add('active');
+    timerMode='interval';
+    timerState={work:40,rest:20,restCycle:60,rounds:8,cycles:3,prepare:5,currentRound:1,currentCycle:1,phase:'idle',timeLeft:0,running:false,interval:null};
+    swState={running:false,elapsed:0,interval:null};
+    cdState={running:false,total:60,timeLeft:60,interval:null};
+    timerRender();
+  } else if(tab==='progreso'){
+    document.getElementById('a-view-progress').style.display='block';
+    document.getElementById('a-nav-progreso')?.classList.add('active');
+    aBuildProgressView();
+  } else if(tab==='perfil'){
+    document.getElementById('a-view-perfil').style.display='block';
+    document.getElementById('a-nav-perfil')?.classList.add('active');
+    aRenderPerfil();
+  }
+  window.scrollTo(0,0);
+}
+
+function aRenderPerfil(){
+  const c=aCurrentCliente;if(!c)return;
+  const ini=c.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  document.getElementById('a-perfil-avatar').textContent=ini;
+  document.getElementById('a-perfil-nombre').textContent=c.nombre;
+  document.getElementById('a-perfil-email').textContent=c.email||'';
+  document.getElementById('a-perfil-objetivo').textContent=c.objetivo||'—';
+  document.getElementById('a-perfil-edad').textContent=c.edad?c.edad+' años':'—';
+  document.getElementById('a-perfil-desde').textContent=c.fecha_alta?c.fecha_alta.split('-').reverse().join('/'):'—';
+  const streak=aCalcStreak();
+  document.getElementById('a-perfil-streak').textContent=streak;
+  const logDates=new Set(aLogs.map(l=>l.fecha));
+  document.getElementById('a-perfil-total').textContent=logDates.size;
+  const cal=document.getElementById('a-perfil-calendar');
+  const today=new Date();let html='';
+  for(let i=69;i>=0;i--){
+    const d=new Date(today);d.setDate(today.getDate()-i);
+    const ds=d.toISOString().split('T')[0];
+    const hasLog=logDates.has(ds);const isToday=ds===TODAY;
+    html+=`<div title="${ds}" style="width:14px;height:14px;border-radius:3px;background:${hasLog?'var(--green)':isToday?'rgba(0,230,118,0.2)':'rgba(255,255,255,0.06)'};${isToday&&!hasLog?'border:1px solid var(--green);':''}"></div>`;
+  }
+  cal.innerHTML=html;
+}
+
+function aShowHome(){aSwitchTab('inicio');}
+function aShowProgress(){aSwitchTab('progreso');}
+function aShowTimer(){aSwitchTab('timer');}
 function aToggleCompletedDay(){
   aCompletedDayExpanded=!aCompletedDayExpanded;
   document.getElementById('a-completed-day-content')?.classList.toggle('open',aCompletedDayExpanded);
@@ -1168,6 +1297,11 @@ function aRenderCircuitPreview(ex, idx){
 }
 
 function aRenderHome(){
+  // Actualizar header
+  const hn=document.getElementById('a-header-name');
+  const hd=document.getElementById('a-header-date');
+  if(hn&&aCurrentCliente)hn.textContent='Hola, '+aCurrentCliente.nombre.split(' ')[0]+' 👋';
+  if(hd)hd.textContent=new Date().toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'}).toUpperCase();
   const exs=aEjercicios.filter(e=>e.fecha_sesion===aSelectedDate);
   document.getElementById('home-loading').style.display='none';
   const el=document.getElementById('home-content');el.style.display='block';
@@ -1463,7 +1597,7 @@ async function aSaveFinalSession(){
     }
     showToast('Sesión guardada ✓');btn.textContent='✓ Sesión guardada';
     aLogs=await dbGet('logs_entrenamiento',`cliente_id=eq.${aCurrentCliente.id}&order=fecha.asc`);
-    aRenderStreakBadge();aBuildDayStrip();setTimeout(()=>aShowHome(),1500);
+    aRenderStreakBadge();aBuildDayStrip();setTimeout(()=>aSwitchTab('inicio'),1500);
   }catch(e){console.error(e);btn.disabled=false;btn.textContent='💾 Guardar sesión del día';showToast('Error al guardar',true);}
 }
 
