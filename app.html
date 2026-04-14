@@ -669,6 +669,8 @@ select.form-input option { background:#1a2420; color:var(--text); }
     </div>
     <div class="ex-selector-wrap">
       <div class="ex-selector-label">Ejercicio</div>
+      <input type="text" id="ex-search" placeholder="🔍 Buscar ejercicio..." oninput="aFilterProgressChips(this.value)"
+        style="width:100%;padding:0.65rem 1rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text);font-size:14px;margin-bottom:8px;outline:none;font-family:var(--font-body);" />
       <div class="ex-selector-scroll" id="ex-chips"></div>
     </div>
     <div class="period-tabs">
@@ -1472,6 +1474,13 @@ function aBuildProgressView(){
   if(!aProgressExId||!exWithLogs.find(e=>e.id===aProgressExId))aProgressExId=exWithLogs[0].id;
   document.getElementById('ex-chips').innerHTML=exWithLogs.map(ex=>`<div class="ex-chip ${ex.id===aProgressExId?'active':''}" onclick="aSelectProgressEx(${ex.id},this)">${ex.nombre}</div>`).join('');
   aRenderProgressChart();
+}
+function aFilterProgressChips(q){
+  const exWithLogs=aGetExercisesWithLogs();
+  const filtered=q.trim()===''?exWithLogs:exWithLogs.filter(ex=>ex.nombre.toLowerCase().includes(q.toLowerCase()));
+  document.getElementById('ex-chips').innerHTML=filtered.length
+    ? filtered.map(ex=>`<div class="ex-chip ${ex.id===aProgressExId?'active':''}" onclick="aSelectProgressEx(${ex.id},this)">${ex.nombre}</div>`).join('')
+    : `<div style="color:var(--text2);font-size:13px;padding:8px 0">Sin resultados</div>`;
 }
 function aSelectProgressEx(exId,el){aProgressExId=exId;document.querySelectorAll('.ex-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');aRenderProgressChart();}
 function aRenderProgressChart(){
