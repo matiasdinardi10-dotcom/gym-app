@@ -670,8 +670,14 @@ select.form-input option { background:#1a2420; color:var(--text); }
     </div>
     <div class="ex-selector-wrap">
       <div class="ex-selector-label">Ejercicio</div>
-      <input type="text" id="ex-search" placeholder="🔍 Buscar ejercicio..." oninput="aFilterProgressChips(this.value)"
-        style="width:100%;padding:0.65rem 1rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text);font-size:14px;margin-bottom:8px;outline:none;font-family:var(--font-body);" />
+      <div style="position:relative;margin-bottom:8px">
+        <input type="text" id="ex-search" placeholder="🔍 Buscar ejercicio..."
+          oninput="aFilterProgressChips(this.value)"
+          onfocus="aFilterProgressChips(this.value)"
+          autocomplete="off"
+          style="width:100%;padding:0.65rem 1rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text);font-size:14px;outline:none;font-family:var(--font-body);" />
+        <div id="ex-search-results" style="display:none;position:absolute;top:100%;left:0;right:0;background:#0E1A16;border:1px solid var(--border);border-radius:var(--radius-sm);z-index:50;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.6);margin-top:4px"></div>
+      </div>
       <div class="ex-selector-scroll" id="ex-chips"></div>
     </div>
     <div class="period-tabs">
@@ -1624,12 +1630,50 @@ function aBuildProgressView(){
   aRenderProgressChart();
 }
 function aFilterProgressChips(q){
+  const results=document.getElementById('ex-search-results');
   const exWithLogs=aGetExercisesWithLogs();
-  const filtered=q.trim()===''?exWithLogs:exWithLogs.filter(ex=>ex.nombre.toLowerCase().includes(q.toLowerCase()));
-  document.getElementById('ex-chips').innerHTML=filtered.length
-    ? filtered.map(ex=>`<div class="ex-chip ${ex.id===aProgressExId?'active':''}" onclick="aSelectProgressEx(${ex.id},this)">${ex.nombre}</div>`).join('')
-    : `<div style="color:var(--text2);font-size:13px;padding:8px 0">Sin resultados</div>`;
+  if(!q||q.trim()===''){results.style.display='none';return;}
+  const filtered=exWithLogs.filter(ex=>ex.nombre.toLowerCase().includes(q.toLowerCase()));
+  if(!filtered.length){
+    results.innerHTML=`<div style="padding:12px 14px;font-size:13px;color:var(--text2)">Sin resultados para "${q}"</div>`;
+    results.style.display='block';return;
+  }
+  results.innerHTML=filtered.map(ex=>`
+    <div onclick="aSelectFromSearch(${ex.id})"
+      style="padding:11px 14px;font-size:14px;color:${ex.id===aProgressExId?'var(--green)':'var(--text)'};
+      background:${ex.id===aProgressExId?'rgba(0,230,118,0.08)':'transparent'};
+      border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s"
+      onmouseover="this.style.background='rgba(0,230,118,0.06)'"
+      onmouseout="this.style.background='${ex.id===aProgressExId?'rgba(0,230,118,0.08)':'transparent'}'">
+      ${ex.nombre}
+    </div>`).join('');
+  results.style.display='block';
 }
+
+function aSelectFromSearch(exId){
+  aProgressExId=exId;
+  document.getElementById('ex-search').value='';
+  document.getElementById('ex-search-results').style.display='none';
+  // Actualizar chips y marcar el seleccionado
+  const exWithLogs=aGetExercisesWithLogs();
+  document.getElementById('ex-chips').innerHTML=exWithLogs.map(ex=>
+    `<div class="ex-chip ${ex.id===exId?'active':''}" onclick="aSelectProgressEx(${ex.id},this)">${ex.nombre}</div>`
+  ).join('');
+  // Scroll al chip activo
+  setTimeout(()=>{
+    const chip=document.querySelector('.ex-chip.active');
+    if(chip)chip.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  },50);
+  aRenderProgressChart();
+}
+
+// Cerrar dropdown al tocar fuera
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.ex-selector-wrap')){
+    const r=document.getElementById('ex-search-results');
+    if(r)r.style.display='none';
+  }
+});
 function aSelectProgressEx(exId,el){aProgressExId=exId;document.querySelectorAll('.ex-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');aRenderProgressChart();}
 function aRenderProgressChart(){
   if(!aProgressExId)return;
