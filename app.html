@@ -643,6 +643,7 @@ select.form-input option { background:#1a2420; color:var(--text); }
           <div class="header-date" id="a-header-date" style="font-size:10px"></div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <div class="streak-badge zero" id="streak-badge" style="padding:5px 10px;font-size:12px"><span>🔥</span><span id="streak-count">0</span></div>
           <button class="btn-logout" id="btn-refresh" onclick="aDoRefresh()" style="padding:5px 10px;font-size:16px">↻</button>
         </div>
       </div>
@@ -1302,6 +1303,12 @@ function aRenderHome(){
   const hd=document.getElementById('a-header-date');
   if(hn&&aCurrentCliente)hn.textContent='Hola, '+aCurrentCliente.nombre.split(' ')[0]+' 👋';
   if(hd)hd.textContent=new Date().toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'}).toUpperCase();
+  // Actualizar racha en header
+  const streak=aCalcStreak();
+  const sb=document.getElementById('streak-badge');
+  const sc=document.getElementById('streak-count');
+  if(sc)sc.textContent=streak;
+  if(sb)sb.className=streak===0?'streak-badge zero':'streak-badge';
   const exs=aEjercicios.filter(e=>e.fecha_sesion===aSelectedDate);
   document.getElementById('home-loading').style.display='none';
   const el=document.getElementById('home-content');el.style.display='block';
