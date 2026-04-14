@@ -1042,6 +1042,23 @@ function hideLogin(){
   const ls=document.getElementById('login-screen');
   ls.style.display='none';ls.classList.add('hidden');
 }
+function formatSeries(series_realizadas){
+  if(!series_realizadas) return '';
+  // Si tiene formato "S1: ... | S2: ..." mostrar en líneas con badge
+  if(series_realizadas.includes(' | ')){
+    return series_realizadas.split(' | ').map(s=>{
+      const match=s.match(/^(S\d+):\s*(.+)$/);
+      if(match){
+        return`<div style="display:flex;align-items:center;gap:6px;padding:3px 0">
+          <span style="background:rgba(0,230,118,0.12);border:1px solid rgba(0,230,118,0.2);color:var(--green);font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;font-family:var(--font-display);flex-shrink:0">${match[1]}</span>
+          <span style="font-size:12px;color:var(--green);font-weight:500">${match[2]}</span>
+        </div>`;
+      }
+      return`<div style="font-size:12px;color:var(--green);padding:2px 0">${s}</div>`;
+    }).join('');
+  }
+  return`<div style="font-size:12px;color:var(--green)">${series_realizadas}</div>`;
+}
 function showToast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('error',err);t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
 // Helpers circuito
@@ -1491,7 +1508,7 @@ function aRenderHome(){
       const isExDone=ex.completado===true;
       const prescribedTags=[ex.series?`${ex.series} reps`:'',ex.peso||'',ex.tiempo||''].filter(Boolean);
       let seriesRows='';
-      if(log?.series_realizadas){seriesRows=log.series_realizadas.split(' | ').map(p=>`<div class="done-ex-series-row">${p}</div>`).join('');}
+      if(log?.series_realizadas){seriesRows=formatSeries(log.series_realizadas);}
       else if(log?.peso_usado||log?.rpe){seriesRows=`<div class="done-ex-series-row">${[log.peso_usado,log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ')}</div>`;}
       const comment=ex.devolucion||log?.nota||'';
       return`<div class="done-ex-card ${isExDone?'is-done':'is-missed'}">
@@ -1949,14 +1966,14 @@ function pGetLoadHistory(clientId,exNombre,limit=5){
 function pRenderLoadHistoryBlock(clientId,exNombre){
   const history=pGetLoadHistory(clientId,exNombre,5);
   if(!history.length)return`<div class="load-history-block"><div class="load-history-title">Historial de cargas</div><div class="load-history-empty">Sin registros previos</div></div>`;
-  const rows=history.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});const load=[l.series_realizadas,l.peso_usado?l.peso_usado+'kg':''].filter(Boolean).join(' · ')||'—';const rpe=l.rpe?'RPE '+l.rpe:'';return`<div class="load-history-row"><span class="load-history-date">${d}</span><span class="load-history-load">${load}</span><span class="load-history-rpe">${rpe}</span></div>`;}).join('');
+  const rows=history.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});const serHtml=l.series_realizadas?formatSeries(l.series_realizadas):`<span style="color:var(--green);font-weight:600">${l.peso_usado?l.peso_usado+'kg':'—'}</span>`;const rpe=l.rpe?'RPE '+l.rpe:'';return`<div class="load-history-row" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="display:flex;justify-content:space-between;width:100%"><span class="load-history-date">${d}</span>${rpe?`<span class="load-history-rpe">${rpe}</span>`:''}</div><div>${serHtml}</div></div>`;}).join('');
   return`<div class="load-history-block"><div class="load-history-title">Historial de cargas</div>${rows}</div>`;
 }
 function pRenderModalLoadHistory(clientId,exNombre){
   const history=pGetLoadHistory(clientId,exNombre,3);if(!history.length)return'';
   const lastLog=history[0];const lastDate=new Date(lastLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});
   const lastLoad=[lastLog.series_realizadas,lastLog.peso_usado?lastLog.peso_usado+'kg':''].filter(Boolean).join(' · ')||'—';
-  const rows=history.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});const load=[l.series_realizadas,l.peso_usado?l.peso_usado+'kg':''].filter(Boolean).join(' · ')||'—';const rpe=l.rpe?'RPE '+l.rpe:'';return`<div class="modal-load-row"><span class="date">${d}</span><span class="load">${load}</span><span class="rpe">${rpe}</span></div>`;}).join('');
+  const rows=history.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});const serHtml=l.series_realizadas?formatSeries(l.series_realizadas):`<span class="load">${l.peso_usado?l.peso_usado+'kg':'—'}</span>`;const rpe=l.rpe?'RPE '+l.rpe:'';return`<div style="padding:7px 12px;border-bottom:1px solid rgba(0,230,118,0.1)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px"><span class="date">${d}</span>${rpe?`<span style="font-size:11px;color:var(--text2)">${rpe}</span>`:''}</div>${serHtml}</div>`;}).join('');
   return`<div class="modal-load-history"><div class="modal-load-title"><span>📊</span> Últimas cargas · ${exNombre}</div><div class="modal-load-last">Última vez (${lastDate}): ${lastLoad}</div>${rows}</div>`;
 }
 
@@ -2267,7 +2284,7 @@ async function rutLoadSesionesAlumno(clientId){
   if(!clientId)return;const cid=parseInt(clientId);const clientLogs=pAllLogs.filter(l=>l.cliente_id===cid);const el=document.getElementById('rut-sesiones-content');
   if(!clientLogs.length){el.innerHTML='<div class="empty">Este alumno no ha guardado sesiones aún.</div>';return;}
   const byDate={};clientLogs.forEach(l=>{if(!byDate[l.fecha])byDate[l.fecha]=[];byDate[l.fecha].push(l);});
-  el.innerHTML=Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).map(([fecha,entries])=>{const label=new Date(fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});return`<div class="p-section"><div class="p-log-block-date">📅 ${label.toUpperCase()}</div>${entries.map(e=>{const ex=pAllEjercicios.find(x=>x.id===e.ejercicio_id);const exNombre=ex?(isCircuit(ex)?'🔄 '+parseCircuit(ex).nombre:ex.nombre):'—';const load=[e.series_realizadas,e.peso_usado?e.peso_usado+'kg':'',e.rpe?'RPE '+e.rpe:''].filter(Boolean).join(' · ');const nota=e.nota||ex?.devolucion||'';const completado=ex?.completado;const bg=completado?'rgba(0,230,118,0.1)':'rgba(255,68,68,0.08)';const tc=completado?'var(--green)':'var(--red)';const bc=completado?'rgba(0,230,118,0.2)':'rgba(255,68,68,0.2)';return`<div class="p-log-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding:8px 0"><div style="display:flex;justify-content:space-between;width:100%;align-items:center"><span class="p-log-ex-name">${exNombre}</span><span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${bg};color:${tc};border:1px solid ${bc}">${completado?'✓ Completado':'✕ No completado'}</span></div>${load?`<div class="p-log-ex-load">${load}</div>`:''}${nota?`<div style="font-size:12px;color:var(--text2);font-style:italic">"${nota}"</div>`:''}</div>`;}).join('')}</div>`;}).join('');
+  el.innerHTML=Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).map(([fecha,entries])=>{const label=new Date(fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});return`<div class="p-section"><div class="p-log-block-date">📅 ${label.toUpperCase()}</div>${entries.map(e=>{const ex=pAllEjercicios.find(x=>x.id===e.ejercicio_id);const exNombre=ex?(isCircuit(ex)?'🔄 '+parseCircuit(ex).nombre:ex.nombre):'—';const serHtml2=e.series_realizadas?formatSeries(e.series_realizadas):'';const nota=e.nota||ex?.devolucion||'';const completado=ex?.completado;const bg=completado?'rgba(0,230,118,0.1)':'rgba(255,68,68,0.08)';const tc=completado?'var(--green)':'var(--red)';const bc=completado?'rgba(0,230,118,0.2)':'rgba(255,68,68,0.2)';return`<div class="p-log-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding:8px 0"><div style="display:flex;justify-content:space-between;width:100%;align-items:center"><span class="p-log-ex-name">${exNombre}</span><span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${bg};color:${tc};border:1px solid ${bc}">${completado?'✓ Completado':'✕ No completado'}</span></div>${serHtml2}${nota?`<div style="font-size:12px;color:var(--text2);font-style:italic">"${nota}"</div>`:''}</div>`;}).join('')}</div>`;}).join('');
 }
 
 function rutRenderFeedback(){
