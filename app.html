@@ -555,27 +555,29 @@ select.form-input option { background:#1a2420; color:var(--text); }
 .status-badge-done { font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(0,230,118,0.1);color:var(--green);border:1px solid rgba(0,230,118,0.2);white-space:nowrap;font-weight:500; }
 .status-badge-missed { font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(255,68,68,0.08);color:var(--red);border:1px solid rgba(255,68,68,0.2);white-space:nowrap;font-weight:500; }
 /* ════ TIMER ════ */
-.timer-wrap { display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:0; position:relative; overflow:hidden; }
-.timer-bg { position:absolute; inset:0; transition:background 0.5s; z-index:0; }
-.timer-content { position:relative; z-index:1; width:100%; display:flex; flex-direction:column; align-items:center; padding:1.25rem; }
-.timer-back { align-self:flex-start; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.15); color:#fff; cursor:pointer; padding:6px 14px; border-radius:20px; font-size:13px; margin-bottom:1.5rem; }
-.timer-phase { font-family:var(--font-display); font-size:18px; font-weight:800; letter-spacing:0.15em; text-transform:uppercase; color:#000; margin-bottom:0.5rem; text-align:center; min-height:28px; }
-.timer-display { font-family:var(--font-display); font-size:96px; font-weight:800; color:#000; line-height:1; letter-spacing:-2px; text-align:center; margin-bottom:0.5rem; }
-.timer-rounds-info { font-family:var(--font-display); font-size:14px; font-weight:600; color:rgba(0,0,0,0.6); text-align:center; margin-bottom:2rem; }
-.timer-config { background:rgba(0,0,0,0.15); border-radius:var(--radius); padding:1.25rem; width:100%; max-width:360px; margin-bottom:1.5rem; }
-.timer-config-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(0,0,0,0.1); }
+.timer-wrap { display:flex; flex-direction:column; min-height:100vh; background:var(--bg); }
+.timer-top { padding:1rem 1.25rem; display:flex; align-items:center; gap:10px; }
+.timer-back { background:rgba(255,255,255,0.06); border:1px solid var(--border); color:var(--text2); cursor:pointer; padding:6px 14px; border-radius:20px; font-size:13px; }
+.timer-screen { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1rem 1.5rem; transition:background 0.4s; border-radius:var(--radius); margin:0 1rem 1rem; min-height:220px; }
+.timer-phase-label { font-family:var(--font-display); font-size:15px; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.5rem; text-align:center; }
+.timer-display { font-family:var(--font-display); font-size:72px; font-weight:800; line-height:1; letter-spacing:-2px; text-align:center; }
+.timer-sub { font-size:13px; font-weight:600; margin-top:0.5rem; text-align:center; opacity:0.65; font-family:var(--font-display); }
+.timer-config { padding:0 1.25rem; margin-bottom:1rem; }
+.timer-config-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
 .timer-config-row:last-child { border-bottom:none; }
-.timer-config-label { font-size:13px; font-weight:600; color:rgba(0,0,0,0.7); font-family:var(--font-display); }
-.timer-config-sub { font-size:11px; color:rgba(0,0,0,0.45); margin-top:2px; }
-.timer-stepper { display:flex; align-items:center; gap:12px; }
-.timer-stepper button { width:34px; height:34px; border-radius:50%; border:none; background:rgba(0,0,0,0.2); color:#000; font-size:20px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
-.timer-stepper button:active { transform:scale(0.9); }
-.timer-stepper-val { font-family:var(--font-display); font-size:18px; font-weight:800; color:#000; min-width:36px; text-align:center; }
-.timer-controls { display:flex; gap:16px; align-items:center; margin-bottom:1.5rem; }
-.timer-btn-play { width:80px; height:80px; border-radius:50%; border:none; background:rgba(0,0,0,0.25); color:#000; font-size:32px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; box-shadow:0 4px 20px rgba(0,0,0,0.2); }
+.timer-config-label { font-size:13px; font-weight:600; color:var(--text); font-family:var(--font-display); }
+.timer-config-sub { font-size:11px; color:var(--text2); margin-top:2px; }
+.timer-stepper { display:flex; align-items:center; gap:8px; }
+.timer-stepper-btn { width:32px; height:32px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:18px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; flex-shrink:0; }
+.timer-stepper-btn:active { transform:scale(0.9); background:rgba(0,230,118,0.1); border-color:var(--green); }
+.timer-stepper-input { width:60px; padding:5px 6px; border-radius:8px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text); font-size:15px; font-weight:700; text-align:center; font-family:var(--font-display); }
+.timer-stepper-input:focus { outline:none; border-color:var(--green); }
+.timer-stepper-unit { font-size:11px; color:var(--text2); min-width:16px; }
+.timer-controls { display:flex; gap:16px; align-items:center; justify-content:center; padding:0.75rem 1.25rem 1.5rem; }
+.timer-btn-play { width:72px; height:72px; border-radius:50%; border:none; background:linear-gradient(135deg,var(--green),var(--green-dim)); color:#000; font-size:28px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px var(--green-glow-strong); transition:all 0.2s; }
 .timer-btn-play:active { transform:scale(0.95); }
-.timer-btn-reset { width:52px; height:52px; border-radius:50%; border:none; background:rgba(0,0,0,0.15); color:rgba(0,0,0,0.6); font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
-.timer-progress-ring { width:200px; height:200px; margin-bottom:1rem; }
+.timer-btn-sm { width:48px; height:48px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text2); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+.timer-btn-sm:active { background:rgba(255,255,255,0.1); }
 </style>
 </head>
 <body>
@@ -623,16 +625,16 @@ select.form-input option { background:#1a2420; color:var(--text); }
 <div id="panel-alumno">
   <div class="app-header">
     <div class="header-top">
-      <div class="header-left">
-        <div class="header-greeting" id="a-header-name">Hola 👋</div>
-        <div class="header-date" id="a-header-date"></div>
+      <div class="header-left" style="min-width:0;flex:1">
+        <div class="header-greeting" id="a-header-name" style="font-size:17px">Hola 👋</div>
+        <div class="header-date" id="a-header-date" style="font-size:10px"></div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <button class="btn-progress" onclick="aShowProgress()">📈 Progreso</button>
-        <button class="btn-progress" onclick="aShowTimer()" style="color:var(--cyan);background:rgba(0,188,212,0.08);border-color:rgba(0,188,212,0.3)">⏱ Timer</button>
-        <div class="streak-badge zero" id="streak-badge"><span>🔥</span><span id="streak-count">0</span></div>
-        <button class="btn-logout" id="btn-refresh" onclick="aDoRefresh()">↻</button>
-        <button class="btn-logout" onclick="doLogout()">Salir</button>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <button class="btn-progress" onclick="aShowProgress()" style="font-size:11px;padding:5px 10px">📈</button>
+        <button class="btn-progress" onclick="aShowTimer()" style="color:var(--cyan);background:rgba(0,188,212,0.08);border-color:rgba(0,188,212,0.3);font-size:11px;padding:5px 10px">⏱</button>
+        <div class="streak-badge zero" id="streak-badge" style="padding:5px 10px;font-size:12px"><span>🔥</span><span id="streak-count">0</span></div>
+        <button class="btn-logout" id="btn-refresh" onclick="aDoRefresh()" style="padding:5px 10px">↻</button>
+        <button class="btn-logout" onclick="doLogout()" style="padding:5px 10px">Salir</button>
       </div>
     </div>
   </div>
@@ -1957,206 +1959,117 @@ window.onload = async () => {
 <script>
 // ════ TIMER ════
 let timerState = {
-  work: 40, rest: 20, rounds: 8, cycles: 3,
-  currentRound: 1, currentCycle: 1,
-  phase: 'idle', // idle | prepare | work | rest | rest-cycle | done
-  timeLeft: 0, running: false, interval: null
+  work:40, rest:20, restCycle:60, rounds:8, cycles:3,
+  currentRound:1, currentCycle:1,
+  phase:'idle', timeLeft:0, running:false, interval:null
 };
-
-const TIMER_COLORS = {
-  idle:    { bg: '#1a2a1a', text: '#00E676' },
-  prepare: { bg: '#E6B800', text: '#000' },
-  work:    { bg: '#00C853', text: '#000' },
-  rest:    { bg: '#FF4444', text: '#fff' },
-  'rest-cycle': { bg: '#FF8C00', text: '#fff' },
-  done:    { bg: '#080C0A', text: '#00E676' },
+const TIMER_PHASES = {
+  idle:        { bg:'rgba(0,230,118,0.06)', border:'rgba(0,230,118,0.2)',  color:'var(--green)', label:'Listo para empezar' },
+  prepare:     { bg:'rgba(230,184,0,0.15)', border:'rgba(230,184,0,0.3)',  color:'#E6B800',      label:'¡Prepárate!' },
+  work:        { bg:'rgba(0,200,83,0.15)',  border:'rgba(0,200,83,0.3)',   color:'var(--green)', label:'💪 ¡TRABAJÁ!' },
+  rest:        { bg:'rgba(255,68,68,0.12)', border:'rgba(255,68,68,0.25)', color:'var(--red)',   label:'😮‍💨 Descansá' },
+  'rest-cycle':{ bg:'rgba(255,140,0,0.12)', border:'rgba(255,140,0,0.25)','color':'var(--orange)','label':'☕ Descanso entre ciclos'},
+  done:        { bg:'rgba(0,230,118,0.1)',  border:'rgba(0,230,118,0.3)',  color:'var(--green)', label:'✅ ¡Terminaste!' },
 };
-
 function aShowTimer(){
   aHideAllViews();
   document.getElementById('day-strip').style.display='none';
   document.getElementById('a-view-timer').style.display='block';
   timerStop();
-  timerState = { work:40, rest:20, rounds:8, cycles:3, currentRound:1, currentCycle:1, phase:'idle', timeLeft:0, running:false, interval:null };
+  timerState={work:40,rest:20,restCycle:60,rounds:8,cycles:3,currentRound:1,currentCycle:1,phase:'idle',timeLeft:0,running:false,interval:null};
   timerRender();
 }
-
 function aHideTimer(){ timerStop(); aShowHome(); }
-
 function timerRender(){
-  const s = timerState;
-  const col = TIMER_COLORS[s.phase] || TIMER_COLORS.idle;
-  const isRunning = s.running;
-  const isIdle = s.phase==='idle'||s.phase==='done';
-
-  const mins = String(Math.floor(s.timeLeft/60)).padStart(2,'0');
-  const secs = String(s.timeLeft%60).padStart(2,'0');
-  const displayTime = isIdle ? `${String(s.work).padStart(2,'0')}:00` : `${mins}:${secs}`;
-
-  const phaseLabel = {
-    idle:'Listo para empezar', prepare:'¡Prepárate!',
-    work:'💪 ¡TRABAJÁ!', rest:'😮‍💨 Descansá',
-    'rest-cycle':'☕ Descanso entre ciclos', done:'✅ ¡Terminaste!'
-  }[s.phase]||'';
-
-  const roundsInfo = isIdle
-    ? `${s.rounds} rondas · ${s.cycles} ciclos`
-    : s.phase==='done' ? '¡Buen trabajo!'
-    : `Ronda ${s.currentRound}/${s.rounds} · Ciclo ${s.currentCycle}/${s.cycles}`;
-
-  document.getElementById('a-view-timer').innerHTML = `
+  const s=timerState;
+  const ph=TIMER_PHASES[s.phase]||TIMER_PHASES.idle;
+  const isIdle=s.phase==='idle'||s.phase==='done';
+  const sec=isIdle?s.work:s.timeLeft;
+  const mm=String(Math.floor(sec/60)).padStart(2,'0');
+  const ss=String(sec%60).padStart(2,'0');
+  const roundsInfo=isIdle?`${s.rounds} rondas · ${s.cycles} ciclos`:
+    s.phase==='done'?'¡Buen trabajo!':
+    `Ronda ${s.currentRound}/${s.rounds} · Ciclo ${s.currentCycle}/${s.cycles}`;
+  const configHtml=isIdle?`
+  <div class="timer-config">
+    ${timerRow('⚡ Trabajo','Tiempo activo','work','s',s.work)}
+    ${timerRow('😮‍💨 Descanso','Entre rondas','rest','s',s.rest)}
+    ${timerRow('☕ Desc. ciclos','Entre ciclos','restCycle','s',s.restCycle)}
+    ${timerRow('🔄 Rondas','Por ciclo','rounds','',s.rounds)}
+    ${timerRow('🏁 Ciclos','Grupos de rondas','cycles','',s.cycles)}
+  </div>`:'';
+  document.getElementById('a-view-timer').innerHTML=`
   <div class="timer-wrap">
-    <div class="timer-bg" id="timer-bg" style="background:${col.bg}"></div>
-    <div class="timer-content">
+    <div class="timer-top">
       <button class="timer-back" onclick="aHideTimer()">← Volver</button>
-
-      <svg class="timer-progress-ring" viewBox="0 0 200 200" style="display:${isIdle?'none':'block'}">
-        <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="12"/>
-        <circle id="timer-ring" cx="100" cy="100" r="88" fill="none" stroke="rgba(0,0,0,0.4)"
-          stroke-width="12" stroke-linecap="round" stroke-dasharray="553" stroke-dashoffset="${timerRingOffset()}"
-          transform="rotate(-90 100 100)" style="transition:stroke-dashoffset 0.5s"/>
-      </svg>
-
-      <div class="timer-phase" style="color:${col.text}">${phaseLabel}</div>
-      <div class="timer-display" style="color:${col.text}">${displayTime}</div>
-      <div class="timer-rounds-info" style="color:${s.phase==='done'?'var(--green)':col.text==='#000'?'rgba(0,0,0,0.55)':'rgba(255,255,255,0.7)'}">${roundsInfo}</div>
-
-      ${isIdle ? `
-      <div class="timer-config">
-        <div class="timer-config-row">
-          <div><div class="timer-config-label">⚡ Trabajo</div><div class="timer-config-sub">Tiempo activo</div></div>
-          <div class="timer-stepper">
-            <button onclick="timerAdj('work',-5)">−</button>
-            <div class="timer-stepper-val">${s.work}s</div>
-            <button onclick="timerAdj('work',5)">+</button>
-          </div>
-        </div>
-        <div class="timer-config-row">
-          <div><div class="timer-config-label">😮‍💨 Descanso</div><div class="timer-config-sub">Pausa entre rondas</div></div>
-          <div class="timer-stepper">
-            <button onclick="timerAdj('rest',-5)">−</button>
-            <div class="timer-stepper-val">${s.rest}s</div>
-            <button onclick="timerAdj('rest',5)">+</button>
-          </div>
-        </div>
-        <div class="timer-config-row">
-          <div><div class="timer-config-label">🔄 Rondas</div><div class="timer-config-sub">Por ciclo</div></div>
-          <div class="timer-stepper">
-            <button onclick="timerAdj('rounds',-1)">−</button>
-            <div class="timer-stepper-val">${s.rounds}</div>
-            <button onclick="timerAdj('rounds',1)">+</button>
-          </div>
-        </div>
-        <div class="timer-config-row">
-          <div><div class="timer-config-label">🏁 Ciclos</div><div class="timer-config-sub">Grupos de rondas</div></div>
-          <div class="timer-stepper">
-            <button onclick="timerAdj('cycles',-1)">−</button>
-            <div class="timer-stepper-val">${s.cycles}</div>
-            <button onclick="timerAdj('cycles',1)">+</button>
-          </div>
-        </div>
-      </div>` : ''}
-
-      <div class="timer-controls">
-        <button class="timer-btn-reset" onclick="timerReset()" style="color:${col.text==='#000'?'rgba(0,0,0,0.5)':'rgba(255,255,255,0.6)'}">↺</button>
-        <button class="timer-btn-play" onclick="timerToggle()" style="background:rgba(0,0,0,0.25)">
-          ${isRunning ? '⏸' : (s.phase==='done'?'↺':'▶')}
-        </button>
-        ${!isIdle&&!isRunning?`<button class="timer-btn-reset" onclick="timerSkip()" style="color:${col.text==='#000'?'rgba(0,0,0,0.5)':'rgba(255,255,255,0.6)'}">⏭</button>`:'<div style="width:52px"></div>'}
-      </div>
+      <span style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text)">⏱ Timer</span>
+    </div>
+    <div class="timer-screen" style="background:${ph.bg};border:1px solid ${ph.border}">
+      <div class="timer-phase-label" style="color:${ph.color}">${ph.label}</div>
+      <div class="timer-display" style="color:${ph.color}">${mm}:${ss}</div>
+      <div class="timer-sub" style="color:${ph.color}">${roundsInfo}</div>
+    </div>
+    ${configHtml}
+    <div class="timer-controls">
+      <button class="timer-btn-sm" onclick="timerReset()">↺</button>
+      <button class="timer-btn-play" onclick="timerToggle()">${s.running?'⏸':s.phase==='done'?'↺':'▶'}</button>
+      ${!isIdle?`<button class="timer-btn-sm" onclick="timerSkip()">⏭</button>`:`<div style="width:48px"></div>`}
     </div>
   </div>`;
 }
-
-function timerRingOffset(){
-  const s=timerState;
-  const total = s.phase==='work'?s.work:s.phase==='rest'?s.rest:s.phase==='rest-cycle'?60:s.phase==='prepare'?5:s.work;
-  const pct = total>0 ? s.timeLeft/total : 1;
-  return 553*(1-pct);
+function timerRow(label,sub,key,unit,val){
+  return`<div class="timer-config-row">
+    <div><div class="timer-config-label">${label}</div><div class="timer-config-sub">${sub}</div></div>
+    <div class="timer-stepper">
+      <button class="timer-stepper-btn" onclick="timerAdj('${key}',-1)">−</button>
+      <input class="timer-stepper-input" type="number" value="${val}" min="1" max="999"
+        onchange="timerSet('${key}',this.value)" onclick="this.select()" />
+      <span class="timer-stepper-unit">${unit}</span>
+      <button class="timer-stepper-btn" onclick="timerAdj('${key}',1)">+</button>
+    </div>
+  </div>`;
 }
-
-function timerAdj(key, delta){
-  const mins={work:5,rest:5,rounds:1,cycles:1};
-  timerState[key]=Math.max(mins[key], timerState[key]+delta);
-  timerRender();
-}
-
+function timerAdj(key,delta){timerState[key]=Math.max(1,timerState[key]+delta);timerRender();}
+function timerSet(key,val){const n=parseInt(val);if(!isNaN(n)&&n>0)timerState[key]=n;timerRender();}
 function timerToggle(){
-  if(timerState.phase==='idle'||timerState.phase==='done'){ timerStart(); return; }
-  timerState.running ? timerPause() : timerResume();
+  if(timerState.phase==='idle'||timerState.phase==='done'){timerStart();return;}
+  timerState.running?timerPause():timerResume();
 }
-
 function timerStart(){
-  timerState.currentRound=1; timerState.currentCycle=1;
-  timerState.phase='prepare'; timerState.timeLeft=5;
-  timerState.running=true;
-  timerRender();
+  timerState.currentRound=1;timerState.currentCycle=1;
+  timerState.phase='prepare';timerState.timeLeft=5;
+  timerState.running=true;timerRender();
   timerState.interval=setInterval(timerTick,1000);
 }
-
-function timerPause(){ timerState.running=false; clearInterval(timerState.interval); timerRender(); }
-function timerResume(){ timerState.running=true; timerState.interval=setInterval(timerTick,1000); timerRender(); }
-
-function timerStop(){ clearInterval(timerState?.interval); if(timerState)timerState.running=false; }
-
+function timerPause(){timerState.running=false;clearInterval(timerState.interval);timerRender();}
+function timerResume(){timerState.running=true;timerState.interval=setInterval(timerTick,1000);timerRender();}
+function timerStop(){clearInterval(timerState?.interval);if(timerState)timerState.running=false;}
 function timerReset(){
-  timerStop();
-  timerState.phase='idle'; timerState.timeLeft=0;
-  timerState.currentRound=1; timerState.currentCycle=1;
-  timerState.running=false;
-  timerRender();
+  timerStop();timerState.phase='idle';timerState.timeLeft=0;
+  timerState.currentRound=1;timerState.currentCycle=1;timerState.running=false;timerRender();
 }
-
-function timerSkip(){
-  timerStop();
-  timerNextPhase();
-  timerState.running=true;
-  timerState.interval=setInterval(timerTick,1000);
-  timerRender();
-}
-
+function timerSkip(){timerStop();timerNextPhase();timerState.running=true;timerState.interval=setInterval(timerTick,1000);timerRender();}
 function timerTick(){
   timerState.timeLeft--;
-  if(timerState.timeLeft<=0){ timerNextPhase(); }
-  // Actualizar solo el display sin redibujar todo
+  if(timerState.timeLeft<=0){timerNextPhase();return;}
   const disp=document.querySelector('.timer-display');
-  const ring=document.getElementById('timer-ring');
-  const mins=String(Math.floor(timerState.timeLeft/60)).padStart(2,'0');
-  const secs=String(timerState.timeLeft%60).padStart(2,'0');
-  if(disp)disp.textContent=`${mins}:${secs}`;
-  if(ring)ring.setAttribute('stroke-dashoffset',timerRingOffset());
+  if(disp){const mm=String(Math.floor(timerState.timeLeft/60)).padStart(2,'0');const ss=String(timerState.timeLeft%60).padStart(2,'0');disp.textContent=`${mm}:${ss}`;}
 }
-
 function timerNextPhase(){
-  const s=timerState;
-  timerVibrate();
-  if(s.phase==='prepare'){
-    s.phase='work'; s.timeLeft=s.work;
-  } else if(s.phase==='work'){
-    if(s.currentRound<s.rounds){ s.phase='rest'; s.timeLeft=s.rest; }
-    else if(s.currentCycle<s.cycles){ s.phase='rest-cycle'; s.timeLeft=60; s.currentCycle++; s.currentRound=1; }
-    else { s.phase='done'; s.running=false; clearInterval(s.interval); timerRender(); return; }
-  } else if(s.phase==='rest'){
-    s.currentRound++;
-    s.phase='work'; s.timeLeft=s.work;
-  } else if(s.phase==='rest-cycle'){
-    s.phase='work'; s.timeLeft=s.work;
-  }
+  const s=timerState;timerVibrate();
+  if(s.phase==='prepare'){s.phase='work';s.timeLeft=s.work;}
+  else if(s.phase==='work'){
+    if(s.currentRound<s.rounds){s.phase='rest';s.timeLeft=s.rest;}
+    else if(s.currentCycle<s.cycles){s.phase='rest-cycle';s.timeLeft=s.restCycle;s.currentCycle++;s.currentRound=1;}
+    else{s.phase='done';s.running=false;clearInterval(s.interval);timerRender();return;}
+  }else if(s.phase==='rest'){s.currentRound++;s.phase='work';s.timeLeft=s.work;}
+  else if(s.phase==='rest-cycle'){s.phase='work';s.timeLeft=s.work;}
   timerRender();
-  if(s.running){ clearInterval(s.interval); s.interval=setInterval(timerTick,1000); }
+  if(s.running){clearInterval(s.interval);s.interval=setInterval(timerTick,1000);}
 }
-
 function timerVibrate(){
-  try{ if(navigator.vibrate)navigator.vibrate([200,100,200]); }catch(e){}
-  // Beep
-  try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    const o=ctx.createOscillator(); const g=ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.frequency.value=880; g.gain.value=0.3;
-    o.start(); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);
-    o.stop(ctx.currentTime+0.3);
-  }catch(e){}
+  try{if(navigator.vibrate)navigator.vibrate([200,100,200]);}catch(e){}
+  try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=880;g.gain.value=0.3;o.start();g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);o.stop(ctx.currentTime+0.3);}catch(e){}
 }
 
 if('serviceWorker' in navigator){
