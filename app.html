@@ -1084,8 +1084,20 @@ function aBuildDayStrip(){
   document.getElementById('day-strip').innerHTML=html;
   setTimeout(()=>{const sel=document.querySelector('.day-btn.selected')||document.querySelector('.day-btn.today');if(sel)sel.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},100);
 }
-function aSelectDay(ds){aSelectedDate=ds;aSessionState={};aSessionExs=[];aCompletedDayExpanded=false;aBuildDayStrip();aShowHome();}
-function aHideAllViews(){['a-view-home','a-view-session','a-view-summary','a-view-progress','a-view-timer'].forEach(id=>document.getElementById(id).style.display='none');}
+function aSelectDay(ds){
+  // Guardar si hay sesión activa antes de cambiar de día
+  if(document.getElementById('a-view-session')?.style.display!=='none' && aSessionExs.length){
+    aSaveCurrentCard();
+  }
+  aSelectedDate=ds;aSessionState={};aSessionExs=[];aCompletedDayExpanded=false;aBuildDayStrip();aShowHome();
+}
+function aHideAllViews(){
+  // Auto-guardar si hay sesión activa
+  if(document.getElementById('a-view-session')?.style.display!=='none' && aSessionExs.length){
+    aSaveCurrentCard();
+  }
+  ['a-view-home','a-view-session','a-view-summary','a-view-progress','a-view-timer'].forEach(id=>document.getElementById(id).style.display='none');
+}
 function aShowHome(){aHideAllViews();document.getElementById('a-view-home').style.display='block';document.getElementById('day-strip').style.display='flex';aRenderHome();}
 function aToggleCompletedDay(){
   aCompletedDayExpanded=!aCompletedDayExpanded;
