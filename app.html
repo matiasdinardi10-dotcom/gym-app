@@ -615,6 +615,13 @@ select.form-input option { background:#1a2420; color:var(--text); }
     </div>
     <div class="login-field"><label>Edad</label><input type="number" id="reg-edad" placeholder="25" /></div>
     <div class="login-field"><label>Objetivo</label><input type="text" id="reg-objetivo" placeholder="Ej: Ganar masa muscular" /></div>
+    <div class="login-field">
+      <label>Avatar (opcional)</label>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:6px" id="reg-avatar-presets">
+        <div onclick="regSelectAvatar(null,this)" id="reg-av-none" style="aspect-ratio:1;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-dim));display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;border:3px solid var(--green);box-sizing:border-box;font-family:var(--font-display);font-weight:800;color:#000" title="Iniciales">AB</div>
+      </div>
+      <input type="hidden" id="reg-avatar-id" value="" />
+    </div>
     <button class="btn-login" onclick="doRegister()">Crear cuenta →</button>
     <div class="login-error" id="reg-error"></div>
     <div id="reg-success" style="font-size:13px;color:var(--green);text-align:center;margin-top:0.75rem;display:none">✓ Cuenta creada. Ya podés ingresar.</div>
@@ -628,9 +635,12 @@ select.form-input option { background:#1a2420; color:var(--text); }
     <!-- Header inicio -->
     <div class="app-header" style="position:sticky;top:0;z-index:10;background:rgba(8,12,10,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)">
       <div class="header-top">
-        <div class="header-left" style="min-width:0;flex:1">
-          <div class="header-greeting" id="a-header-name" style="font-size:17px">Hola 👋</div>
-          <div class="header-date" id="a-header-date" style="font-size:10px"></div>
+        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
+          <div id="a-header-avatar" onclick="aSwitchTab('perfil')" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-dim));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:16px;font-weight:800;color:#000;flex-shrink:0;cursor:pointer;overflow:hidden;border:2px solid rgba(0,230,118,0.3)"></div>
+          <div style="min-width:0">
+            <div class="header-greeting" id="a-header-name" style="font-size:18px">Hola 👋</div>
+            <div class="header-date" id="a-header-date" style="font-size:10px"></div>
+          </div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
           <div class="streak-badge zero" id="streak-badge" style="padding:5px 10px;font-size:12px"><span>🔥</span><span id="streak-count">0</span></div>
@@ -1061,6 +1071,22 @@ function switchAuthTab(tab){
   document.getElementById('tab-login').className='auth-tab-btn'+(isLogin?' active':'');
   document.getElementById('tab-register').className='auth-tab-btn'+(!isLogin?' active':'');
   document.getElementById('login-sub-text').textContent=isLogin?'Ingresá con tu cuenta':'Creá tu cuenta y empezá hoy';
+  if(!isLogin) initRegisterAvatars();
+}
+
+function initRegisterAvatars(){
+  const wrap=document.getElementById('reg-avatar-presets');if(!wrap)return;
+  const presetBtns=AVATAR_PRESETS.map(p=>`
+    <div onclick="regSelectAvatar('${p.id}',this)" style="aspect-ratio:1;border-radius:50%;background:${p.bg};display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;border:3px solid transparent;box-sizing:border-box;transition:all 0.15s">
+      ${p.emoji}
+    </div>`).join('');
+  wrap.innerHTML=`<div onclick="regSelectAvatar(null,this)" style="aspect-ratio:1;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-dim));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;font-family:var(--font-display);color:#000;cursor:pointer;border:3px solid var(--green);box-sizing:border-box" title="Mis iniciales">AB</div>${presetBtns}`;
+}
+
+function regSelectAvatar(id, el){
+  document.getElementById('reg-avatar-id').value=id||'';
+  document.querySelectorAll('#reg-avatar-presets div').forEach(d=>d.style.borderColor='transparent');
+  el.style.borderColor='var(--green)';
 }
 async function doLogin(){
   const email=document.getElementById('login-email').value.trim().toLowerCase();
@@ -1097,6 +1123,9 @@ async function doRegister(){
     const data=await r.json();
     if(!r.ok||data.error){errEl.textContent=data.error?.message||'Error al crear la cuenta.';errEl.style.display='block';return;}
     await dbPost('clientes',{nombre,email,edad,objetivo:objetivo||null,estado:'nuevo',fecha_alta:TODAY});
+    // Guardar avatar elegido
+    const avatarId=document.getElementById('reg-avatar-id')?.value;
+    if(avatarId) localStorage.setItem('avatar_'+email.toLowerCase(), avatarId);
     successEl.style.display='block';
     ['reg-nombre','reg-email','reg-password','reg-edad','reg-objetivo'].forEach(id=>document.getElementById(id).value='');
     setTimeout(()=>{switchAuthTab('login');document.getElementById('login-email').value=email;},2000);
@@ -1223,6 +1252,27 @@ function aSwitchTab(tab){
 
 function aGetAvatarKey(){ return 'avatar_'+(aCurrentCliente?.email||''); }
 
+function aRenderHeaderAvatar(){
+  const el=document.getElementById('a-header-avatar');if(!el||!aCurrentCliente)return;
+  const saved=localStorage.getItem(aGetAvatarKey());
+  if(saved&&saved.startsWith('data:')){
+    el.innerHTML=`<img src="${saved}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+    el.style.background='transparent';el.style.fontSize='0';
+  } else if(saved){
+    const preset=AVATAR_PRESETS.find(p=>p.id===saved);
+    if(preset){el.textContent=preset.emoji;el.style.background=preset.bg;el.style.fontSize='20px';}
+    else{setDefaultHeaderAvatar(el);}
+  } else {
+    setDefaultHeaderAvatar(el);
+  }
+}
+
+function setDefaultHeaderAvatar(el){
+  const c=aCurrentCliente;if(!c)return;
+  const ini=c.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  el.textContent=ini;el.style.background='linear-gradient(135deg,var(--green),var(--green-dim))';el.style.color='#000';el.style.fontSize='16px';
+}
+
 function aRenderAvatar(){
   const el=document.getElementById('a-perfil-avatar');if(!el)return;
   const saved=localStorage.getItem(aGetAvatarKey());
@@ -1280,6 +1330,7 @@ function aSelectPreset(id){
   localStorage.setItem(aGetAvatarKey(),id);
   closeAvatarModal();
   aRenderAvatar();
+  aRenderHeaderAvatar();
   showToast('Avatar actualizado ✓');
 }
 
@@ -1299,7 +1350,7 @@ function aUploadAvatar(event){
       ctx.drawImage(img,sx,sy,min,min,0,0,size,size);
       const data=canvas.toDataURL('image/jpeg',0.7);
       localStorage.setItem(aGetAvatarKey(),data);
-      closeAvatarModal();aRenderAvatar();
+      closeAvatarModal();aRenderAvatar();aRenderHeaderAvatar();
       showToast('Foto actualizada ✓');
     };
     img.src=e.target.result;
@@ -1408,7 +1459,7 @@ function aRenderHome(){
   const hd=document.getElementById('a-header-date');
   if(hn&&aCurrentCliente)hn.textContent='Hola, '+aCurrentCliente.nombre.split(' ')[0]+' 👋';
   if(hd)hd.textContent=new Date().toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'}).toUpperCase();
-  // Actualizar racha en header
+  aRenderHeaderAvatar();
   const streak=aCalcStreak();
   const sb=document.getElementById('streak-badge');
   const sc=document.getElementById('streak-count');
