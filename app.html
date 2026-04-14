@@ -2076,74 +2076,85 @@ function timerTick(){
   if(disp){const mm=String(Math.floor(timerState.timeLeft/60)).padStart(2,'0');const ss=String(timerState.timeLeft%60).padStart(2,'0');disp.textContent=`${mm}:${ss}`;}
 }
 function timerNextPhase(){
-  const s=timerState;timerVibrate();
+  const s=timerState;
   if(s.phase==='prepare'){s.phase='work';s.timeLeft=s.work;}
   else if(s.phase==='work'){
     if(s.currentRound<s.rounds){s.phase='rest';s.timeLeft=s.rest;}
     else if(s.currentCycle<s.cycles){s.phase='rest-cycle';s.timeLeft=s.restCycle;s.currentCycle++;s.currentRound=1;}
-    else{s.phase='done';s.running=false;clearInterval(s.interval);timerRender();return;}
+    else{s.phase='done';s.running=false;clearInterval(s.interval);timerVibrate();timerRender();return;}
   }else if(s.phase==='rest'){s.currentRound++;s.phase='work';s.timeLeft=s.work;}
   else if(s.phase==='rest-cycle'){s.phase='work';s.timeLeft=s.work;}
+  timerVibrate();
   timerRender();
   if(s.running){clearInterval(s.interval);s.interval=setInterval(timerTick,1000);}
 }
-// Audio context persistente (se crea al primer toque del usuario)
+// Audio context persistente
 let _audioCtx = null;
 function getAudioCtx(){
   if(!_audioCtx){
-    try{ _audioCtx = new(window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+    try{ _audioCtx = new(window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
   }
-  if(_audioCtx && _audioCtx.state==='suspended') _audioCtx.resume();
+  // Reactivar si se suspendió (pasa en iOS)
+  if(_audioCtx.state==='suspended'||_audioCtx.state==='interrupted'){
+    _audioCtx.resume();
+  }
   return _audioCtx;
 }
-// Inicializar audio en el primer toque
-document.addEventListener('touchstart', ()=>getAudioCtx(), {once:true});
-document.addEventListener('click', ()=>getAudioCtx(), {once:true});
+// Inicializar y mantener activo en cada interacción
+function unlockAudio(){
+  const ctx=getAudioCtx();
+  if(ctx && ctx.state==='suspended') ctx.resume();
+}
+document.addEventListener('touchstart', unlockAudio, {passive:true});
+document.addEventListener('touchend', unlockAudio, {passive:true});
+document.addEventListener('click', unlockAudio);
 
 function playBeep(freq=880, duration=0.2, vol=0.3, delay=0){
-  const ctx=getAudioCtx(); if(!ctx)return;
-  setTimeout(()=>{
-    try{
-      const o=ctx.createOscillator(); const g=ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
-      o.frequency.value=freq; o.type='sine';
-      g.gain.setValueAtTime(vol, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+duration);
-      o.start(ctx.currentTime); o.stop(ctx.currentTime+duration);
-    }catch(e){}
-  }, delay);
+  try{
+    const ctx=getAudioCtx(); if(!ctx)return;
+    const startFn=()=>{
+      try{
+        const o=ctx.createOscillator(); const g=ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value=freq; o.type='sine';
+        g.gain.setValueAtTime(vol, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+duration);
+        o.start(ctx.currentTime); o.stop(ctx.currentTime+duration+0.05);
+      }catch(e){}
+    };
+    if(delay>0) setTimeout(startFn, delay);
+    else startFn();
+  }catch(e){}
 }
 
 function timerVibrate(){
   try{if(navigator.vibrate)navigator.vibrate([150,80,150]);}catch(e){}
-  const s=timerState;
-  if(s.phase==='work'){
+  const phase=timerState.phase;
+  if(phase==='work'){
     // 2 beeps agudos — ¡a trabajar!
-    playBeep(880,0.15,0.4,0);
-    playBeep(880,0.15,0.4,200);
-  } else if(s.phase==='rest'){
+    playBeep(880,0.12,0.4,0);
+    playBeep(880,0.12,0.4,180);
+  } else if(phase==='rest'){
     // 1 beep grave — descanso
-    playBeep(440,0.3,0.4,0);
-  } else if(s.phase==='rest-cycle'){
+    playBeep(440,0.25,0.35,0);
+  } else if(phase==='rest-cycle'){
     // 3 beeps graves — descanso largo
-    playBeep(440,0.2,0.4,0);
-    playBeep(440,0.2,0.4,250);
-    playBeep(440,0.2,0.4,500);
-  } else if(s.phase==='done'){
-    // Melodía de fin 🎉
+    playBeep(440,0.18,0.35,0);
+    playBeep(440,0.18,0.35,220);
+    playBeep(440,0.18,0.35,440);
+  } else if(phase==='done'){
+    // Melodía de fin
     playBeep(523,0.15,0.4,0);
     playBeep(659,0.15,0.4,180);
     playBeep(784,0.15,0.4,360);
     playBeep(1047,0.4,0.4,540);
-  } else if(s.phase==='prepare'){
-    // Beep suave de inicio
+  } else if(phase==='prepare'){
     playBeep(660,0.1,0.2,0);
   }
 }
 
-// Beep de cuenta regresiva (últimos 3 segundos)
 function timerCountdownBeep(){
-  playBeep(660,0.08,0.2,0);
+  playBeep(660,0.07,0.18,0);
 }
 
 if('serviceWorker' in navigator){
