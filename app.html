@@ -2070,6 +2070,8 @@ function timerSkip(){timerStop();timerNextPhase();timerState.running=true;timerS
 function timerTick(){
   timerState.timeLeft--;
   if(timerState.timeLeft<=0){timerNextPhase();return;}
+  // Beep en los últimos 3 segundos
+  if(timerState.timeLeft<=3 && timerState.timeLeft>0){timerCountdownBeep();}
   const disp=document.querySelector('.timer-display');
   if(disp){const mm=String(Math.floor(timerState.timeLeft/60)).padStart(2,'0');const ss=String(timerState.timeLeft%60).padStart(2,'0');disp.textContent=`${mm}:${ss}`;}
 }
@@ -2085,9 +2087,63 @@ function timerNextPhase(){
   timerRender();
   if(s.running){clearInterval(s.interval);s.interval=setInterval(timerTick,1000);}
 }
+// Audio context persistente (se crea al primer toque del usuario)
+let _audioCtx = null;
+function getAudioCtx(){
+  if(!_audioCtx){
+    try{ _audioCtx = new(window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+  }
+  if(_audioCtx && _audioCtx.state==='suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+// Inicializar audio en el primer toque
+document.addEventListener('touchstart', ()=>getAudioCtx(), {once:true});
+document.addEventListener('click', ()=>getAudioCtx(), {once:true});
+
+function playBeep(freq=880, duration=0.2, vol=0.3, delay=0){
+  const ctx=getAudioCtx(); if(!ctx)return;
+  setTimeout(()=>{
+    try{
+      const o=ctx.createOscillator(); const g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value=freq; o.type='sine';
+      g.gain.setValueAtTime(vol, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+duration);
+      o.start(ctx.currentTime); o.stop(ctx.currentTime+duration);
+    }catch(e){}
+  }, delay);
+}
+
 function timerVibrate(){
-  try{if(navigator.vibrate)navigator.vibrate([200,100,200]);}catch(e){}
-  try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=880;g.gain.value=0.3;o.start();g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);o.stop(ctx.currentTime+0.3);}catch(e){}
+  try{if(navigator.vibrate)navigator.vibrate([150,80,150]);}catch(e){}
+  const s=timerState;
+  if(s.phase==='work'){
+    // 2 beeps agudos — ¡a trabajar!
+    playBeep(880,0.15,0.4,0);
+    playBeep(880,0.15,0.4,200);
+  } else if(s.phase==='rest'){
+    // 1 beep grave — descanso
+    playBeep(440,0.3,0.4,0);
+  } else if(s.phase==='rest-cycle'){
+    // 3 beeps graves — descanso largo
+    playBeep(440,0.2,0.4,0);
+    playBeep(440,0.2,0.4,250);
+    playBeep(440,0.2,0.4,500);
+  } else if(s.phase==='done'){
+    // Melodía de fin 🎉
+    playBeep(523,0.15,0.4,0);
+    playBeep(659,0.15,0.4,180);
+    playBeep(784,0.15,0.4,360);
+    playBeep(1047,0.4,0.4,540);
+  } else if(s.phase==='prepare'){
+    // Beep suave de inicio
+    playBeep(660,0.1,0.2,0);
+  }
+}
+
+// Beep de cuenta regresiva (últimos 3 segundos)
+function timerCountdownBeep(){
+  playBeep(660,0.08,0.2,0);
 }
 
 if('serviceWorker' in navigator){
