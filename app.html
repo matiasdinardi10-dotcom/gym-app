@@ -1284,7 +1284,7 @@ function aRenderCard(){
   const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const prevLog=aLogs.slice().reverse().find(l=>l.ejercicio_id===ex.id&&l.fecha<aSelectedDate);
   const numSeries=parseInt(ex.series)||3;let seriesHtml='';
-  for(let s=0;s<numSeries;s++){const sv=state.series[s]||{};seriesHtml+=`<div class="series-row"><div class="series-num">S${s+1}</div><div class="series-inputs"><input class="series-input" id="s-peso-${s}" placeholder="kg" value="${sv.peso||''}" /><input class="series-input" id="s-reps-${s}" placeholder="reps" value="${sv.reps||''}" /></div></div>`;}
+  for(let s=0;s<numSeries;s++){const sv=state.series[s]||{};seriesHtml+=`<div class="series-row"><div class="series-num">S${s+1}</div><div class="series-inputs"><input class="series-input" id="s-peso-${s}" placeholder="kg" value="${sv.peso||''}" /><input class="series-input" id="s-reps-${s}" placeholder="reps" value="${sv.reps||''}" /><input class="series-input" id="s-rprir-${s}" placeholder="RPE/RIR" value="${sv.rprir||''}" /></div></div>`;}
   const rpeVal=state.rpe||'';
   const exLogs=aLogs.filter(l=>l.ejercicio_id===ex.id&&l.fecha<aSelectedDate).slice(-5);
   const histHtml=exLogs.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'short',day:'numeric',month:'short'});const load=[l.series_realizadas,l.peso_usado,l.rpe?'RPE '+l.rpe:''].filter(Boolean).join(' · ');return`<div class="history-entry"><div class="history-date">📅 ${d.toUpperCase()}</div>${load?`<div class="history-load">${load}</div>`:''}</div>`;}).join('');
@@ -1308,16 +1308,14 @@ function aRenderCard(){
         ${ex.tiempo?`<div style="background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);color:var(--green);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;font-family:var(--font-display)">${ex.tiempo}</div>`:''}
       </div>`:''}
       ${prevLog?`<div style="font-size:12px;color:var(--green);background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.15);padding:8px 12px;border-radius:8px;margin-bottom:1.25rem">📊 Última vez (${new Date(prevLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'})}): ${[prevLog.series_realizadas,prevLog.peso_usado,prevLog.rpe?'RPE '+prevLog.rpe:''].filter(Boolean).join(' · ')}</div>`:''}
-      <div class="series-list">${seriesHtml}</div>
-      <div style="display:flex;gap:10px;margin-bottom:1.25rem;padding:10px 0;border-top:1px solid var(--border)">
-        <div style="flex:1">
-          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;font-family:var(--font-display)">RPE <span style="font-weight:300;font-size:9px">(esfuerzo 1-10)</span></div>
-          <input class="series-input" id="s-rpe-general" placeholder="ej: 8" value="${rpeVal}" style="width:100%" />
+      <div class="series-list">
+        <div style="display:flex;align-items:center;gap:6px;padding:0 0 6px;border-bottom:1px solid var(--border);margin-bottom:2px">
+          <div style="width:28px"></div>
+          <div style="flex:1;font-size:10px;color:var(--text2);text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;font-family:var(--font-display)">KG</div>
+          <div style="flex:1;font-size:10px;color:var(--text2);text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;font-family:var(--font-display)">REPS</div>
+          <div style="flex:1;font-size:10px;color:var(--text2);text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;font-family:var(--font-display)">RPE/RIR</div>
         </div>
-        <div style="flex:1">
-          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;font-family:var(--font-display)">RIR <span style="font-weight:300;font-size:9px">(reps en reserva)</span></div>
-          <input class="series-input" id="s-rir-general" placeholder="ej: 2" value="${state.rir||''}" style="width:100%" />
-        </div>
+        ${seriesHtml}
       </div>
       ${histHtml?`<button class="history-btn" onclick="aToggleHistory('hist-${ex.id}')">🕐 Ver historial</button><div class="history-content" id="hist-${ex.id}">${histHtml}</div>`:''}
       <label class="attach-btn" onclick="aOpenFileInput(${ex.id})">📎 Adjuntar foto o video</label>
@@ -1346,10 +1344,17 @@ function aSaveCurrentCard(){
   const ex=aSessionExs[aSessionIdx];const state=aSessionState[ex.id];
   if(!isCircuit(ex)){
     const numSeries=parseInt(ex.series)||3;state.series=[];
-    const rpe=document.getElementById('s-rpe-general')?.value.trim()||'';
-    const rir=document.getElementById('s-rir-general')?.value.trim()||'';
-    state.rpe=rpe;state.rir=rir;
-    for(let s=0;s<numSeries;s++){state.series.push({peso:document.getElementById(`s-peso-${s}`)?.value.trim()||'',reps:document.getElementById(`s-reps-${s}`)?.value.trim()||'',rpe});}
+    const numSeries=parseInt(ex.series)||3;state.series=[];
+    for(let s=0;s<numSeries;s++){
+      state.series.push({
+        peso:document.getElementById(`s-peso-${s}`)?.value.trim()||'',
+        reps:document.getElementById(`s-reps-${s}`)?.value.trim()||'',
+        rpe:document.getElementById(`s-rprir-${s}`)?.value.trim()||'',
+        rprir:document.getElementById(`s-rprir-${s}`)?.value.trim()||''
+      });
+    }
+    state.rpe=state.series[0]?.rpe||'';
+    state.rir='';
   }
   state.comment=document.getElementById('ex-comment')?.value.trim()||'';
 }
@@ -1369,10 +1374,11 @@ function aHandleFileUpload(event){
       state.series.push({
         peso:document.getElementById(`s-peso-${s}`)?.value.trim()||'',
         reps:document.getElementById(`s-reps-${s}`)?.value.trim()||'',
-        rpe:document.getElementById('s-rpe-general')?.value.trim()||''
+        rpe:document.getElementById(`s-rprir-${s}`)?.value.trim()||'',
+        rprir:document.getElementById(`s-rprir-${s}`)?.value.trim()||''
       });
     }
-    state.rpe=document.getElementById('s-rpe-general')?.value.trim()||'';
+    state.rpe=state.series[0]?.rpe||'';
     state.rir=document.getElementById('s-rir-general')?.value.trim()||'';
     state.comment=document.getElementById('ex-comment')?.value.trim()||'';
   }
@@ -1399,7 +1405,7 @@ function aShowSummary(){
         ${st?.comment?`<div class="summary-comment">"${st.comment}"</div>`:''}
       </div>`;
     }
-    const seriesSummary=st?.series?.filter(s=>s.peso||s.reps).map((s,si)=>`S${si+1}: ${[s.peso?s.peso+'kg':'',s.reps?s.reps+' reps':'',s.rpe?'RPE '+s.rpe:'',st.rir?'RIR '+st.rir:''].filter(Boolean).join(' · ')}`).join('<br>')||'';
+    const seriesSummary=st?.series?.filter(s=>s.peso||s.reps).map((s,si)=>`S${si+1}: ${[s.peso?s.peso+'kg':'',s.reps?s.reps+' reps':'',s.rprir||s.rpe?'RPE/RIR '+(s.rprir||s.rpe):''].filter(Boolean).join(' · ')}`).join('<br>')||'';
     return`<div class="summary-item">
       <div class="summary-item-name"><span style="background:rgba(0,230,118,0.12);color:var(--green);border:1px solid rgba(0,230,118,0.2);width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:12px">${letters[i]}</span>${ex.nombre}${statusCls?`<span class="summary-status ${statusCls}">${statusLabel}</span>`:''}</div>
       ${seriesSummary?`<div style="font-size:12px;color:var(--green);margin-bottom:4px;line-height:1.8">${seriesSummary}</div>`:''}
@@ -1432,7 +1438,7 @@ async function aSaveFinalSession(){
         const localEx=aEjercicios.find(e=>e.id===ex.id);if(localEx){localEx.completado=isCompleted;localEx.devolucion=st.comment||null;}
         continue;
       }
-      const seriesSummary=st.series?.filter(s=>s.peso||s.reps).map((s,i)=>`S${i+1}: ${[s.peso?s.peso+'kg':'',s.reps?s.reps+' reps':'',s.rpe?'RPE '+s.rpe:'',st.rir?'RIR '+st.rir:''].filter(Boolean).join(' ')}`).join(' | ')||null;
+      const seriesSummary=st.series?.filter(s=>s.peso||s.reps).map((s,i)=>`S${i+1}: ${[s.peso?s.peso+'kg':'',s.reps?s.reps+' reps':'',s.rprir||s.rpe?'RPE/RIR '+(s.rprir||s.rpe):''].filter(Boolean).join(' ')}`).join(' | ')||null;
       if(seriesSummary||st.comment){
         const existing=aLogs.find(l=>l.ejercicio_id===ex.id&&l.fecha===aSelectedDate);
         if(existing){await dbPatch('logs_entrenamiento',existing.id,{series_realizadas:seriesSummary,peso_usado:st.series?.[0]?.peso||null,rpe:st.series?.[0]?.rpe||null,nota:st.comment||null});existing.series_realizadas=seriesSummary;existing.peso_usado=st.series?.[0]?.peso||null;}
