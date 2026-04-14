@@ -1176,11 +1176,17 @@ async function initAlumno(){
 }
 
 async function aRefreshData(){
-  const rutinas=await dbGet('rutinas',`cliente_id=eq.${aCurrentCliente.id}`);
-  const rutinaIds=rutinas.map(r=>r.id);
-  aEjercicios=rutinaIds.length?await dbGet('ejercicios',`rutina_id=in.(${rutinaIds.join(',')})&order=id.asc`):[];
-  aLogs=await dbGet('logs_entrenamiento',`cliente_id=eq.${aCurrentCliente.id}&order=fecha.asc`);
-  aBuildDayStrip();aSwitchTab('inicio');
+  // Rutinas y logs en paralelo
+  const [rutinas, logs] = await Promise.all([
+    dbGet('rutinas', `cliente_id=eq.${aCurrentCliente.id}`),
+    dbGet('logs_entrenamiento', `cliente_id=eq.${aCurrentCliente.id}&order=fecha.asc`)
+  ]);
+  aLogs = logs;
+  const rutinaIds = rutinas.map(r => r.id);
+  aEjercicios = rutinaIds.length
+    ? await dbGet('ejercicios', `rutina_id=in.(${rutinaIds.join(',')})&order=id.asc`)
+    : [];
+  aBuildDayStrip(); aSwitchTab('inicio');
 }
 
 async function aDoRefresh(){
@@ -1897,11 +1903,19 @@ async function initProfe(){
   document.getElementById('panel-profe').style.display='block';
   window.scrollTo(0,0);
   try{
-    [pClientes,pBiblioteca,pAllCobros,pAllSesiones]=await Promise.all([dbGet('clientes','order=nombre.asc'),dbGet('biblioteca_ejercicios','order=nombre.asc'),dbGet('cobros','order=fecha_pago.desc'),dbGet('sesiones','order=fecha.asc')]);
-    const rutinas=await dbGet('rutinas','');const rm={};rutinas.forEach(r=>{rm[r.id]=r.cliente_id;});
-    const rawEx=await dbGet('ejercicios','order=id.asc');
+    // Todo en paralelo
+    const [clientes, biblioteca, cobros, sesiones, rutinas, rawEx, logs] = await Promise.all([
+      dbGet('clientes','order=nombre.asc'),
+      dbGet('biblioteca_ejercicios','order=nombre.asc'),
+      dbGet('cobros','order=fecha_pago.desc'),
+      dbGet('sesiones','order=fecha.asc'),
+      dbGet('rutinas',''),
+      dbGet('ejercicios','order=id.asc'),
+      dbGet('logs_entrenamiento','order=fecha.desc')
+    ]);
+    pClientes=clientes; pBiblioteca=biblioteca; pAllCobros=cobros; pAllSesiones=sesiones; pAllLogs=logs;
+    const rm={};rutinas.forEach(r=>{rm[r.id]=r.cliente_id;});
     pAllEjercicios=rawEx.map(e=>({...e,_clientId:rm[e.rutina_id]||null}));
-    pAllLogs=await dbGet('logs_entrenamiento','order=fecha.desc');
     const opts=pClientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
     ['rut-sel-cliente','rut-sel-historial','rut-sel-sesiones','cob-client','cob-t-client'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
     if(pClientes.length){rutCurrentClientId=pClientes[0].id;cobCalMonth=new Date().getMonth();cobCalYear=new Date().getFullYear();}
