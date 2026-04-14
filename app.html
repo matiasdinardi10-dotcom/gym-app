@@ -1344,7 +1344,6 @@ function aSaveCurrentCard(){
   const ex=aSessionExs[aSessionIdx];const state=aSessionState[ex.id];
   if(!isCircuit(ex)){
     const numSeries=parseInt(ex.series)||3;state.series=[];
-    const numSeries=parseInt(ex.series)||3;state.series=[];
     for(let s=0;s<numSeries;s++){
       state.series.push({
         peso:document.getElementById(`s-peso-${s}`)?.value.trim()||'',
