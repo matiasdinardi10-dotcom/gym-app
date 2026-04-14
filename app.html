@@ -1959,7 +1959,7 @@ window.onload = async () => {
 <script>
 // ════ TIMER ════
 let timerState = {
-  work:40, rest:20, restCycle:60, rounds:8, cycles:3,
+  work:40, rest:20, restCycle:60, rounds:8, cycles:3, prepare:5,
   currentRound:1, currentCycle:1,
   phase:'idle', timeLeft:0, running:false, interval:null
 };
@@ -1976,7 +1976,7 @@ function aShowTimer(){
   document.getElementById('day-strip').style.display='none';
   document.getElementById('a-view-timer').style.display='block';
   timerStop();
-  timerState={work:40,rest:20,restCycle:60,rounds:8,cycles:3,currentRound:1,currentCycle:1,phase:'idle',timeLeft:0,running:false,interval:null};
+  timerState={work:40,rest:20,restCycle:60,rounds:8,cycles:3,prepare:5,currentRound:1,currentCycle:1,phase:'idle',timeLeft:0,running:false,interval:null};
   timerRender();
 }
 function aHideTimer(){ timerStop(); aShowHome(); }
@@ -1992,11 +1992,17 @@ function timerRender(){
     `Ronda ${s.currentRound}/${s.rounds} · Ciclo ${s.currentCycle}/${s.cycles}`;
   const configHtml=isIdle?`
   <div class="timer-config">
+    ${timerRow('🟡 Preparación','Antes de empezar','prepare','s',s.prepare)}
     ${timerRow('⚡ Trabajo','Tiempo activo','work','s',s.work)}
     ${timerRow('😮‍💨 Descanso','Entre rondas','rest','s',s.rest)}
     ${timerRow('☕ Desc. ciclos','Entre ciclos','restCycle','s',s.restCycle)}
     ${timerRow('🔄 Rondas','Por ciclo','rounds','',s.rounds)}
     ${timerRow('🏁 Ciclos','Grupos de rondas','cycles','',s.cycles)}
+  </div>
+  <div style="margin:0 1.25rem 1rem;padding:1rem;background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.2);border-radius:var(--radius)">
+    <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;font-family:var(--font-display)">⏳ Tiempo total estimado</div>
+    <div style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--green)">${timerFormatTotal(s)}</div>
+    <div style="font-size:11px;color:var(--text2);margin-top:4px">${timerBreakdown(s)}</div>
   </div>`:'';
   document.getElementById('a-view-timer').innerHTML=`
   <div class="timer-wrap">
@@ -2016,6 +2022,18 @@ function timerRender(){
       ${!isIdle?`<button class="timer-btn-sm" onclick="timerSkip()">⏭</button>`:`<div style="width:48px"></div>`}
     </div>
   </div>`;
+}
+function timerFormatTotal(s){
+  const total=s.prepare + s.cycles*(s.rounds*s.work + (s.rounds-1)*s.rest) + (s.cycles-1)*s.restCycle;
+  const mm=Math.floor(total/60);const ss=total%60;
+  return mm>0?(ss>0?`${mm} min ${ss} seg`:`${mm} min`):`${ss} seg`;
+}
+function timerBreakdown(s){
+  const partes=[];
+  partes.push(`${s.prepare}s prep`);
+  partes.push(`${s.cycles} ciclos × (${s.rounds} rondas × ${s.work}s trabajo + ${s.rounds-1}× ${s.rest}s desc)`);
+  if(s.cycles>1)partes.push(`${s.cycles-1}× ${s.restCycle}s entre ciclos`);
+  return partes.join(' + ');
 }
 function timerRow(label,sub,key,unit,val){
   return`<div class="timer-config-row">
@@ -2037,7 +2055,7 @@ function timerToggle(){
 }
 function timerStart(){
   timerState.currentRound=1;timerState.currentCycle=1;
-  timerState.phase='prepare';timerState.timeLeft=5;
+  timerState.phase='prepare';timerState.timeLeft=timerState.prepare;
   timerState.running=true;timerRender();
   timerState.interval=setInterval(timerTick,1000);
 }
