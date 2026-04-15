@@ -87,10 +87,9 @@ button,input,textarea,select { font-family:var(--font-body); }
 .day-btn { flex-shrink:0; width:52px; text-align:center; border-radius:var(--radius-sm); padding:8px 0; cursor:pointer; border:1px solid var(--border); background:var(--surface); transition:all 0.2s; }
 .day-btn .dn { font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:0.05em; }
 .day-btn .dd { font-size:17px; font-weight:600; color:var(--text); font-family:var(--font-display); }
-.day-btn.today { border-color:#fff; background:#fff; box-shadow:0 2px 12px rgba(255,255,255,0.15); }
-.day-btn.today .dd { color:#000 !important; }
-.day-btn.today .dn { color:rgba(0,0,0,0.5) !important; }
-.day-btn.today .day-check { color:#000 !important; }
+.day-btn.today { border-color:var(--green); background:var(--surface); }
+.day-btn.today .dd { color:var(--text); }
+.day-btn.today .dn { color:var(--text2); }
 .day-btn.has-ex { background:rgba(0,230,118,0.06); border-color:rgba(0,230,118,0.2); }
 .day-btn.has-ex .dd { color:var(--green); opacity:0.7; }
 .day-btn.is-done { background:linear-gradient(135deg,rgba(0,230,118,0.15),rgba(0,200,83,0.1)); border-color:var(--green); }
@@ -426,9 +425,8 @@ select.form-input option { background:#1a2420; color:var(--text); }
 .cal-day-btn { flex-shrink:0; width:48px; text-align:center; border-radius:var(--radius-sm); padding:7px 0; cursor:pointer; border:1px solid var(--border); background:var(--surface); transition:all 0.2s; }
 .cal-day-btn .day-name { font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:0.05em; }
 .cal-day-btn .day-num { font-size:16px; font-weight:700; color:var(--text); font-family:var(--font-display); }
-.cal-day-btn.p-today { border-color:#fff; background:#fff; }
-.cal-day-btn.p-today .day-num { color:#000 !important; }
-.cal-day-btn.p-today .day-name { color:rgba(0,0,0,0.5) !important; }
+.cal-day-btn.p-today { border-color:var(--green); }
+.cal-day-btn.p-today .day-num { color:var(--text); }
 .cal-day-btn.p-selected { outline:2px solid var(--green); outline-offset:2px; }
 .rut-day-header { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:0.75rem; display:flex; align-items:center; justify-content:space-between; }
 .rut-day-title { font-family:var(--font-display); font-size:15px; font-weight:700; color:var(--text); }
@@ -1224,9 +1222,11 @@ function aBuildDayStrip(){
   for(let i=-14;i<=14;i++){
     const d=new Date(today);d.setDate(today.getDate()+i);const ds=d.toISOString().split('T')[0];
     const hasEx=exDates.has(ds);const isClosed=hasEx&&logDates.has(ds);
-    const cls=[ds===TODAY?'today':'',hasEx&&!isClosed?'has-ex':'',isClosed?'is-done':'',ds===aSelectedDate?'selected':''].filter(Boolean).join(' ');
+    const isToday=ds===TODAY;
+    const cls=[isToday?'today':'',hasEx&&!isClosed?'has-ex':'',isClosed?'is-done':'',ds===aSelectedDate?'selected':''].filter(Boolean).join(' ');
     html+=`<div class="day-btn ${cls}" onclick="aSelectDay('${ds}')">
-      <div class="dn">${DAYS[d.getDay()]}</div><div class="dd">${d.getDate()}</div>
+      ${isToday?`<div style="font-size:8px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:0.08em;font-family:var(--font-display);margin-bottom:1px">HOY</div>`:`<div class="dn">${DAYS[d.getDay()]}</div>`}
+      <div class="dd">${d.getDate()}</div>
       ${isClosed?`<div style="font-size:9px;color:var(--green);margin-top:2px">✓</div>`:''}
     </div>`;
   }
@@ -2141,11 +2141,9 @@ function rutBuildCalStrip(){
     if(isCompleted&&!isSelected){bg='rgba(0,230,118,0.12)';border='rgba(0,230,118,0.3)';nameC='rgba(0,230,118,0.7)';numC='var(--green)';extra='<div style="font-size:9px;color:var(--green);margin-top:2px">✓</div>';}
     else if(hasSession&&!isSelected){bg='rgba(0,230,118,0.05)';border='rgba(0,230,118,0.15)';numC='rgba(0,230,118,0.6)';}
     if(isSelected){bg='rgba(0,230,118,0.18)';border='var(--green)';nameC='var(--green)';numC='var(--green)';extra='';if(isCompleted)extra='<div style="font-size:9px;color:var(--green);margin-top:2px">✓</div>';}
-    if(isToday&&!isSelected&&!isCompleted&&!hasSession){bg='#fff';border='#fff';nameC='rgba(0,0,0,0.5)';numC='#000';}
-    if(isToday&&!isSelected&&isCompleted){bg='#fff';border='#fff';nameC='rgba(0,0,0,0.5)';numC='#000';}
-    if(isToday&&!isSelected&&hasSession&&!isCompleted){bg='#fff';border='#fff';nameC='rgba(0,0,0,0.5)';numC='#000';}
+    if(isToday&&!isSelected){border='var(--green)';}
     html+=`<div class="cal-day-btn" style="background:${bg};border-color:${border}" onclick="rutSelectDate('${ds}')">
-      <div class="day-name" style="color:${nameC}">${DAYS[d.getDay()]}</div>
+      ${isToday?`<div style="font-size:8px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:0.08em;font-family:var(--font-display);margin-bottom:1px">HOY</div>`:`<div class="day-name" style="color:${nameC}">${DAYS[d.getDay()]}</div>`}
       <div class="day-num" style="color:${numC}">${d.getDate()}</div>${extra}
     </div>`;
   }
