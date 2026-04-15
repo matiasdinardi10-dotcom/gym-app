@@ -794,24 +794,8 @@ select.form-input option { background:#1a2420; color:var(--text); }
 
 <!-- PANEL PROFE -->
 <div id="panel-profe">
-  <!-- DASHBOARD -->
-  <div class="p-screen active" id="p-screen-dashboard">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
-      <div>
-        <h1 class="page-title" style="margin:0;font-size:22px">MD Pro Training</h1>
-        <div id="dash-week-label" style="font-size:11px;color:var(--text2);margin-top:2px;font-family:var(--font-display);font-weight:600"></div>
-      </div>
-      <button class="btn-logout" onclick="doLogout()" style="font-size:12px">Salir</button>
-    </div>
-    <!-- Stats cards -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem" id="dash-stats"></div>
-    <!-- Lista alumnos semana -->
-    <div style="font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Esta semana</div>
-    <div id="dash-list"></div>
-  </div>
-
   <!-- CLIENTES -->
-  <div class="p-screen" id="p-screen-clientes">
+  <div class="p-screen active" id="p-screen-clientes">
     <div class="list-view" id="cl-list">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
         <h1 class="page-title" style="margin:0">Mis clientes</h1>
@@ -1003,11 +987,7 @@ select.form-input option { background:#1a2420; color:var(--text); }
 
   <!-- Nav profe -->
   <nav class="bottom-nav">
-    <button class="nav-btn active" id="nav-dashboard" onclick="pSwitchScreen('dashboard')">
-      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span class="nav-label">Inicio</span>
-    </button>
-    <button class="nav-btn" id="nav-clientes" onclick="pSwitchScreen('clientes')">
+    <button class="nav-btn active" id="nav-clientes" onclick="pSwitchScreen('clientes')">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m0 0a4 4 0 118 0m-8 0A4 4 0 0112 12a4 4 0 014 4"/></svg>
       <span class="nav-label">Clientes</span>
     </button>
@@ -1963,7 +1943,6 @@ async function initProfe(){
     if(pClientes.length){rutCurrentClientId=pClientes[0].id;cobCalMonth=new Date().getMonth();cobCalYear=new Date().getFullYear();}
     clRenderList();rutBuildCalStrip();rutRenderDay();rutRenderBiblioteca();cobRenderCobros();cobRenderCal();
     document.getElementById('cob-fecha').value=TODAY;document.getElementById('cob-t-fecha').value=TODAY;
-    pRenderDashboard();
   }catch(e){showToast('Error al conectar',true);console.error(e);}
 }
 function pSwitchScreen(name){
@@ -1972,7 +1951,6 @@ function pSwitchScreen(name){
   document.getElementById('p-screen-'+name).classList.add('active');
   document.getElementById('nav-'+name)?.classList.add('active');
   if(name==='biblioteca')rutRenderBiblioteca();
-  if(name==='dashboard')pRenderDashboard();
   window.scrollTo(0,0);
 }
 
