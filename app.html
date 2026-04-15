@@ -1774,8 +1774,8 @@ async function aSaveFinalSession(){
       const seriesSummary=st.series?.filter(s=>s.peso||s.reps).map((s,i)=>`S${i+1}: ${[s.peso?s.peso+'kg':'',s.reps?s.reps+' reps':'',s.rprir||s.rpe?'RPE/RIR '+(s.rprir||s.rpe):''].filter(Boolean).join(' ')}`).join(' | ')||null;
       if(seriesSummary||st.comment){
         const existing=aLogs.find(l=>l.ejercicio_id===ex.id&&l.fecha===aSelectedDate);
-        if(existing){await dbPatch('logs_entrenamiento',existing.id,{series_realizadas:seriesSummary,peso_usado:st.series?.[0]?.peso||null,rpe:st.series?.[0]?.rpe||null,nota:st.comment||null});existing.series_realizadas=seriesSummary;existing.peso_usado=st.series?.[0]?.peso||null;}
-        else{const nl=await dbPost('logs_entrenamiento',{cliente_id:aCurrentCliente.id,ejercicio_id:ex.id,fecha:aSelectedDate,series_realizadas:seriesSummary,peso_usado:st.series?.[0]?.peso||null,rpe:st.series?.[0]?.rpe||null,nota:st.comment||null});aLogs.push(nl[0]);}
+        if(existing){await dbPatch('logs_entrenamiento',existing.id,{series_realizadas:seriesSummary,peso_usado:st.series?.length?String(Math.max(...st.series.map(s=>parseFloat(s.peso)||0).filter(w=>w>0))||st.series[0]?.peso||null):null,rpe:st.series?.[0]?.rpe||null,nota:st.comment||null});existing.series_realizadas=seriesSummary;existing.peso_usado=st.series?.length?String(Math.max(...st.series.map(s=>parseFloat(s.peso)||0).filter(w=>w>0))||st.series[0]?.peso||null):null;}
+        else{const nl=await dbPost('logs_entrenamiento',{cliente_id:aCurrentCliente.id,ejercicio_id:ex.id,fecha:aSelectedDate,series_realizadas:seriesSummary,peso_usado:st.series?.length?String(Math.max(...st.series.map(s=>parseFloat(s.peso)||0).filter(w=>w>0))||st.series[0]?.peso||null):null,rpe:st.series?.[0]?.rpe||null,nota:st.comment||null});aLogs.push(nl[0]);}
       }else if(isCompleted||st.status==='missed'){
         const existing=aLogs.find(l=>l.ejercicio_id===ex.id&&l.fecha===aSelectedDate);
         if(!existing){const nl=await dbPost('logs_entrenamiento',{cliente_id:aCurrentCliente.id,ejercicio_id:ex.id,fecha:aSelectedDate,series_realizadas:null,peso_usado:null,rpe:null,nota:st.comment||null});aLogs.push(nl[0]);}
@@ -1798,7 +1798,12 @@ function aGetExercisesWithLogs(){
   aLogs.forEach(l=>{if(!l.peso_usado&&l.series_realizadas&&l.series_realizadas.includes('kg')){const ex=aEjercicios.find(e=>e.id===l.ejercicio_id&&!isCircuit(e));if(ex&&!result.find(r=>r.id===ex.id))result.push(ex);}});
   return result;
 }
-function aExtractWeight(log){if(log.peso_usado){const w=parseFloat(log.peso_usado);if(!isNaN(w))return w;}if(log.series_realizadas){const m=log.series_realizadas.match(/(\d+(?:\.\d+)?)\s*kg/gi);if(m)return Math.max(...m.map(x=>parseFloat(x)));}return null;}
+function aExtractWeight(log){
+  let maxW=null;
+  if(log.peso_usado){const w=parseFloat(log.peso_usado);if(!isNaN(w)&&w>0)maxW=w;}
+  if(log.series_realizadas){const m=log.series_realizadas.match(/(\d+(?:\.\d+)?)\s*kg/gi);if(m){const serMax=Math.max(...m.map(x=>parseFloat(x)));if(!isNaN(serMax)&&serMax>0&&(maxW===null||serMax>maxW))maxW=serMax;}}
+  return maxW;
+}
 function aGetFilteredLogs(exId){
   const now=new Date();let cutoff=new Date(0);
   if(aProgressPeriod==='1m'){cutoff=new Date(now);cutoff.setMonth(now.getMonth()-1);}
