@@ -87,8 +87,10 @@ button,input,textarea,select { font-family:var(--font-body); }
 .day-btn { flex-shrink:0; width:52px; text-align:center; border-radius:var(--radius-sm); padding:8px 0; cursor:pointer; border:1px solid var(--border); background:var(--surface); transition:all 0.2s; }
 .day-btn .dn { font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:0.05em; }
 .day-btn .dd { font-size:17px; font-weight:600; color:var(--text); font-family:var(--font-display); }
-.day-btn.today { border-color:var(--border-green); background:var(--surface-active); }
-.day-btn.today .dd { color:var(--green); }
+.day-btn.today { border-color:#fff; background:#fff; box-shadow:0 2px 12px rgba(255,255,255,0.15); }
+.day-btn.today .dd { color:#000 !important; }
+.day-btn.today .dn { color:rgba(0,0,0,0.5) !important; }
+.day-btn.today .day-check { color:#000 !important; }
 .day-btn.has-ex { background:rgba(0,230,118,0.06); border-color:rgba(0,230,118,0.2); }
 .day-btn.has-ex .dd { color:var(--green); opacity:0.7; }
 .day-btn.is-done { background:linear-gradient(135deg,rgba(0,230,118,0.15),rgba(0,200,83,0.1)); border-color:var(--green); }
@@ -424,8 +426,9 @@ select.form-input option { background:#1a2420; color:var(--text); }
 .cal-day-btn { flex-shrink:0; width:48px; text-align:center; border-radius:var(--radius-sm); padding:7px 0; cursor:pointer; border:1px solid var(--border); background:var(--surface); transition:all 0.2s; }
 .cal-day-btn .day-name { font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:0.05em; }
 .cal-day-btn .day-num { font-size:16px; font-weight:700; color:var(--text); font-family:var(--font-display); }
-.cal-day-btn.p-today { border-color:var(--border-green); }
-.cal-day-btn.p-today .day-num { color:var(--green); }
+.cal-day-btn.p-today { border-color:#fff; background:#fff; }
+.cal-day-btn.p-today .day-num { color:#000 !important; }
+.cal-day-btn.p-today .day-name { color:rgba(0,0,0,0.5) !important; }
 .cal-day-btn.p-selected { outline:2px solid var(--green); outline-offset:2px; }
 .rut-day-header { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:0.75rem; display:flex; align-items:center; justify-content:space-between; }
 .rut-day-title { font-family:var(--font-display); font-size:15px; font-weight:700; color:var(--text); }
