@@ -794,8 +794,24 @@ select.form-input option { background:#1a2420; color:var(--text); }
 
 <!-- PANEL PROFE -->
 <div id="panel-profe">
+  <!-- DASHBOARD -->
+  <div class="p-screen active" id="p-screen-dashboard">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+      <div>
+        <h1 class="page-title" style="margin:0;font-size:22px">MD Pro Training</h1>
+        <div id="dash-week-label" style="font-size:11px;color:var(--text2);margin-top:2px;font-family:var(--font-display);font-weight:600"></div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()" style="font-size:12px">Salir</button>
+    </div>
+    <!-- Stats cards -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem" id="dash-stats"></div>
+    <!-- Lista alumnos semana -->
+    <div style="font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Esta semana</div>
+    <div id="dash-list"></div>
+  </div>
+
   <!-- CLIENTES -->
-  <div class="p-screen active" id="p-screen-clientes">
+  <div class="p-screen" id="p-screen-clientes">
     <div class="list-view" id="cl-list">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
         <h1 class="page-title" style="margin:0">Mis clientes</h1>
@@ -987,7 +1003,11 @@ select.form-input option { background:#1a2420; color:var(--text); }
 
   <!-- Nav profe -->
   <nav class="bottom-nav">
-    <button class="nav-btn active" id="nav-clientes" onclick="pSwitchScreen('clientes')">
+    <button class="nav-btn active" id="nav-dashboard" onclick="pSwitchScreen('dashboard')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="nav-label">Inicio</span>
+    </button>
+    <button class="nav-btn" id="nav-clientes" onclick="pSwitchScreen('clientes')">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m0 0a4 4 0 118 0m-8 0A4 4 0 0112 12a4 4 0 014 4"/></svg>
       <span class="nav-label">Clientes</span>
     </button>
@@ -1943,14 +1963,85 @@ async function initProfe(){
     if(pClientes.length){rutCurrentClientId=pClientes[0].id;cobCalMonth=new Date().getMonth();cobCalYear=new Date().getFullYear();}
     clRenderList();rutBuildCalStrip();rutRenderDay();rutRenderBiblioteca();cobRenderCobros();cobRenderCal();
     document.getElementById('cob-fecha').value=TODAY;document.getElementById('cob-t-fecha').value=TODAY;
+    pRenderDashboard();
   }catch(e){showToast('Error al conectar',true);console.error(e);}
 }
 function pSwitchScreen(name){
   document.querySelectorAll('.p-screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('p-screen-'+name).classList.add('active');
-  document.getElementById('nav-'+name).classList.add('active');
+  document.getElementById('nav-'+name)?.classList.add('active');
   if(name==='biblioteca')rutRenderBiblioteca();
+  if(name==='dashboard')pRenderDashboard();
+  window.scrollTo(0,0);
+}
+
+function pRenderDashboard(){
+  const today=new Date();
+  const dow=today.getDay();
+  const monday=new Date(today);monday.setDate(today.getDate()-(dow===0?6:dow-1));
+  const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
+  const fmt=d=>d.toLocaleDateString('es-UY',{day:'numeric',month:'short'});
+  const lbl=document.getElementById('dash-week-label');
+  if(lbl)lbl.textContent=`Semana ${fmt(monday)} — ${fmt(sunday)}`;
+  const weekDays=[];
+  for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);weekDays.push(d.toISOString().split('T')[0]);}
+  const weekLogs=pAllLogs.filter(l=>weekDays.includes(l.fecha));
+  const clientsTrainedIds=new Set(weekLogs.map(l=>l.cliente_id));
+  const totalSessions=weekLogs.length;
+  const totalTrained=clientsTrainedIds.size;
+  const activeClients=pClientes.filter(c=>c.estado==='activo'||c.estado==='nuevo');
+  const totalNotTrained=Math.max(0,activeClients.length-totalTrained);
+  const statsEl=document.getElementById('dash-stats');
+  if(statsEl)statsEl.innerHTML=`
+    <div style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:var(--radius);padding:12px;text-align:center">
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--green)">${totalTrained}</div>
+      <div style="font-size:10px;color:var(--text2);margin-top:3px;font-family:var(--font-display);font-weight:600">ENTRENARON</div>
+    </div>
+    <div style="background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.2);border-radius:var(--radius);padding:12px;text-align:center">
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--red)">${totalNotTrained}</div>
+      <div style="font-size:10px;color:var(--text2);margin-top:3px;font-family:var(--font-display);font-weight:600">SIN ENTRENAR</div>
+    </div>
+    <div style="background:rgba(0,188,212,0.08);border:1px solid rgba(0,188,212,0.2);border-radius:var(--radius);padding:12px;text-align:center">
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--cyan)">${totalSessions}</div>
+      <div style="font-size:10px;color:var(--text2);margin-top:3px;font-family:var(--font-display);font-weight:600">SESIONES</div>
+    </div>`;
+  const clientData=activeClients.map(c=>{
+    const dias=new Set(weekLogs.filter(l=>l.cliente_id===c.id).map(l=>l.fecha)).size;
+    const lastLog=pAllLogs.filter(l=>l.cliente_id===c.id).sort((a,b)=>b.fecha.localeCompare(a.fecha))[0];
+    const lastDate=lastLog?new Date(lastLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'}):null;
+    return{...c,dias,lastDate};
+  }).sort((a,b)=>b.dias-a.dias);
+  const listEl=document.getElementById('dash-list');
+  if(!listEl)return;
+  if(!clientData.length){listEl.innerHTML=`<div style="color:var(--text2);font-size:13px;text-align:center;padding:2rem 0">No hay alumnos activos</div>`;return;}
+  listEl.innerHTML=clientData.map(c=>{
+    const sc=c.dias>=4?'var(--green)':c.dias>=2?'var(--orange)':c.dias===1?'#FFB800':'var(--red)';
+    const sb=c.dias>=4?'rgba(0,230,118,0.1)':c.dias>=2?'rgba(255,140,0,0.1)':c.dias===1?'rgba(255,184,0,0.1)':'rgba(255,68,68,0.08)';
+    const sbo=c.dias>=4?'rgba(0,230,118,0.2)':c.dias>=2?'rgba(255,140,0,0.2)':c.dias===1?'rgba(255,184,0,0.2)':'rgba(255,68,68,0.2)';
+    const icon=c.dias===0?'❌':c.dias===1?'⚠️':c.dias>=4?'🔥':'✅';
+    const txt=c.dias===0?'Sin entrenar':c.dias===1?'1 día':c.dias+' días';
+    const ini=c.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    // Barrita de días de la semana
+    const dayDots=weekDays.map(d=>{
+      const trained=weekLogs.some(l=>l.cliente_id===c.id&&l.fecha===d);
+      return`<div style="width:8px;height:8px;border-radius:50%;background:${trained?'var(--green)':'rgba(255,255,255,0.1)'}"></div>`;
+    }).join('');
+    return`<div onclick="pGoToClient(${c.id})" style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;cursor:pointer">
+      <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-dim));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:14px;font-weight:800;color:#000;flex-shrink:0">${ini}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font-display)">${c.nombre}</div>
+        <div style="display:flex;gap:4px;margin-top:5px">${dayDots}</div>
+      </div>
+      <div style="background:${sb};border:1px solid ${sbo};color:${sc};padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:var(--font-display);white-space:nowrap;flex-shrink:0">${icon} ${txt}</div>
+    </div>`;
+  }).join('');
+}
+
+function pGoToClient(clientId){
+  pSwitchScreen('rutinas');
+  const sel=document.getElementById('rut-sel-cliente');
+  if(sel){sel.value=clientId;pOnClientChange();}
 }
 function pGetActivityToday(clientId){
   const cid=parseInt(clientId);
