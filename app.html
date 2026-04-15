@@ -2612,8 +2612,8 @@ function timerRender(){
   </div>
   <div style="margin:0 1.25rem 1rem;padding:1rem;background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.2);border-radius:var(--radius)">
     <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;font-family:var(--font-display)">⏳ Tiempo total estimado</div>
-    <div style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--green)">${timerFormatTotal(s)}</div>
-    <div style="font-size:11px;color:var(--text2);margin-top:4px">${timerBreakdown(s)}</div>
+    <div class="timer-total-val" style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--green)">${timerFormatTotal(s)}</div>
+    <div class="timer-total-breakdown" style="font-size:11px;color:var(--text2);margin-top:4px">${timerBreakdown(s)}</div>
   </div>`:'';
   document.getElementById('a-view-timer').innerHTML=`
   <div class="timer-wrap">
@@ -2648,15 +2648,46 @@ function timerRow(label,sub,key,unit,val){
     <div><div class="timer-config-label">${label}</div><div class="timer-config-sub">${sub}</div></div>
     <div class="timer-stepper">
       <button class="timer-stepper-btn" onclick="timerAdj('${key}',-1)">−</button>
-      <input class="timer-stepper-input" type="number" value="${val}" min="1" max="999"
-        onchange="timerSet('${key}',this.value)" onclick="this.select()" />
+      <input class="timer-stepper-input" type="number" id="ti-${key}" value="${val}" min="1" max="999"
+        oninput="timerSetNoRender('${key}',this.value)"
+        onblur="timerSet('${key}',this.value)"
+        onclick="this.select()" />
       <span class="timer-stepper-unit">${unit}</span>
       <button class="timer-stepper-btn" onclick="timerAdj('${key}',1)">+</button>
     </div>
   </div>`;
 }
-function timerAdj(key,delta){timerState[key]=Math.max(1,timerState[key]+delta);timerRender();}
-function timerSet(key,val){const n=parseInt(val);if(!isNaN(n)&&n>0)timerState[key]=n;timerRender();}
+function timerAdj(key,delta){
+  timerState[key]=Math.max(1,timerState[key]+delta);
+  // Actualizar el input sin redibujar todo
+  const inp=document.getElementById('ti-'+key);
+  if(inp)inp.value=timerState[key];
+  timerUpdateTotal();
+}
+function timerSetNoRender(key,val){
+  const n=parseInt(val);
+  if(!isNaN(n)&&n>0){timerState[key]=n;timerUpdateTotal();}
+}
+function timerSet(key,val){
+  const n=parseInt(val);
+  if(!isNaN(n)&&n>0)timerState[key]=n;
+  else if(document.getElementById('ti-'+key))document.getElementById('ti-'+key).value=timerState[key];
+  timerUpdateTotal();
+}
+function timerUpdateTotal(){
+  // Solo actualiza el display del tiempo y el total estimado sin redibujar todo
+  const s=timerState;
+  const disp=document.querySelector('.timer-display');
+  if(disp&&(s.phase==='idle'||s.phase==='done')){
+    const mm=String(Math.floor(s.work/60)).padStart(2,'0');
+    const ss=String(s.work%60).padStart(2,'0');
+    disp.textContent=`${mm}:${ss}`;
+  }
+  const totalEl=document.querySelector('.timer-total-val');
+  if(totalEl)totalEl.textContent=timerFormatTotal(s);
+  const breakEl=document.querySelector('.timer-total-breakdown');
+  if(breakEl)breakEl.textContent=timerBreakdown(s);
+}
 function timerToggle(){
   if(timerState.phase==='idle'||timerState.phase==='done'){timerStart();return;}
   timerState.running?timerPause():timerResume();
