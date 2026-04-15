@@ -2717,14 +2717,18 @@ document.addEventListener('touchstart', unlockAudio, {passive:true});
 document.addEventListener('touchend', unlockAudio, {passive:true});
 document.addEventListener('click', unlockAudio);
 
-function playBeep(freq=880, duration=0.2, vol=0.3, delay=0){
+function playBeep(freq=880, duration=0.2, vol=1.0, delay=0){
   try{
     const ctx=getAudioCtx(); if(!ctx)return;
     const startFn=()=>{
       try{
         const o=ctx.createOscillator(); const g=ctx.createGain();
-        o.connect(g); g.connect(ctx.destination);
-        o.frequency.value=freq; o.type='sine';
+        // Compresor para maximizar volumen
+        const comp=ctx.createDynamicsCompressor();
+        comp.threshold.value=-6; comp.knee.value=3;
+        comp.ratio.value=20; comp.attack.value=0; comp.release.value=0.1;
+        o.connect(g); g.connect(comp); comp.connect(ctx.destination);
+        o.frequency.value=freq; o.type='square';
         g.gain.setValueAtTime(vol, ctx.currentTime);
         g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+duration);
         o.start(ctx.currentTime); o.stop(ctx.currentTime+duration+0.05);
@@ -2736,33 +2740,29 @@ function playBeep(freq=880, duration=0.2, vol=0.3, delay=0){
 }
 
 function timerVibrate(){
-  try{if(navigator.vibrate)navigator.vibrate([150,80,150]);}catch(e){}
+  try{if(navigator.vibrate)navigator.vibrate([200,100,200]);}catch(e){}
   const phase=timerState.phase;
   if(phase==='work'){
-    // 2 beeps agudos — ¡a trabajar!
-    playBeep(880,0.12,0.4,0);
-    playBeep(880,0.12,0.4,180);
+    playBeep(880,0.15,1.0,0);
+    playBeep(880,0.15,1.0,200);
   } else if(phase==='rest'){
-    // 1 beep grave — descanso
-    playBeep(440,0.25,0.35,0);
+    playBeep(440,0.3,1.0,0);
   } else if(phase==='rest-cycle'){
-    // 3 beeps graves — descanso largo
-    playBeep(440,0.18,0.35,0);
-    playBeep(440,0.18,0.35,220);
-    playBeep(440,0.18,0.35,440);
+    playBeep(440,0.2,1.0,0);
+    playBeep(440,0.2,1.0,250);
+    playBeep(440,0.2,1.0,500);
   } else if(phase==='done'){
-    // Melodía de fin
-    playBeep(523,0.15,0.4,0);
-    playBeep(659,0.15,0.4,180);
-    playBeep(784,0.15,0.4,360);
-    playBeep(1047,0.4,0.4,540);
+    playBeep(523,0.18,1.0,0);
+    playBeep(659,0.18,1.0,200);
+    playBeep(784,0.18,1.0,400);
+    playBeep(1047,0.4,1.0,600);
   } else if(phase==='prepare'){
-    playBeep(660,0.1,0.2,0);
+    playBeep(660,0.15,0.8,0);
   }
 }
 
 function timerCountdownBeep(){
-  playBeep(660,0.07,0.18,0);
+  playBeep(880,0.1,0.9,0);
 }
 
 if('serviceWorker' in navigator){
