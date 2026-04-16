@@ -1644,7 +1644,7 @@ function aRenderCard(){
         ${ex.peso?`<div style="background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);color:var(--green);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;font-family:var(--font-display)">${ex.peso} kg</div>`:''}
         ${ex.tiempo?`<div style="background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);color:var(--green);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;font-family:var(--font-display)">${ex.tiempo}</div>`:''}
       </div>`:''}
-      ${prevLog?`<div style="font-size:12px;color:var(--green);background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.15);padding:8px 12px;border-radius:8px;margin-bottom:1.25rem">📊 Última vez (${new Date(prevLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'})}): ${[prevLog.series_realizadas,prevLog.peso_usado,prevLog.rpe?'RPE '+prevLog.rpe:''].filter(Boolean).join(' · ')}</div>`:''}
+      ${prevLog?`<div style="font-size:12px;color:var(--green);background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.15);padding:8px 12px;border-radius:8px;margin-bottom:1.25rem">📊 Última vez (${new Date(prevLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'})}): ${prevLog.series_realizadas||[prevLog.peso_usado?prevLog.peso_usado+'kg':'',prevLog.rpe?'RPE '+prevLog.rpe:''].filter(Boolean).join(' · ')}</div>`:''}
       <div class="series-list">
         <div style="display:flex;align-items:center;gap:6px;padding:0 0 6px;border-bottom:1px solid var(--border);margin-bottom:2px">
           <div style="width:28px"></div>
@@ -1777,7 +1777,7 @@ async function aSaveFinalSession(){
       const seriesSummary=st.series?.filter(s=>s.peso||s.reps).map((s,i)=>`S${i+1}: ${[s.peso?s.peso+'kg':'',s.reps?s.reps+' reps':'',s.rprir||s.rpe?'RPE/RIR '+(s.rprir||s.rpe):''].filter(Boolean).join(' ')}`).join(' | ')||null;
       if(seriesSummary||st.comment){
         const existing=aLogs.find(l=>l.ejercicio_id===ex.id&&l.fecha===aSelectedDate);
-        if(existing){await dbPatch('logs_entrenamiento',existing.id,{series_realizadas:seriesSummary,peso_usado:st.series?.length?String(Math.max(...st.series.map(s=>parseFloat(s.peso)||0).filter(w=>w>0))||st.series[0]?.peso||null):null,rpe:st.series?.[0]?.rpe||null,nota:st.comment||null});existing.series_realizadas=seriesSummary;existing.peso_usado=st.series?.length?String(Math.max(...st.series.map(s=>parseFloat(s.peso)||0).filter(w=>w>0))||st.series[0]?.peso||null):null;}
+        if(existing){await dbPatch('logs_entrenamiento',existing.id,{series_realizadas:seriesSummary,peso_usado:st.series?.length?String(Math.max(...st.series.map(s=>parseFloat(s.peso)||0).filter(w=>w>0))||st.series[0]?.peso||null):null,rpe:null,nota:st.comment||null});existing.series_realizadas=seriesSummary;existing.peso_usado=st.series?.length?String(Math.max(...st.series.map(s=>parseFloat(s.peso)||0).filter(w=>w>0))||st.series[0]?.peso||null):null;}
         else{const nl=await dbPost('logs_entrenamiento',{cliente_id:aCurrentCliente.id,ejercicio_id:ex.id,fecha:aSelectedDate,series_realizadas:seriesSummary,peso_usado:st.series?.length?String(Math.max(...st.series.map(s=>parseFloat(s.peso)||0).filter(w=>w>0))||st.series[0]?.peso||null):null,rpe:st.series?.[0]?.rpe||null,nota:st.comment||null});aLogs.push(nl[0]);}
       }else if(isCompleted||st.status==='missed'){
         const existing=aLogs.find(l=>l.ejercicio_id===ex.id&&l.fecha===aSelectedDate);
@@ -2043,14 +2043,14 @@ function pGetLoadHistory(clientId,exNombre,limit=5){
 function pRenderLoadHistoryBlock(clientId,exNombre){
   const history=pGetLoadHistory(clientId,exNombre,5);
   if(!history.length)return`<div class="load-history-block"><div class="load-history-title">Historial de cargas</div><div class="load-history-empty">Sin registros previos</div></div>`;
-  const rows=history.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});const serHtml=l.series_realizadas?formatSeries(l.series_realizadas):`<span style="color:var(--green);font-weight:600">${l.peso_usado?l.peso_usado+'kg':'—'}</span>`;const rpe=l.rpe?'RPE '+l.rpe:'';return`<div class="load-history-row" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="display:flex;justify-content:space-between;width:100%"><span class="load-history-date">${d}</span>${rpe?`<span class="load-history-rpe">${rpe}</span>`:''}</div><div>${serHtml}</div></div>`;}).join('');
+  const rows=history.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});const serHtml=l.series_realizadas?formatSeries(l.series_realizadas):`<span style="color:var(--green);font-weight:600">${l.peso_usado?l.peso_usado+'kg':'—'}</span>`;const rpe=!l.series_realizadas&&l.rpe?'RPE '+l.rpe:'';return`<div class="load-history-row" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="display:flex;justify-content:space-between;width:100%"><span class="load-history-date">${d}</span>${rpe?`<span class="load-history-rpe">${rpe}</span>`:''}</div><div>${serHtml}</div></div>`;}).join('');
   return`<div class="load-history-block"><div class="load-history-title">Historial de cargas</div>${rows}</div>`;
 }
 function pRenderModalLoadHistory(clientId,exNombre){
   const history=pGetLoadHistory(clientId,exNombre,3);if(!history.length)return'';
   const lastLog=history[0];const lastDate=new Date(lastLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});
   const lastLoad=[lastLog.series_realizadas,lastLog.peso_usado?lastLog.peso_usado+'kg':''].filter(Boolean).join(' · ')||'—';
-  const rows=history.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});const serHtml=l.series_realizadas?formatSeries(l.series_realizadas):`<span class="load">${l.peso_usado?l.peso_usado+'kg':'—'}</span>`;const rpe=l.rpe?'RPE '+l.rpe:'';return`<div style="padding:7px 12px;border-bottom:1px solid rgba(0,230,118,0.1)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px"><span class="date">${d}</span>${rpe?`<span style="font-size:11px;color:var(--text2)">${rpe}</span>`:''}</div>${serHtml}</div>`;}).join('');
+  const rows=history.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});const serHtml=l.series_realizadas?formatSeries(l.series_realizadas):`<span class="load">${l.peso_usado?l.peso_usado+'kg':'—'}</span>`;const rpe=!l.series_realizadas&&l.rpe?'RPE '+l.rpe:'';return`<div style="padding:7px 12px;border-bottom:1px solid rgba(0,230,118,0.1)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px"><span class="date">${d}</span>${rpe?`<span style="font-size:11px;color:var(--text2)">${rpe}</span>`:''}</div>${serHtml}</div>`;}).join('');
   return`<div class="modal-load-history"><div class="modal-load-title"><span>📊</span> Últimas cargas · ${exNombre}</div><div class="modal-load-last">Última vez (${lastDate}): ${lastLoad}</div>${rows}</div>`;
 }
 
@@ -2197,7 +2197,7 @@ function rutRenderDay(){
       <div class="ex-tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}${ex.link_youtube?`<a class="yt-link" href="${ex.link_youtube}" target="_blank">▶ Video</a>`:''}</div>
       <div class="ex-details ${rutOpenDetails[ex.id]?'open':''}">
         ${ex.nota?`<div class="ex-note">${ex.nota}</div>`:''}
-        ${log?`<div class="log-prev">📊 Alumno registró hoy: ${[log.series_realizadas,log.peso_usado?log.peso_usado+'kg':'',log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ')||'sin cargas'}</div>`:''}
+        ${log?`<div class="log-prev">📊 Alumno registró hoy: ${log.series_realizadas||[log.peso_usado?log.peso_usado+'kg':'',log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ')||'sin cargas'}</div>`:''}
         ${ex.devolucion?`<div style="font-size:12px;color:var(--text2);padding:8px 10px;background:rgba(0,230,118,0.04);border-radius:8px;border-left:2px solid var(--green);margin-top:6px;margin-bottom:8px;font-style:italic">💬 "${ex.devolucion}"</div>`:''}
         ${loadHistoryHtml}
       </div>
