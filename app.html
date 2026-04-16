@@ -1644,7 +1644,7 @@ function aRenderCard(){
         ${ex.peso?`<div style="background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);color:var(--green);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;font-family:var(--font-display)">${ex.peso} kg</div>`:''}
         ${ex.tiempo?`<div style="background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);color:var(--green);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;font-family:var(--font-display)">${ex.tiempo}</div>`:''}
       </div>`:''}
-      ${prevLog?`<div style="font-size:12px;color:var(--green);background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.15);padding:8px 12px;border-radius:8px;margin-bottom:1.25rem">📊 Última vez (${new Date(prevLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'})}): ${prevLog.series_realizadas||[prevLog.peso_usado?prevLog.peso_usado+'kg':'',prevLog.rpe?'RPE '+prevLog.rpe:''].filter(Boolean).join(' · ')}</div>`:''}
+
       <div class="series-list">
         <div style="display:flex;align-items:center;gap:6px;padding:0 0 6px;border-bottom:1px solid var(--border);margin-bottom:2px">
           <div style="width:28px"></div>
@@ -2051,7 +2051,7 @@ function pRenderModalLoadHistory(clientId,exNombre){
   const lastLog=history[0];const lastDate=new Date(lastLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});
   const lastLoad=[lastLog.series_realizadas,lastLog.peso_usado?lastLog.peso_usado+'kg':''].filter(Boolean).join(' · ')||'—';
   const rows=history.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});const serHtml=l.series_realizadas?formatSeries(l.series_realizadas):`<span class="load">${l.peso_usado?l.peso_usado+'kg':'—'}</span>`;const rpe=!l.series_realizadas&&l.rpe?'RPE '+l.rpe:'';return`<div style="padding:7px 12px;border-bottom:1px solid rgba(0,230,118,0.1)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px"><span class="date">${d}</span>${rpe?`<span style="font-size:11px;color:var(--text2)">${rpe}</span>`:''}</div>${serHtml}</div>`;}).join('');
-  return`<div class="modal-load-history"><div class="modal-load-title"><span>📊</span> Últimas cargas · ${exNombre}</div><div class="modal-load-last">Última vez (${lastDate}): ${lastLoad}</div>${rows}</div>`;
+  return`<div class="modal-load-history"><div class="modal-load-title"><span>📊</span> Últimas cargas · ${exNombre}</div>${rows}</div>`;
 }
 
 // CLIENTES
