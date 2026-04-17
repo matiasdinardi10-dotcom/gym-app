@@ -2435,12 +2435,12 @@ let timerState = {
   phase:'idle', timeLeft:0, running:false, interval:null
 };
 const TIMER_PHASES = {
-  idle:        { bg:'rgba(0,230,118,0.06)', border:'rgba(0,230,118,0.2)',  color:'var(--green)', label:'Listo para empezar' },
-  prepare:     { bg:'rgba(230,184,0,0.15)', border:'rgba(230,184,0,0.3)',  color:'#E6B800',      label:'¡Prepárate!' },
-  work:        { bg:'rgba(0,200,83,0.15)',  border:'rgba(0,200,83,0.3)',   color:'var(--green)', label:'💪 ¡TRABAJÁ!' },
-  rest:        { bg:'rgba(255,68,68,0.12)', border:'rgba(255,68,68,0.25)', color:'var(--red)',   label:'😮‍💨 Descansá' },
-  'rest-cycle':{ bg:'rgba(255,140,0,0.12)', border:'rgba(255,140,0,0.25)','color':'var(--orange)','label':'☕ Descanso entre ciclos'},
-  done:        { bg:'rgba(0,230,118,0.1)',  border:'rgba(0,230,118,0.3)',  color:'var(--green)', label:'✅ ¡Terminaste!' },
+  idle:         { color:'#4ADE80', label:'Listo' },
+  prepare:      { color:'#FCD34D', label:'Preparate' },
+  work:         { color:'#4ADE80', label:'TRABAJÁ' },
+  rest:         { color:'#F87171', label:'Descansá' },
+  'rest-cycle': { color:'#FB923C', label:'Pausa ciclo' },
+  done:         { color:'#4ADE80', label:'¡Terminaste!' },
 };
 // ════ MODOS TIMER ════
 let timerMode = 'interval'; // interval | stopwatch | countdown
@@ -2464,25 +2464,35 @@ function timerSetMode(mode){
 
 // ── CRONÓMETRO ──
 function swRender(){
-  const s=swState;
-  const total=s.elapsed;
-  const hh=Math.floor(total/3600);
-  const mm=Math.floor((total%3600)/60);
-  const ss=total%60;
-  const display=hh>0?`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`:`${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+  const s = swState;
+  const total = s.elapsed;
+  const hh = Math.floor(total/3600);
+  const mm = Math.floor((total%3600)/60);
+  const ss = total%60;
+  const display = hh>0
+    ? `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`
+    : `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+  // Arc: full circle when running, pulse every 60s
+  const progress = s.running ? (ss/60) : 0;
+  const arc = timerArcSVG(progress, '#22D3EE');
 
   document.getElementById('a-view-timer').innerHTML=`
   <div class="timer-wrap">
     ${timerHeaderHtml('stopwatch')}
-    <div class="timer-screen" style="background:rgba(0,188,212,0.06);border:1px solid rgba(0,188,212,0.2)">
-      <div class="timer-phase-label" style="color:var(--cyan)">${s.running?'⏱ Corriendo':'⏱ Cronómetro'}</div>
-      <div class="timer-display" id="sw-display" style="color:var(--cyan)">${display}</div>
-      <div class="timer-sub" style="color:var(--cyan)">${s.running?'Tocá pausa para detener':'Tocá play para empezar'}</div>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem 1rem 0.5rem">
+      <div style="position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center">
+        ${arc}
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:#22D3EE;opacity:0.7">${s.running ? 'Corriendo' : 'Cronómetro'}</div>
+          <div id="sw-display" style="font-family:var(--font-display);font-size:${hh>0?'52':'68'}px;font-weight:400;letter-spacing:-3px;color:#22D3EE;line-height:1">${display}</div>
+          <div style="font-size:11px;color:var(--text2);font-weight:400">${s.running ? 'Tocá pausa para detener' : 'Tocá play para empezar'}</div>
+        </div>
+      </div>
     </div>
-    <div class="timer-controls" style="margin-top:1.5rem">
+    <div class="timer-controls" style="padding:0.25rem 1.1rem 1rem">
       <button class="timer-btn-sm" onclick="swReset()">↺</button>
-      <button class="timer-btn-play" onclick="swToggle()" style="background:linear-gradient(135deg,var(--cyan),#0097A7)">${s.running?'⏸':'▶'}</button>
-      <div style="width:48px"></div>
+      <button class="timer-btn-play" onclick="swToggle()" style="background:linear-gradient(145deg,#22D3EE,#0891B2)">${s.running?'⏸':'▶'}</button>
+      <div style="width:46px"></div>
     </div>
   </div>`;
 }
@@ -2490,53 +2500,63 @@ function swRender(){
 function swToggle(){ swState.running ? swPause() : swStart(); }
 function swStart(){
   swState.running=true;
+  swRender();
   swState.interval=setInterval(()=>{
     swState.elapsed++;
+    const t=swState.elapsed;
+    const hh=Math.floor(t/3600),mm=Math.floor((t%3600)/60),ss=t%60;
+    const display=hh>0?`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`:`${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
     const d=document.getElementById('sw-display');
-    if(d){
-      const t=swState.elapsed;
-      const hh=Math.floor(t/3600),mm=Math.floor((t%3600)/60),ss=t%60;
-      d.textContent=hh>0?`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`:`${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
-    }
+    if(d) d.textContent=display;
+    // update arc each second
+    const progress = ss/60;
+    const r=96,circ=2*Math.PI*r,dash=circ*progress,gap=circ-dash;
+    const arc=document.querySelectorAll('circle[stroke-linecap]')[0];
+    if(arc) arc.setAttribute('stroke-dasharray',`${dash} ${gap}`);
   },1000);
-  swRender();
 }
 function swPause(){ swState.running=false; clearInterval(swState.interval); swRender(); }
 function swReset(){ clearInterval(swState.interval); swState={running:false,elapsed:0,interval:null}; swRender(); }
 
 // ── CUENTA REGRESIVA ──
 function cdRender(){
-  const s=cdState;
-  const mm=String(Math.floor(s.timeLeft/60)).padStart(2,'0');
-  const ss=String(s.timeLeft%60).padStart(2,'0');
-  const pct=s.total>0?s.timeLeft/s.total:1;
-  const color=pct>0.5?'var(--green)':pct>0.25?'var(--orange)':'var(--red)';
+  const s = cdState;
+  const mm = String(Math.floor(s.timeLeft/60)).padStart(2,'0');
+  const ss = String(s.timeLeft%60).padStart(2,'0');
+  const pct = s.total>0 ? s.timeLeft/s.total : 1;
+  const color = pct>0.5 ? '#4ADE80' : pct>0.25 ? '#FB923C' : '#F87171';
+  const arc = timerArcSVG(pct, color);
 
   document.getElementById('a-view-timer').innerHTML=`
   <div class="timer-wrap">
     ${timerHeaderHtml('countdown')}
-    <div class="timer-screen" style="background:rgba(255,140,0,0.06);border:1px solid rgba(255,140,0,0.2)">
-      <div class="timer-phase-label" style="color:${color}">${s.running?'⏳ Contando...':s.timeLeft===0?'✅ ¡Listo!':'⏳ Cuenta regresiva'}</div>
-      <div class="timer-display" id="cd-display" style="color:${color}">${mm}:${ss}</div>
-      <div class="timer-sub" style="color:${color}">${s.running?'':'Configurá el tiempo abajo'}</div>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem 1rem 0.5rem">
+      <div style="position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center">
+        ${arc}
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:${color};opacity:0.75">${s.running?'Contando…':s.timeLeft===0?'¡Listo!':'Cuenta regresiva'}</div>
+          <div id="cd-display" style="font-family:var(--font-display);font-size:68px;font-weight:400;letter-spacing:-4px;color:${color};line-height:1">${mm}:${ss}</div>
+          <div style="font-size:11px;color:var(--text2);font-weight:400">${s.running?'Tocá pausa para detener':s.timeLeft===0?'Tiempo agotado':'Configurá el tiempo abajo'}</div>
+        </div>
+      </div>
     </div>
     ${!s.running&&s.timeLeft===s.total?`
-    <div style="padding:0 1.25rem;margin-bottom:1rem">
-      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;font-family:var(--font-display)">Tiempo</div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <button class="timer-stepper-btn" onclick="cdAdj(-60)">-1m</button>
-        <button class="timer-stepper-btn" onclick="cdAdj(-10)">-10s</button>
+    <div style="margin:0 1.1rem 0.9rem;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:var(--radius);padding:0.9rem 1rem">
+      <div style="font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px">Tiempo</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="timer-stepper-btn" style="font-size:11px;width:36px;border-radius:8px" onclick="cdAdj(-60)">−1m</button>
+        <button class="timer-stepper-btn" style="font-size:11px;width:36px;border-radius:8px" onclick="cdAdj(-10)">−10s</button>
         <input class="timer-stepper-input" type="number" value="${s.total}" min="1" style="flex:1;width:auto"
           onchange="cdSetTotal(this.value)" onclick="this.select()" />
-        <span style="font-size:11px;color:var(--text2)">seg</span>
-        <button class="timer-stepper-btn" onclick="cdAdj(10)">+10s</button>
-        <button class="timer-stepper-btn" onclick="cdAdj(60)">+1m</button>
+        <span style="font-size:11px;color:var(--text2);font-weight:300">seg</span>
+        <button class="timer-stepper-btn" style="font-size:11px;width:36px;border-radius:8px" onclick="cdAdj(10)">+10s</button>
+        <button class="timer-stepper-btn" style="font-size:11px;width:36px;border-radius:8px" onclick="cdAdj(60)">+1m</button>
       </div>
     </div>`:''}
-    <div class="timer-controls" style="margin-top:0.5rem">
+    <div class="timer-controls" style="padding:0.25rem 1.1rem 1rem">
       <button class="timer-btn-sm" onclick="cdReset()">↺</button>
-      <button class="timer-btn-play" onclick="cdToggle()" style="background:linear-gradient(135deg,var(--orange),#E65100)">${s.running?'⏸':s.timeLeft===0?'↺':'▶'}</button>
-      <div style="width:48px"></div>
+      <button class="timer-btn-play" onclick="cdToggle()" style="background:linear-gradient(145deg,${color},${color}bb)">${s.running?'⏸':s.timeLeft===0?'↺':'▶'}</button>
+      <div style="width:46px"></div>
     </div>
   </div>`;
 }
@@ -2546,6 +2566,7 @@ function cdSetTotal(val){ const n=parseInt(val); if(!isNaN(n)&&n>0){cdState.tota
 function cdToggle(){ if(cdState.timeLeft===0){cdReset();return;} cdState.running?cdPause():cdStart(); }
 function cdStart(){
   cdState.running=true;
+  cdRender();
   cdState.interval=setInterval(()=>{
     cdState.timeLeft--;
     if(cdState.timeLeft<=0){
@@ -2557,25 +2578,29 @@ function cdStart(){
     if(cdState.timeLeft<=3) timerCountdownBeep();
     const d=document.getElementById('cd-display');
     if(d){const mm=String(Math.floor(cdState.timeLeft/60)).padStart(2,'0');const ss=String(cdState.timeLeft%60).padStart(2,'0');d.textContent=`${mm}:${ss}`;}
+    // update arc
+    const pct=cdState.total>0?cdState.timeLeft/cdState.total:0;
+    const r=96,circ=2*Math.PI*r,dash=circ*Math.max(0,pct),gap=circ-dash;
+    const arc=document.querySelectorAll('circle[stroke-linecap]')[0];
+    if(arc) arc.setAttribute('stroke-dasharray',`${dash} ${gap}`);
   },1000);
-  cdRender();
 }
 function cdPause(){ cdState.running=false; clearInterval(cdState.interval); cdRender(); }
 function cdReset(){ clearInterval(cdState.interval); cdState.running=false; cdState.timeLeft=cdState.total; cdRender(); }
 
 function timerHeaderHtml(activeMode){
   const tabs=[
-    {id:'interval',label:'⏱ TIMER'},
-    {id:'stopwatch',label:'⏱ CRON.'},
-    {id:'countdown',label:'⏳ CUENTA'},
+    {id:'interval', label:'INTERVAL'},
+    {id:'stopwatch', label:'CRONÓM.'},
+    {id:'countdown', label:'CUENTA'},
   ];
   const btns=tabs.map(t=>{
     const isActive=t.id===activeMode;
-    return`<button onclick="timerSetMode('${t.id}')" style="flex:1;padding:6px 4px;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font-display);letter-spacing:0.04em;transition:all 0.2s;${isActive?'background:rgba(0,230,118,0.12);color:var(--green);border:1px solid rgba(0,230,118,0.2)':'background:transparent;color:var(--text2);border:none'}">${t.label}</button>`;
+    return`<button onclick="timerSetMode('${t.id}')" style="flex:1;padding:7px 4px;border:none;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:0.07em;transition:all 0.2s;${isActive?'background:rgba(74,222,128,0.1);color:var(--green);border:1px solid rgba(74,222,128,0.2)':'background:transparent;color:var(--text2);border:1px solid transparent'}">${t.label}</button>`;
   }).join('');
   return`<div class="timer-top">
     <button class="timer-back" onclick="aHideTimer()">← Volver</button>
-    <div style="display:flex;gap:4px;flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px;margin-left:8px">${btns}</div>
+    <div style="display:flex;gap:3px;flex:1;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px;margin-left:8px">${btns}</div>
   </div>`;
 }
 
@@ -2591,44 +2616,85 @@ function aShowTimer(){
   timerRender();
 }
 function aHideTimer(){ timerStop(); aShowHome(); }
+function timerArcSVG(progress, color, size=220){
+  const r = size/2 - 14;
+  const cx = size/2, cy = size/2;
+  const circ = 2 * Math.PI * r;
+  const dash = circ * Math.max(0, Math.min(1, progress));
+  const gap  = circ - dash;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="10"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="10"
+      stroke-linecap="round" stroke-dasharray="${dash} ${gap}"
+      style="transition:stroke-dasharray 0.9s linear,stroke 0.4s ease;filter:drop-shadow(0 0 8px ${color}44)"/>
+  </svg>`;
+}
+
 function timerRender(){
-  const s=timerState;
-  const ph=TIMER_PHASES[s.phase]||TIMER_PHASES.idle;
-  const isIdle=s.phase==='idle'||s.phase==='done';
-  const sec=isIdle?s.work:s.timeLeft;
-  const mm=String(Math.floor(sec/60)).padStart(2,'0');
-  const ss=String(sec%60).padStart(2,'0');
-  const roundsInfo=isIdle?`${s.rounds} rondas · ${s.cycles} ciclos`:
-    s.phase==='done'?'¡Buen trabajo!':
-    `Ronda ${s.currentRound}/${s.rounds} · Ciclo ${s.currentCycle}/${s.cycles}`;
-  const configHtml=isIdle?`
-  <div class="timer-config">
-    ${timerRow('🟡 Preparación','Antes de empezar','prepare','s',s.prepare)}
-    ${timerRow('⚡ Trabajo','Tiempo activo','work','s',s.work)}
-    ${timerRow('😮‍💨 Descanso','Entre rondas','rest','s',s.rest)}
-    ${timerRow('🔄 Rondas','Por ciclo','rounds','',s.rounds)}
-    ${timerRow('🏁 Ciclos','Grupos de rondas','cycles','',s.cycles)}
-    ${timerRow('☕ Desc. entre ciclos','Entre ciclos','restCycle','s',s.restCycle)}
+  const s = timerState;
+  const ph = TIMER_PHASES[s.phase] || TIMER_PHASES.idle;
+  const isIdle = s.phase === 'idle' || s.phase === 'done';
+  const isDone = s.phase === 'done';
+
+  const sec = isIdle ? s.work : s.timeLeft;
+  const mm  = String(Math.floor(sec/60)).padStart(2,'0');
+  const ss2 = String(sec % 60).padStart(2,'0');
+
+  // Arc progress
+  let progress = 1;
+  if (!isIdle) {
+    const total = s.phase==='prepare' ? s.prepare
+                : s.phase==='work'    ? s.work
+                : s.phase==='rest'    ? s.rest
+                : s.phase==='rest-cycle' ? s.restCycle : 1;
+    progress = total > 0 ? s.timeLeft / total : 0;
+  }
+
+  const arc = timerArcSVG(progress, ph.color);
+
+  const infoLine = isIdle
+    ? `${s.rounds} rondas · ${s.cycles} ciclos`
+    : isDone ? '¡Buen trabajo!'
+    : `Ronda ${s.currentRound}/${s.rounds} · Ciclo ${s.currentCycle}/${s.cycles}`;
+
+  const playIcon = s.running ? '⏸' : isDone ? '↺' : '▶';
+
+  const configHtml = isIdle ? `
+  <div class="timer-config" style="margin:0 1.1rem">
+    ${timerRow('Preparación','Antes de empezar','prepare','s',s.prepare)}
+    ${timerRow('Trabajo','Tiempo activo','work','s',s.work)}
+    ${timerRow('Descanso','Entre rondas','rest','s',s.rest)}
+    ${timerRow('Rondas','Por ciclo','rounds','',s.rounds)}
+    ${timerRow('Ciclos','Grupos de rondas','cycles','',s.cycles)}
+    ${timerRow('Descanso entre ciclos','Entre ciclos','restCycle','s',s.restCycle)}
   </div>
-  <div style="margin:0 1.25rem 1rem;padding:1rem;background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.2);border-radius:var(--radius)">
-    <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;font-family:var(--font-display)">⏳ Tiempo total estimado</div>
-    <div class="timer-total-val" style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--green)">${timerFormatTotal(s)}</div>
-    <div class="timer-total-breakdown" style="font-size:11px;color:var(--text2);margin-top:4px">${timerBreakdown(s)}</div>
-  </div>`:'';
-  document.getElementById('a-view-timer').innerHTML=`
+  <div style="margin:0.75rem 1.1rem 1rem;padding:0.9rem 1rem;background:rgba(74,222,128,0.04);border:1px solid rgba(74,222,128,0.14);border-radius:var(--radius);display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em">Tiempo total</div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end">
+      <div class="timer-total-val" style="font-family:var(--font-display);font-size:24px;font-weight:500;color:var(--green);letter-spacing:-1px">${timerFormatTotal(s)}</div>
+      <div class="timer-total-breakdown" style="font-size:10px;color:var(--text2);margin-top:2px">${timerBreakdown(s)}</div>
+    </div>
+  </div>` : '';
+
+  document.getElementById('a-view-timer').innerHTML = `
   <div class="timer-wrap">
     ${timerHeaderHtml('interval')}
-    <div class="timer-screen" style="background:${ph.bg};border:1px solid ${ph.border}">
-      <div class="timer-phase-label" style="color:${ph.color}">${ph.label}</div>
-      <div class="timer-display" style="color:${ph.color}">${mm}:${ss}</div>
-      <div class="timer-sub" style="color:${ph.color}">${roundsInfo}</div>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem 1rem 0.5rem;position:relative">
+      <div style="position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center">
+        ${arc}
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:${ph.color};opacity:0.75">${ph.label}</div>
+          <div class="timer-display" style="font-family:var(--font-display);font-size:68px;font-weight:400;letter-spacing:-4px;color:${ph.color};line-height:1">${mm}:${ss2}</div>
+          <div style="font-size:11px;color:var(--text2);font-weight:400;letter-spacing:0.04em;margin-top:2px">${infoLine}</div>
+        </div>
+      </div>
+    </div>
+    <div class="timer-controls" style="padding:0.25rem 1.1rem 1rem">
+      <button class="timer-btn-sm" onclick="timerReset()" title="Reiniciar">↺</button>
+      <button class="timer-btn-play" onclick="timerToggle()" style="background:linear-gradient(145deg,${ph.color},${ph.color}bb)">${playIcon}</button>
+      ${!isIdle ? `<button class="timer-btn-sm" onclick="timerSkip()" title="Saltar fase">⏭</button>` : `<div style="width:46px"></div>`}
     </div>
     ${configHtml}
-    <div class="timer-controls">
-      <button class="timer-btn-sm" onclick="timerReset()">↺</button>
-      <button class="timer-btn-play" onclick="timerToggle()">${s.running?'⏸':s.phase==='done'?'↺':'▶'}</button>
-      ${!isIdle?`<button class="timer-btn-sm" onclick="timerSkip()">⏭</button>`:`<div style="width:48px"></div>`}
-    </div>
   </div>`;
 }
 function timerFormatTotal(s){
@@ -2708,11 +2774,27 @@ function timerReset(){
 function timerSkip(){timerStop();timerNextPhase();timerState.running=true;timerState.interval=setInterval(timerTick,1000);timerRender();}
 function timerTick(){
   timerState.timeLeft--;
-  if(timerState.timeLeft<=0){timerNextPhase();return;}
-  // Beep en los últimos 3 segundos
-  if(timerState.timeLeft<=3 && timerState.timeLeft>0){timerCountdownBeep();}
-  const disp=document.querySelector('.timer-display');
-  if(disp){const mm=String(Math.floor(timerState.timeLeft/60)).padStart(2,'0');const ss=String(timerState.timeLeft%60).padStart(2,'0');disp.textContent=`${mm}:${ss}`;}
+  if(timerState.timeLeft<=0){ timerNextPhase(); return; }
+  if(timerState.timeLeft<=3 && timerState.timeLeft>0){ timerCountdownBeep(); }
+  // Actualizar display y arco sin redibujar todo
+  const ph = TIMER_PHASES[timerState.phase] || TIMER_PHASES.idle;
+  const s = timerState;
+  const mm = String(Math.floor(s.timeLeft/60)).padStart(2,'0');
+  const ss = String(s.timeLeft%60).padStart(2,'0');
+  const disp = document.querySelector('.timer-display');
+  if(disp) disp.textContent = `${mm}:${ss}`;
+  // Actualizar arco SVG
+  const total = s.phase==='prepare' ? s.prepare
+              : s.phase==='work'    ? s.work
+              : s.phase==='rest'    ? s.rest
+              : s.phase==='rest-cycle' ? s.restCycle : 1;
+  const progress = total > 0 ? s.timeLeft / total : 0;
+  const r = 96; const cx = 110; const cy = 110;
+  const circ = 2 * Math.PI * r;
+  const dash = circ * Math.max(0, Math.min(1, progress));
+  const gap  = circ - dash;
+  const arc = document.querySelectorAll('circle[stroke-linecap]')[0];
+  if(arc){ arc.setAttribute('stroke-dasharray', `${dash} ${gap}`); }
 }
 function timerNextPhase(){
   const s=timerState;
