@@ -464,6 +464,8 @@ select.form-input option { background:#0d1a12; color:var(--text); }
 .ex-expand:hover { border-color:var(--border-green); color:var(--green); }
 .ex-delete { font-size:13px; color:var(--text2); background:rgba(248,113,113,0.04); border:1px solid rgba(248,113,113,0.15); cursor:pointer; width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
 .ex-delete:hover { background:rgba(248,113,113,0.1); color:var(--red); }
+.ex-edit { font-size:14px; color:var(--text2); background:rgba(74,222,128,0.04); border:1px solid rgba(74,222,128,0.15); cursor:pointer; width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+.ex-edit:hover { background:rgba(74,222,128,0.1); color:var(--green); }
 .ex-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; margin-left:32px; align-items:center; }
 .yt-link { display:inline-flex; align-items:center; gap:5px; font-size:11px; padding:3px 8px; border-radius:20px; background:rgba(248,113,113,0.06); color:#F87171; text-decoration:none; border:1px solid rgba(248,113,113,0.15); }
 .ex-details { margin-top:10px; margin-left:32px; display:none; }
@@ -969,6 +971,41 @@ select.form-input option { background:#0d1a12; color:var(--text); }
       <input class="form-input" type="text" id="ex-f-yt" placeholder="▶ Link YouTube" />
       <button class="btn-green-p" onclick="addExercise()">+ Agregar a la sesión</button>
       <button class="btn-cancel-p" onclick="closeExModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR EJERCICIO -->
+  <div class="p-modal-overlay" id="edit-ex-modal">
+    <div class="p-modal">
+      <h2>Editar ejercicio</h2>
+      <input type="hidden" id="edit-ex-id" />
+      <div class="autocomplete-wrap">
+        <input type="text" id="edit-ex-f-name" placeholder="Nombre del ejercicio" autocomplete="off" />
+      </div>
+      <div class="row2">
+        <input class="form-input" style="margin:0" type="text" id="edit-ex-f-series" placeholder="Series x rep" />
+        <input class="form-input" style="margin:0" type="text" id="edit-ex-f-peso" placeholder="Peso" />
+      </div>
+      <input class="form-input" style="margin-top:0.6rem" type="text" id="edit-ex-f-tiempo" placeholder="Tiempo (ej: 30 min)" />
+      <textarea class="form-input" style="resize:none;min-height:60px;margin-top:0.6rem" id="edit-ex-f-nota" placeholder="Indicaciones para el alumno..."></textarea>
+      <input class="form-input" type="text" id="edit-ex-f-yt" placeholder="▶ Link YouTube" />
+      <button class="btn-primary-p" onclick="saveEditExercise()">Guardar cambios</button>
+      <button class="btn-cancel-p" onclick="closeEditExModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR CIRCUITO -->
+  <div class="p-modal-overlay" id="edit-circuit-modal">
+    <div class="p-modal">
+      <h2>Editar circuito</h2>
+      <input type="hidden" id="edit-circ-id" />
+      <input class="form-input" id="edit-circ-f-nombre" placeholder="Nombre del circuito" />
+      <textarea class="form-input" style="resize:none;min-height:70px" id="edit-circ-f-modalidad" placeholder="Modalidad de trabajo"></textarea>
+      <div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;font-weight:600">Ejercicios del circuito</div>
+      <div class="circuit-modal-items" id="edit-circ-items-list"></div>
+      <button class="btn-add-item" onclick="addEditCircuitItemField()">+ Agregar ejercicio</button>
+      <button class="btn-primary-p" onclick="saveEditCircuit()">Guardar cambios</button>
+      <button class="btn-cancel-p" onclick="closeEditCircuitModal()">Cancelar</button>
     </div>
   </div>
 
@@ -2172,14 +2209,15 @@ function rutRenderDay(){
       const itemsHtml=items.map(it=>`<div class="circuit-card-item"><div class="circuit-card-item-dot"></div><span>${it.nombre}</span>${it.yt?`<a href="${it.yt}" target="_blank" style="font-size:11px;color:#FF6666;margin-left:6px">▶</a>`:''}</div>`).join('');
       return`<div class="circuit-card ${isCompleted&&ex.completado?'done':''}">
         <div class="circuit-card-header">
-          <div class="circuit-card-badge">🔄 Circuito</div>
+          <div class="circuit-card-badge">Circuito</div>
           <span class="circuit-card-name">${nombre}</span>
           ${statusBadge}
+          ${!isCompleted?`<button class="ex-edit" onclick="openEditCircuitModal(${ex.id})" title="Editar">✎</button>`:''}
           ${!isCompleted?`<button class="ex-delete" onclick="rutRemoveEx(${ex.id})">✕</button>`:''}
         </div>
         ${modalidad?`<div class="circuit-card-modalidad">${modalidad}</div>`:''}
         ${itemsHtml?`<div class="circuit-card-items">${itemsHtml}</div>`:''}
-        ${log&&ex.devolucion?`<div style="font-size:12px;color:var(--text2);padding:6px 0;font-style:italic">💬 "${ex.devolucion}"</div>`:''}
+        ${log&&ex.devolucion?`<div style="font-size:12px;color:var(--text2);padding:6px 0;font-style:italic">"${ex.devolucion}"</div>`:''}
       </div>`;
     }
     // ejercicio normal
@@ -2189,22 +2227,119 @@ function rutRenderDay(){
     const loadHistoryHtml=pRenderLoadHistoryBlock(rutCurrentClientId,ex.nombre);
     return`<div class="exercise-card ${isCompleted&&ex.completado?'done':''}">
       <div class="ex-header">
-        <div style="width:26px;height:26px;border-radius:8px;background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);color:var(--green);font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-display)">${String.fromCharCode(65+i)}</div>
+        <div style="width:26px;height:26px;border-radius:8px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.15);color:var(--green);font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${String.fromCharCode(65+i)}</div>
         <span class="ex-name">${ex.nombre}</span>${statusBadge}
         <button class="ex-expand" onclick="rutToggleDetail(${ex.id})">${rutOpenDetails[ex.id]?'−':'+'}</button>
+        ${!isCompleted?`<button class="ex-edit" onclick="openEditExModal(${ex.id})" title="Editar">✎</button>`:''}
         ${!isCompleted?`<button class="ex-delete" onclick="rutRemoveEx(${ex.id})">✕</button>`:''}
       </div>
       <div class="ex-tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}${ex.link_youtube?`<a class="yt-link" href="${ex.link_youtube}" target="_blank">▶ Video</a>`:''}</div>
       <div class="ex-details ${rutOpenDetails[ex.id]?'open':''}">
         ${ex.nota?`<div class="ex-note">${ex.nota}</div>`:''}
         ${log?`<div class="log-prev">📊 Alumno registró hoy: ${log.series_realizadas||[log.peso_usado?log.peso_usado+'kg':'',log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ')||'sin cargas'}</div>`:''}
-        ${ex.devolucion?`<div style="font-size:12px;color:var(--text2);padding:8px 10px;background:rgba(0,230,118,0.04);border-radius:8px;border-left:2px solid var(--green);margin-top:6px;margin-bottom:8px;font-style:italic">💬 "${ex.devolucion}"</div>`:''}
+        ${ex.devolucion?`<div style="font-size:12px;color:var(--text2);padding:8px 10px;background:rgba(74,222,128,0.03);border-radius:8px;border-left:2px solid rgba(74,222,128,0.35);margin-top:6px;margin-bottom:8px;font-style:italic">"${ex.devolucion}"</div>`:''}
         ${loadHistoryHtml}
       </div>
     </div>`;
   }).join('');
 }
 function rutToggleDetail(id){rutOpenDetails[id]=!rutOpenDetails[id];rutRenderDay();}
+
+// ── EDITAR EJERCICIO ──
+function openEditExModal(id){
+  const ex=pAllEjercicios.find(e=>e.id===id);if(!ex)return;
+  document.getElementById('edit-ex-id').value=id;
+  document.getElementById('edit-ex-f-name').value=ex.nombre||'';
+  document.getElementById('edit-ex-f-series').value=ex.series||'';
+  document.getElementById('edit-ex-f-peso').value=ex.peso||'';
+  document.getElementById('edit-ex-f-tiempo').value=ex.tiempo||'';
+  document.getElementById('edit-ex-f-nota').value=ex.nota||'';
+  document.getElementById('edit-ex-f-yt').value=ex.link_youtube||'';
+  document.getElementById('edit-ex-modal').classList.add('open');
+}
+function closeEditExModal(){
+  document.getElementById('edit-ex-modal').classList.remove('open');
+}
+async function saveEditExercise(){
+  const id=parseInt(document.getElementById('edit-ex-id').value);
+  const nombre=document.getElementById('edit-ex-f-name').value.trim();
+  if(!nombre){showToast('El nombre no puede estar vacío',true);return;}
+  let yt=document.getElementById('edit-ex-f-yt').value.trim();
+  if(yt&&!yt.startsWith('http'))yt='https://'+yt;
+  const changes={
+    nombre,
+    series:document.getElementById('edit-ex-f-series').value.trim()||null,
+    peso:document.getElementById('edit-ex-f-peso').value.trim()||null,
+    tiempo:document.getElementById('edit-ex-f-tiempo').value.trim()||null,
+    nota:document.getElementById('edit-ex-f-nota').value.trim()||null,
+    link_youtube:yt||null,
+  };
+  try{
+    await dbPatch('ejercicios',id,changes);
+    const idx=pAllEjercicios.findIndex(e=>e.id===id);
+    if(idx>-1) pAllEjercicios[idx]={...pAllEjercicios[idx],...changes};
+    closeEditExModal();
+    rutRenderDay();
+    showToast('Ejercicio actualizado ✓');
+  }catch(e){showToast('Error al guardar: '+e.message.slice(0,60),true);}
+}
+
+// ── EDITAR CIRCUITO ──
+let editCircuitItemCount=0;
+function openEditCircuitModal(id){
+  const ex=pAllEjercicios.find(e=>e.id===id);if(!ex)return;
+  const {nombre,modalidad,items}=parseCircuit(ex);
+  document.getElementById('edit-circ-id').value=id;
+  document.getElementById('edit-circ-f-nombre').value=nombre;
+  document.getElementById('edit-circ-f-modalidad').value=modalidad;
+  // Limpiar items
+  document.getElementById('edit-circ-items-list').innerHTML='';
+  editCircuitItemCount=0;
+  items.forEach(it=>addEditCircuitItemField(it.nombre,it.yt));
+  if(!items.length) addEditCircuitItemField();
+  document.getElementById('edit-circuit-modal').classList.add('open');
+}
+function closeEditCircuitModal(){
+  document.getElementById('edit-circuit-modal').classList.remove('open');
+}
+function addEditCircuitItemField(nombre='',yt=''){
+  editCircuitItemCount++;
+  const id=editCircuitItemCount;
+  const div=document.createElement('div');
+  div.className='circuit-modal-item';
+  div.id=`edit-circ-item-${id}`;
+  div.innerHTML=`
+    <div class="circuit-item-autocomplete">
+      <input type="text" placeholder="Ejercicio" id="edit-circ-item-name-${id}" value="${nombre.replace(/"/g,'&quot;')}" autocomplete="off" />
+    </div>
+    <input type="hidden" id="edit-circ-item-yt-${id}" value="${(yt||'').replace(/"/g,'&quot;')}" />
+    <button class="circuit-modal-item-del" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('edit-circ-items-list').appendChild(div);
+}
+async function saveEditCircuit(){
+  const id=parseInt(document.getElementById('edit-circ-id').value);
+  const nombre=document.getElementById('edit-circ-f-nombre').value.trim();
+  if(!nombre){showToast('El nombre no puede estar vacío',true);return;}
+  const modalidad=document.getElementById('edit-circ-f-modalidad').value.trim();
+  // Recopilar items del DOM
+  const items=[];
+  document.querySelectorAll('#edit-circ-items-list .circuit-modal-item').forEach(row=>{
+    const iid=row.id.replace('edit-circ-item-','');
+    const nameEl=document.getElementById(`edit-circ-item-name-${iid}`);
+    const ytEl=document.getElementById(`edit-circ-item-yt-${iid}`);
+    const n=nameEl?nameEl.value.trim():'';
+    if(n) items.push({nombre:n,yt:ytEl?ytEl.value.trim():''});
+  });
+  const {nombre:sNombre,nota:sNota}=serializeCircuit(nombre,modalidad,items);
+  try{
+    await dbPatch('ejercicios',id,{nombre:sNombre,nota:sNota});
+    const idx=pAllEjercicios.findIndex(e=>e.id===id);
+    if(idx>-1){pAllEjercicios[idx].nombre=sNombre;pAllEjercicios[idx].nota=sNota;}
+    closeEditCircuitModal();
+    rutRenderDay();
+    showToast('Circuito actualizado ✓');
+  }catch(e){showToast('Error al guardar: '+e.message.slice(0,60),true);}
+}
 async function rutRemoveEx(id){
   if(!confirm('¿Eliminar?'))return;
   try{await dbDelete('ejercicios',id);pAllEjercicios=pAllEjercicios.filter(e=>e.id!==id);rutBuildCalStrip();rutRenderDay();showToast('Eliminado');}catch(e){showToast('Error',true);}
