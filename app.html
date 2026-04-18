@@ -2212,39 +2212,44 @@ function rutRenderDay(){
   document.getElementById('rut-exercise-list').innerHTML=exs.map((ex,i)=>{
     if(isCircuit(ex)){
       const {nombre,modalidad,items}=parseCircuit(ex);
-      const log=logByEx[ex.id];let statusBadge='';
+      const log=logByEx[ex.id];
+      // isCompleted por ejercicio individual, no por el día entero
+      const exDone = !!log || ex.completado;
+      let statusBadge='';
       if(isCompleted){statusBadge=ex.completado?`<span class="status-badge-done">✓ Completado</span>`:`<span class="status-badge-missed">✕ No completado</span>`;}
-      const itemsHtml=items.map(it=>`<div class="circuit-card-item"><div class="circuit-card-item-dot"></div><span>${it.nombre}</span>${it.yt?`<a href="${it.yt}" target="_blank" style="font-size:11px;color:#FF6666;margin-left:6px">▶</a>`:''}</div>`).join('');
-      return`<div class="circuit-card ${isCompleted&&ex.completado?'done':''}">
+      const itemsHtml=items.map(it=>`<div class="circuit-card-item"><div class="circuit-card-item-dot"></div><span>${it.nombre}</span>${it.yt?`<a href="${it.yt}" target="_blank" style="font-size:11px;color:#F87171;text-decoration:none;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);padding:1px 7px;border-radius:20px;margin-left:6px;font-weight:500">YT</a>`:''}</div>`).join('');
+      return`<div class="circuit-card ${exDone?'done':''}">
         <div class="circuit-card-header">
           <div class="circuit-card-badge">Circuito</div>
           <span class="circuit-card-name">${nombre}</span>
           ${statusBadge}
-          ${!isCompleted?`<button class="ex-edit" onclick="openEditCircuitModal(${ex.id})" title="Editar">✎</button>`:''}
-          ${!isCompleted?`<button class="ex-delete" onclick="rutRemoveEx(${ex.id})">✕</button>`:''}
+          <button class="ex-edit" onclick="openEditCircuitModal(${ex.id})" title="Editar">✎</button>
+          <button class="ex-delete" onclick="rutRemoveEx(${ex.id})" title="Eliminar">✕</button>
         </div>
         ${modalidad?`<div class="circuit-card-modalidad">${modalidad}</div>`:''}
         ${itemsHtml?`<div class="circuit-card-items">${itemsHtml}</div>`:''}
-        ${log&&ex.devolucion?`<div style="font-size:12px;color:var(--text2);padding:6px 0;font-style:italic">"${ex.devolucion}"</div>`:''}
+        ${ex.devolucion?`<div style="font-size:12px;color:var(--text2);padding:6px 0;font-style:italic">"${ex.devolucion}"</div>`:''}
       </div>`;
     }
     // ejercicio normal
     const tags=[ex.series?ex.series+' reps':'',ex.peso,ex.tiempo].filter(Boolean);
-    const log=logByEx[ex.id];let statusBadge='';
+    const log=logByEx[ex.id];
+    const exDone = !!log || ex.completado;
+    let statusBadge='';
     if(isCompleted){statusBadge=ex.completado?`<span class="status-badge-done">✓ Completado</span>`:`<span class="status-badge-missed">✕ No completado</span>`;}
     const loadHistoryHtml=pRenderLoadHistoryBlock(rutCurrentClientId,ex.nombre);
-    return`<div class="exercise-card ${isCompleted&&ex.completado?'done':''}">
+    return`<div class="exercise-card ${exDone?'done':''}">
       <div class="ex-header">
         <div style="width:26px;height:26px;border-radius:8px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.15);color:var(--green);font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${String.fromCharCode(65+i)}</div>
         <span class="ex-name">${ex.nombre}</span>${statusBadge}
         <button class="ex-expand" onclick="rutToggleDetail(${ex.id})">${rutOpenDetails[ex.id]?'−':'+'}</button>
-        ${!isCompleted?`<button class="ex-edit" onclick="openEditExModal(${ex.id})" title="Editar">✎</button>`:''}
-        ${!isCompleted?`<button class="ex-delete" onclick="rutRemoveEx(${ex.id})">✕</button>`:''}
+        <button class="ex-edit" onclick="openEditExModal(${ex.id})" title="Editar">✎</button>
+        <button class="ex-delete" onclick="rutRemoveEx(${ex.id})" title="Eliminar">✕</button>
       </div>
       <div class="ex-tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}${ex.link_youtube?`<a class="yt-link" href="${ex.link_youtube}" target="_blank">▶ Video</a>`:''}</div>
       <div class="ex-details ${rutOpenDetails[ex.id]?'open':''}">
         ${ex.nota?`<div class="ex-note">${ex.nota}</div>`:''}
-        ${log?`<div class="log-prev">📊 Alumno registró hoy: ${log.series_realizadas||[log.peso_usado?log.peso_usado+'kg':'',log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ')||'sin cargas'}</div>`:''}
+        ${log?`<div class="log-prev">Alumno registró hoy: ${log.series_realizadas||[log.peso_usado?log.peso_usado+'kg':'',log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ')||'sin cargas'}</div>`:''}
         ${ex.devolucion?`<div style="font-size:12px;color:var(--text2);padding:8px 10px;background:rgba(74,222,128,0.03);border-radius:8px;border-left:2px solid rgba(74,222,128,0.35);margin-top:6px;margin-bottom:8px;font-style:italic">"${ex.devolucion}"</div>`:''}
         ${loadHistoryHtml}
       </div>
