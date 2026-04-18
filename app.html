@@ -2770,93 +2770,142 @@ function timerArcSVG(progress, color, size=220){
   const circ = 2 * Math.PI * r;
   const dash = circ * Math.max(0, Math.min(1, progress));
   const gap  = circ - dash;
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg);position:absolute;inset:0">
     <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="10"/>
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="10"
+    <circle id="timer-arc" cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="10"
       stroke-linecap="round" stroke-dasharray="${dash} ${gap}"
-      style="transition:stroke-dasharray 0.9s linear,stroke 0.4s ease;filter:drop-shadow(0 0 8px ${color}44)"/>
+      style="transition:stroke-dasharray 0.95s linear,stroke 0.3s ease"/>
   </svg>`;
+}
+
+function timerFormatTotal(s){
+  const total = s.prepare + s.cycles*(s.rounds*s.work + (s.rounds-1)*s.rest) + (s.cycles-1)*s.restCycle;
+  const mm = Math.floor(total/60);
+  const ss = total % 60;
+  return mm>0 ? (ss>0 ? `${mm}m ${ss}s` : `${mm} min`) : `${ss}s`;
+}
+
+// ── Actualiza solo los elementos del DOM que cambian, sin reconstruir ──
+function timerDOMUpdate(){
+  const s = timerState;
+  const ph = TIMER_PHASES[s.phase] || TIMER_PHASES.idle;
+  const isIdle = s.phase==='idle' || s.phase==='done';
+  const sec = isIdle ? s.work : s.timeLeft;
+  const mm  = String(Math.floor(sec/60)).padStart(2,'0');
+  const ss  = String(sec%60).padStart(2,'0');
+
+  // Tiempo
+  const disp = document.getElementById('t-display');
+  if(disp) disp.textContent = `${mm}:${ss}`;
+
+  // Fase label
+  const lbl = document.getElementById('t-phase');
+  if(lbl){ lbl.textContent = ph.label; lbl.style.color = ph.color; }
+
+  // Info line
+  const info = document.getElementById('t-info');
+  if(info){
+    info.textContent = isIdle
+      ? `${s.rounds} rondas · ${s.cycles} ciclos`
+      : s.phase==='done' ? '¡Buen trabajo!'
+      : `Ronda ${s.currentRound}/${s.rounds} · Ciclo ${s.currentCycle}/${s.cycles}`;
+  }
+
+  // Color del display
+  if(disp) disp.style.color = ph.color;
+
+  // Botón play
+  const btn = document.getElementById('t-play-btn');
+  if(btn){
+    btn.textContent = s.running ? '⏸' : s.phase==='done' ? '↺' : '▶';
+    btn.style.background = `linear-gradient(145deg,${ph.color},${ph.color}99)`;
+  }
+
+  // Arco
+  const arc = document.getElementById('timer-arc');
+  if(arc){
+    let progress = 1;
+    if(!isIdle){
+      const total = s.phase==='prepare' ? s.prepare
+                  : s.phase==='work'    ? s.work
+                  : s.phase==='rest'    ? s.rest
+                  : s.phase==='rest-cycle' ? s.restCycle : 1;
+      progress = total>0 ? s.timeLeft/total : 0;
+    }
+    const r=96, circ=2*Math.PI*r;
+    const dash = circ*Math.max(0,Math.min(1,progress));
+    arc.setAttribute('stroke-dasharray',`${dash} ${circ-dash}`);
+    arc.setAttribute('stroke', ph.color);
+  }
+
+  // Config: mostrar/ocultar y actualizar total
+  const cfg = document.getElementById('t-config-wrap');
+  if(cfg) cfg.style.display = isIdle ? 'block' : 'none';
+  const tot = document.getElementById('t-total-val');
+  if(tot) tot.textContent = timerFormatTotal(s);
+
+  // Botón skip
+  const skip = document.getElementById('t-skip-btn');
+  if(skip) skip.style.visibility = isIdle ? 'hidden' : 'visible';
 }
 
 function timerRender(){
   const s = timerState;
   const ph = TIMER_PHASES[s.phase] || TIMER_PHASES.idle;
-  const isIdle = s.phase === 'idle' || s.phase === 'done';
-  const isDone = s.phase === 'done';
-
+  const isIdle = s.phase==='idle' || s.phase==='done';
   const sec = isIdle ? s.work : s.timeLeft;
   const mm  = String(Math.floor(sec/60)).padStart(2,'0');
-  const ss2 = String(sec % 60).padStart(2,'0');
-
-  // Arc progress
+  const ss2 = String(sec%60).padStart(2,'0');
   let progress = 1;
-  if (!isIdle) {
+  if(!isIdle){
     const total = s.phase==='prepare' ? s.prepare
                 : s.phase==='work'    ? s.work
                 : s.phase==='rest'    ? s.rest
                 : s.phase==='rest-cycle' ? s.restCycle : 1;
-    progress = total > 0 ? s.timeLeft / total : 0;
+    progress = total>0 ? s.timeLeft/total : 0;
   }
 
-  const arc = timerArcSVG(progress, ph.color);
-
-  const infoLine = isIdle
-    ? `${s.rounds} rondas · ${s.cycles} ciclos`
-    : isDone ? '¡Buen trabajo!'
-    : `Ronda ${s.currentRound}/${s.rounds} · Ciclo ${s.currentCycle}/${s.cycles}`;
-
-  const playIcon = s.running ? '⏸' : isDone ? '↺' : '▶';
-
-  const configHtml = isIdle ? `
-  <div class="timer-config" style="margin:0 1.1rem">
-    ${timerRow('Preparación','Antes de empezar','prepare','s',s.prepare)}
-    ${timerRow('Trabajo','Tiempo activo','work','s',s.work)}
-    ${timerRow('Descanso','Entre rondas','rest','s',s.rest)}
-    ${timerRow('Rondas','Por ciclo','rounds','',s.rounds)}
-    ${timerRow('Ciclos','Grupos de rondas','cycles','',s.cycles)}
-    ${timerRow('Descanso entre ciclos','Entre ciclos','restCycle','s',s.restCycle)}
-  </div>
-  <div style="margin:0.75rem 1.1rem 1rem;padding:0.9rem 1rem;background:rgba(74,222,128,0.04);border:1px solid rgba(74,222,128,0.14);border-radius:var(--radius);display:flex;align-items:center;justify-content:space-between">
-    <div style="font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em">Tiempo total</div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end">
-      <div class="timer-total-val" style="font-family:var(--font-display);font-size:24px;font-weight:500;color:var(--green);letter-spacing:-1px">${timerFormatTotal(s)}</div>
-      <div class="timer-total-breakdown" style="font-size:10px;color:var(--text2);margin-top:2px">${timerBreakdown(s)}</div>
-    </div>
-  </div>` : '';
-
   document.getElementById('a-view-timer').innerHTML = `
-  <div class="timer-wrap">
+  <div class="timer-wrap" style="overflow-y:auto">
     ${timerHeaderHtml('interval')}
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem 1rem 0.5rem;position:relative">
-      <div style="position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center">
-        ${arc}
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
-          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:${ph.color};opacity:0.75">${ph.label}</div>
-          <div class="timer-display" style="font-family:var(--font-display);font-size:68px;font-weight:400;letter-spacing:-4px;color:${ph.color};line-height:1">${mm}:${ss2}</div>
-          <div style="font-size:11px;color:var(--text2);font-weight:400;letter-spacing:0.04em;margin-top:2px">${infoLine}</div>
+
+    <!-- Círculo fijo -->
+    <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:0.75rem 1rem 0">
+      <div style="position:relative;width:220px;height:220px">
+        ${timerArcSVG(progress, ph.color)}
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px">
+          <div id="t-phase" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:${ph.color};opacity:0.75">${ph.label}</div>
+          <div id="t-display" style="font-family:var(--font-display);font-size:68px;font-weight:400;letter-spacing:-4px;color:${ph.color};line-height:1">${mm}:${ss2}</div>
+          <div id="t-info" style="font-size:11px;color:var(--text2);font-weight:400;letter-spacing:0.03em">${isIdle?`${s.rounds} rondas · ${s.cycles} ciclos`:s.phase==='done'?'¡Buen trabajo!':`Ronda ${s.currentRound}/${s.rounds} · Ciclo ${s.currentCycle}/${s.cycles}`}</div>
         </div>
       </div>
     </div>
-    <div class="timer-controls" style="padding:0.25rem 1.1rem 1rem">
+
+    <!-- Controles fijos -->
+    <div style="flex-shrink:0;display:flex;gap:16px;align-items:center;justify-content:center;padding:0.5rem 1.1rem 0.75rem">
       <button class="timer-btn-sm" onclick="timerReset()" title="Reiniciar">↺</button>
-      <button class="timer-btn-play" onclick="timerToggle()" style="background:linear-gradient(145deg,${ph.color},${ph.color}bb)">${playIcon}</button>
-      ${!isIdle ? `<button class="timer-btn-sm" onclick="timerSkip()" title="Saltar fase">⏭</button>` : `<div style="width:46px"></div>`}
+      <button id="t-play-btn" class="timer-btn-play" onclick="timerToggle()" style="background:linear-gradient(145deg,${ph.color},${ph.color}99)">${s.running?'⏸':s.phase==='done'?'↺':'▶'}</button>
+      <button id="t-skip-btn" class="timer-btn-sm" onclick="timerSkip()" title="Saltar" style="visibility:${isIdle?'hidden':'visible'}">⏭</button>
     </div>
-    ${configHtml}
+
+    <!-- Config (solo en idle) -->
+    <div id="t-config-wrap" style="display:${isIdle?'block':'none'}">
+      <div class="timer-config" style="margin:0 1.1rem">
+        ${timerRow('Preparación','Antes de empezar','prepare','s',s.prepare)}
+        ${timerRow('Trabajo','Tiempo activo','work','s',s.work)}
+        ${timerRow('Descanso','Entre rondas','rest','s',s.rest)}
+        ${timerRow('Rondas','Por ciclo','rounds','',s.rounds)}
+        ${timerRow('Ciclos','Grupos de rondas','cycles','',s.cycles)}
+        ${timerRow('Desc. entre ciclos','Entre ciclos','restCycle','s',s.restCycle)}
+      </div>
+      <div style="margin:0.6rem 1.1rem 1rem;padding:0.75rem 1rem;background:rgba(74,222,128,0.04);border:1px solid rgba(74,222,128,0.14);border-radius:var(--radius);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em">Tiempo total estimado</div>
+        <div id="t-total-val" style="font-family:var(--font-display);font-size:22px;font-weight:500;color:var(--green);letter-spacing:-1px">${timerFormatTotal(s)}</div>
+      </div>
+    </div>
   </div>`;
 }
-function timerFormatTotal(s){
-  const total=s.prepare + s.cycles*(s.rounds*s.work + (s.rounds-1)*s.rest) + (s.cycles-1)*s.restCycle;
-  const mm=Math.floor(total/60);const ss=total%60;
-  return mm>0?(ss>0?`${mm} min ${ss} seg`:`${mm} min`):`${ss} seg`;
-}
-function timerBreakdown(s){
-  const partes=[];
-  partes.push(`${s.prepare}s prep`);
-  partes.push(`${s.cycles} ciclos × (${s.rounds} rondas × ${s.work}s trabajo + ${s.rounds-1}× ${s.rest}s desc)`);
-  if(s.cycles>1)partes.push(`${s.cycles-1}× ${s.restCycle}s entre ciclos`);
-  return partes.join(' + ');
-}
+
 function timerRow(label,sub,key,unit,val){
   return`<div class="timer-config-row">
     <div><div class="timer-config-label">${label}</div><div class="timer-config-sub">${sub}</div></div>
@@ -2871,91 +2920,97 @@ function timerRow(label,sub,key,unit,val){
     </div>
   </div>`;
 }
+
 function timerAdj(key,delta){
-  timerState[key]=Math.max(1,timerState[key]+delta);
-  // Actualizar el input sin redibujar todo
-  const inp=document.getElementById('ti-'+key);
-  if(inp)inp.value=timerState[key];
-  timerUpdateTotal();
+  timerState[key] = Math.max(1, timerState[key]+delta);
+  const inp = document.getElementById('ti-'+key);
+  if(inp) inp.value = timerState[key];
+  const tot = document.getElementById('t-total-val');
+  if(tot) tot.textContent = timerFormatTotal(timerState);
+  // actualizar display si es 'work'
+  if(key==='work'){
+    const disp = document.getElementById('t-display');
+    if(disp && (timerState.phase==='idle'||timerState.phase==='done')){
+      const mm=String(Math.floor(timerState.work/60)).padStart(2,'0');
+      const ss=String(timerState.work%60).padStart(2,'0');
+      disp.textContent=`${mm}:${ss}`;
+    }
+  }
 }
 function timerSetNoRender(key,val){
   const n=parseInt(val);
-  if(!isNaN(n)&&n>0){timerState[key]=n;timerUpdateTotal();}
+  if(!isNaN(n)&&n>0){
+    timerState[key]=n;
+    const tot=document.getElementById('t-total-val');
+    if(tot) tot.textContent=timerFormatTotal(timerState);
+  }
 }
 function timerSet(key,val){
   const n=parseInt(val);
-  if(!isNaN(n)&&n>0)timerState[key]=n;
-  else if(document.getElementById('ti-'+key))document.getElementById('ti-'+key).value=timerState[key];
-  timerUpdateTotal();
+  if(!isNaN(n)&&n>0) timerState[key]=n;
+  else { const inp=document.getElementById('ti-'+key); if(inp) inp.value=timerState[key]; }
+  const tot=document.getElementById('t-total-val');
+  if(tot) tot.textContent=timerFormatTotal(timerState);
 }
-function timerUpdateTotal(){
-  // Solo actualiza el display del tiempo y el total estimado sin redibujar todo
-  const s=timerState;
-  const disp=document.querySelector('.timer-display');
-  if(disp&&(s.phase==='idle'||s.phase==='done')){
-    const mm=String(Math.floor(s.work/60)).padStart(2,'0');
-    const ss=String(s.work%60).padStart(2,'0');
-    disp.textContent=`${mm}:${ss}`;
-  }
-  const totalEl=document.querySelector('.timer-total-val');
-  if(totalEl)totalEl.textContent=timerFormatTotal(s);
-  const breakEl=document.querySelector('.timer-total-breakdown');
-  if(breakEl)breakEl.textContent=timerBreakdown(s);
-}
+
 function timerToggle(){
   if(timerState.phase==='idle'||timerState.phase==='done'){timerStart();return;}
-  timerState.running?timerPause():timerResume();
+  timerState.running ? timerPause() : timerResume();
 }
 function timerStart(){
-  timerState.currentRound=1;timerState.currentCycle=1;
-  timerState.phase='prepare';timerState.timeLeft=timerState.prepare;
-  timerState.running=true;timerRender();
+  clearInterval(timerState.interval); // limpiar cualquier interval previo
+  timerState.currentRound=1; timerState.currentCycle=1;
+  timerState.phase='prepare'; timerState.timeLeft=timerState.prepare;
+  timerState.running=true;
+  timerRender(); // reconstruye DOM una sola vez al arrancar
   timerState.interval=setInterval(timerTick,1000);
 }
-function timerPause(){timerState.running=false;clearInterval(timerState.interval);timerRender();}
-function timerResume(){timerState.running=true;timerState.interval=setInterval(timerTick,1000);timerRender();}
-function timerStop(){clearInterval(timerState?.interval);if(timerState)timerState.running=false;}
-function timerReset(){
-  timerStop();timerState.phase='idle';timerState.timeLeft=0;
-  timerState.currentRound=1;timerState.currentCycle=1;timerState.running=false;timerRender();
+function timerPause(){
+  timerState.running=false;
+  clearInterval(timerState.interval);
+  timerDOMUpdate();
 }
-function timerSkip(){timerStop();timerNextPhase();timerState.running=true;timerState.interval=setInterval(timerTick,1000);timerRender();}
+function timerResume(){
+  clearInterval(timerState.interval); // evitar doble interval
+  timerState.running=true;
+  timerState.interval=setInterval(timerTick,1000);
+  timerDOMUpdate();
+}
+function timerStop(){ clearInterval(timerState?.interval); if(timerState) timerState.running=false; }
+function timerReset(){
+  timerStop();
+  timerState.phase='idle'; timerState.timeLeft=0;
+  timerState.currentRound=1; timerState.currentCycle=1;
+  timerState.running=false;
+  timerRender(); // reconstruye para mostrar config
+}
+function timerSkip(){
+  clearInterval(timerState.interval);
+  timerNextPhase();
+  if(timerState.running){
+    timerState.interval=setInterval(timerTick,1000);
+  }
+}
 function timerTick(){
   timerState.timeLeft--;
   if(timerState.timeLeft<=0){ timerNextPhase(); return; }
-  if(timerState.timeLeft<=3 && timerState.timeLeft>0){ timerCountdownBeep(); }
-  // Actualizar display y arco sin redibujar todo
-  const ph = TIMER_PHASES[timerState.phase] || TIMER_PHASES.idle;
-  const s = timerState;
-  const mm = String(Math.floor(s.timeLeft/60)).padStart(2,'0');
-  const ss = String(s.timeLeft%60).padStart(2,'0');
-  const disp = document.querySelector('.timer-display');
-  if(disp) disp.textContent = `${mm}:${ss}`;
-  // Actualizar arco SVG
-  const total = s.phase==='prepare' ? s.prepare
-              : s.phase==='work'    ? s.work
-              : s.phase==='rest'    ? s.rest
-              : s.phase==='rest-cycle' ? s.restCycle : 1;
-  const progress = total > 0 ? s.timeLeft / total : 0;
-  const r = 96; const cx = 110; const cy = 110;
-  const circ = 2 * Math.PI * r;
-  const dash = circ * Math.max(0, Math.min(1, progress));
-  const gap  = circ - dash;
-  const arc = document.querySelectorAll('circle[stroke-linecap]')[0];
-  if(arc){ arc.setAttribute('stroke-dasharray', `${dash} ${gap}`); }
+  if(timerState.timeLeft<=3){ timerCountdownBeep(); }
+  timerDOMUpdate(); // solo actualiza valores, no reconstruye DOM
 }
 function timerNextPhase(){
   const s=timerState;
-  if(s.phase==='prepare'){s.phase='work';s.timeLeft=s.work;}
+  clearInterval(s.interval);
+  if(s.phase==='prepare'){ s.phase='work'; s.timeLeft=s.work; }
   else if(s.phase==='work'){
-    if(s.currentRound<s.rounds){s.phase='rest';s.timeLeft=s.rest;}
-    else if(s.currentCycle<s.cycles){s.phase='rest-cycle';s.timeLeft=s.restCycle;s.currentCycle++;s.currentRound=1;}
-    else{s.phase='done';s.running=false;clearInterval(s.interval);timerVibrate();timerRender();return;}
-  }else if(s.phase==='rest'){s.currentRound++;s.phase='work';s.timeLeft=s.work;}
-  else if(s.phase==='rest-cycle'){s.phase='work';s.timeLeft=s.work;}
+    if(s.currentRound<s.rounds){ s.phase='rest'; s.timeLeft=s.rest; }
+    else if(s.currentCycle<s.cycles){ s.phase='rest-cycle'; s.timeLeft=s.restCycle; s.currentCycle++; s.currentRound=1; }
+    else{ s.phase='done'; s.running=false; timerVibrate(); timerRender(); return; }
+  }
+  else if(s.phase==='rest'){ s.currentRound++; s.phase='work'; s.timeLeft=s.work; }
+  else if(s.phase==='rest-cycle'){ s.phase='work'; s.timeLeft=s.work; }
   timerVibrate();
-  timerRender();
-  if(s.running){clearInterval(s.interval);s.interval=setInterval(timerTick,1000);}
+  timerDOMUpdate();
+  if(s.running) s.interval=setInterval(timerTick,1000);
 }
 // Audio context persistente
 let _audioCtx = null;
