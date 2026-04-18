@@ -1490,6 +1490,31 @@ async function aEditExercise(exId){
   }catch(e){showToast('Error al editar',true);console.error(e);}
 }
 
+async function aEditCircuit(exId){
+  try{
+    const log=aLogs.find(l=>l.ejercicio_id===exId&&l.fecha===aSelectedDate);
+    if(log){
+      await dbDelete('logs_entrenamiento',log.id);
+      aLogs=aLogs.filter(l=>l.id!==log.id);
+    }
+    const ex=aEjercicios.find(e=>e.id===exId);
+    if(ex){
+      await dbPatch('ejercicios',exId,{completado:false,devolucion:null});
+      ex.completado=false; ex.devolucion=null;
+    }
+    // Reiniciar estado solo para este circuito
+    aSessionState={};
+    aSessionState[exId]={status:null,comment:'',series:[],attachments:[]};
+    aSessionExs=[ex];
+    aSessionIdx=0;
+    showToast('Circuito desbloqueado ✓');
+    aBuildDayStrip();
+    aHideAllViews();
+    document.getElementById('a-view-session').style.display='block';
+    aRenderCard(); window.scrollTo(0,0);
+  }catch(e){showToast('Error al editar',true);console.error(e);}
+}
+
 // Renderiza un circuito en vista "completada" del alumno
 function aRenderDoneCircuit(ex, isClosed){
   const {nombre,modalidad,items}=parseCircuit(ex);
@@ -1497,9 +1522,10 @@ function aRenderDoneCircuit(ex, isClosed){
   const itemsHtml=items.map(it=>`<div class="circuit-item-row"><div class="circuit-item-dot"></div><span class="circuit-item-name">${it.nombre}</span>${it.yt?`<a class="circuit-item-yt" href="${it.yt}" target="_blank">▶ Video</a>`:''}</div>`).join('');
   return`<div class="done-circuit-card ${isDone?'is-done':'is-missed'}">
     <div class="done-circuit-header">
-      <div class="done-circuit-badge">🔄 Circuito</div>
+      <div class="done-circuit-badge">Circuito</div>
       <div class="done-circuit-name">${nombre}</div>
       <span class="done-ex-badge ${isDone?'done':'missed'}">${isDone?'✓ Hecho':'✕ No hecho'}</span>
+      <button onclick="aEditCircuit(${ex.id})" style="margin-left:auto;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text2);cursor:pointer;padding:4px 10px;border-radius:20px;font-size:11px;white-space:nowrap;flex-shrink:0">Corregir</button>
     </div>
     ${modalidad?`<div class="done-circuit-modalidad">${modalidad}</div>`:''}
     <div class="done-circuit-exlist">${itemsHtml}</div>
@@ -1766,6 +1792,13 @@ function aHandleFileUpload(event){
   Array.from(files).forEach(file=>{const reader=new FileReader();reader.onload=e=>{state.attachments.push(e.target.result);if(aSessionExs[aSessionIdx]?.id===aCurrentExIdForFile)aRenderCard();};reader.readAsDataURL(file);});
   event.target.value='';
 }
+function aSummaryGoTo(idx){
+  // Volver a la sesión en el ejercicio específico
+  aSessionIdx=idx;
+  document.getElementById('a-view-summary').style.display='none';
+  document.getElementById('a-view-session').style.display='block';
+  aRenderCard(); window.scrollTo(0,0);
+}
 function aShowSummary(){
   document.getElementById('a-view-summary').style.display='block';
   const btn=document.getElementById('btn-save-session');
@@ -1781,8 +1814,11 @@ function aShowSummary(){
     const statusCls=status==='done'?'done':status==='missed'?'missed':'';
     if(isCircuit(ex)){
       const {nombre}=parseCircuit(ex);
-      return`<div class="summary-item" style="border-color:rgba(0,188,212,0.2)">
-        <div class="summary-item-name"><span style="background:rgba(0,188,212,0.12);color:var(--cyan);border:1px solid rgba(0,188,212,0.2);padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700">🔄</span>${nombre}${statusCls?`<span class="summary-status ${statusCls}">${statusLabel}</span>`:''}</div>
+      return`<div class="summary-item" style="border-color:rgba(34,211,238,0.15)">
+        <div class="summary-item-name" style="justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px"><span style="background:rgba(34,211,238,0.1);color:var(--cyan);border:1px solid rgba(34,211,238,0.2);padding:3px 8px;border-radius:8px;font-size:11px;font-weight:600">Circ.</span>${nombre}${statusCls?`<span class="summary-status ${statusCls}">${statusLabel}</span>`:''}</div>
+          <button onclick="aSummaryGoTo(${i})" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text2);cursor:pointer;padding:3px 10px;border-radius:20px;font-size:11px;flex-shrink:0">Corregir</button>
+        </div>
         ${st?.comment?`<div class="summary-comment">"${st.comment}"</div>`:''}
       </div>`;
     }
