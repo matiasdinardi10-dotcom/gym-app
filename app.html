@@ -1209,6 +1209,8 @@ function doLogout(){
 // ════ PANEL ALUMNO ════
 let aCurrentCliente=null,aEjercicios=[],aLogs=[];
 let aSelectedDate=TODAY,aSessionExs=[],aSessionIdx=0,aSessionState={};
+// Persiste el estado de sesión por fecha para no perder lo escrito al cambiar de día
+const aSessionStateCache={};
 let aCurrentExIdForFile=null,aCompletedDayExpanded=false;
 let aProgressExId=null,aProgressPeriod='1m';
 
@@ -1279,15 +1281,26 @@ function aBuildDayStrip(){
   setTimeout(()=>{const sel=document.querySelector('.day-btn.selected')||document.querySelector('.day-btn.today');if(sel)sel.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},100);
 }
 function aSelectDay(ds){
-  // Guardar si hay sesión activa antes de cambiar de día
+  // Guardar card activa antes de cambiar
   if(document.getElementById('a-view-session')?.style.display!=='none' && aSessionExs.length){
     aSaveCurrentCard();
   }
-  aSelectedDate=ds;aSessionState={};aSessionExs=[];aCompletedDayExpanded=false;aBuildDayStrip();aShowHome();
+  // Persistir el estado actual antes de cambiar de fecha
+  if(aSelectedDate && Object.keys(aSessionState).length){
+    aSessionStateCache[aSelectedDate]=JSON.parse(JSON.stringify(aSessionState));
+  }
+  aSelectedDate=ds;
+  // Restaurar estado si ya había datos para ese día
+  aSessionState=aSessionStateCache[ds] ? JSON.parse(JSON.stringify(aSessionStateCache[ds])) : {};
+  aSessionExs=[];aCompletedDayExpanded=false;aBuildDayStrip();aShowHome();
 }
 function aHideAllViews(){
   if(document.getElementById('a-view-session')?.style.display!=='none' && aSessionExs.length){
     aSaveCurrentCard();
+  }
+  // Persistir estado antes de ocultar
+  if(aSelectedDate && Object.keys(aSessionState).length){
+    aSessionStateCache[aSelectedDate]=JSON.parse(JSON.stringify(aSessionState));
   }
   ['a-view-home','a-view-session','a-view-summary','a-view-progress','a-view-timer','a-view-perfil'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.style.display='none';
@@ -2335,15 +2348,17 @@ async function saveEditExercise(){
 
 // ── EDITAR CIRCUITO ──
 let editCircuitItemCount=0;
+const editCircuitItemYt={};
+
 function openEditCircuitModal(id){
   const ex=pAllEjercicios.find(e=>e.id===id);if(!ex)return;
   const {nombre,modalidad,items}=parseCircuit(ex);
   document.getElementById('edit-circ-id').value=id;
   document.getElementById('edit-circ-f-nombre').value=nombre;
   document.getElementById('edit-circ-f-modalidad').value=modalidad;
-  // Limpiar items
   document.getElementById('edit-circ-items-list').innerHTML='';
   editCircuitItemCount=0;
+  for(const k in editCircuitItemYt) delete editCircuitItemYt[k];
   items.forEach(it=>addEditCircuitItemField(it.nombre,it.yt));
   if(!items.length) addEditCircuitItemField();
   document.getElementById('edit-circuit-modal').classList.add('open');
@@ -2354,30 +2369,61 @@ function closeEditCircuitModal(){
 function addEditCircuitItemField(nombre='',yt=''){
   editCircuitItemCount++;
   const id=editCircuitItemCount;
+  editCircuitItemYt[id]=yt||'';
   const div=document.createElement('div');
   div.className='circuit-modal-item';
   div.id=`edit-circ-item-${id}`;
   div.innerHTML=`
-    <div class="circuit-item-autocomplete">
-      <input type="text" placeholder="Ejercicio" id="edit-circ-item-name-${id}" value="${nombre.replace(/"/g,'&quot;')}" autocomplete="off" />
+    <div class="circuit-item-autocomplete" id="edit-circ-ac-wrap-${id}">
+      <input type="text" placeholder="Ejercicio"
+        id="edit-circ-item-name-${id}"
+        value="${nombre.replace(/"/g,'&quot;')}"
+        oninput="onEditCircuitItemInput(${id},this.value)"
+        autocomplete="off" />
+      <div class="ac-list" id="edit-circ-ac-list-${id}" style="display:none"></div>
+      <div class="circuit-item-selected-yt" id="edit-circ-item-yt-show-${id}" style="display:${yt?'flex':'none'}">
+        ▶ <span>Video vinculado</span>
+      </div>
     </div>
-    <input type="hidden" id="edit-circ-item-yt-${id}" value="${(yt||'').replace(/"/g,'&quot;')}" />
-    <button class="circuit-modal-item-del" onclick="this.parentElement.remove()">✕</button>`;
+    <button class="circuit-modal-item-del" onclick="removeEditCircuitItem(${id})">✕</button>`;
   document.getElementById('edit-circ-items-list').appendChild(div);
+}
+function onEditCircuitItemInput(id,val){
+  editCircuitItemYt[id]='';
+  const ytShow=document.getElementById(`edit-circ-item-yt-show-${id}`);
+  if(ytShow) ytShow.style.display='none';
+  const list=document.getElementById(`edit-circ-ac-list-${id}`);
+  if(!val||val.length<2){list.style.display='none';return;}
+  const matches=pBiblioteca.filter(b=>b.nombre.toLowerCase().includes(val.toLowerCase()));
+  if(!matches.length){list.style.display='none';return;}
+  list.innerHTML=matches.map(b=>`<div class="ac-item" onclick="selectEditCircuitItem(${id},'${b.nombre.replace(/'/g,"\\'")}','${(b.link_youtube||'').replace(/'/g,"\\'")}')">
+    <span>${b.nombre}</span>
+    ${b.link_youtube?'<span class="circuit-item-yt-pill">▶ Video</span>':''}
+  </div>`).join('');
+  list.style.display='block';
+}
+function selectEditCircuitItem(id,nombre,yt){
+  document.getElementById(`edit-circ-item-name-${id}`).value=nombre;
+  document.getElementById(`edit-circ-ac-list-${id}`).style.display='none';
+  editCircuitItemYt[id]=yt||'';
+  const ytShow=document.getElementById(`edit-circ-item-yt-show-${id}`);
+  if(ytShow) ytShow.style.display=yt?'flex':'none';
+}
+function removeEditCircuitItem(id){
+  document.getElementById(`edit-circ-item-${id}`)?.remove();
+  delete editCircuitItemYt[id];
 }
 async function saveEditCircuit(){
   const id=parseInt(document.getElementById('edit-circ-id').value);
   const nombre=document.getElementById('edit-circ-f-nombre').value.trim();
   if(!nombre){showToast('El nombre no puede estar vacío',true);return;}
   const modalidad=document.getElementById('edit-circ-f-modalidad').value.trim();
-  // Recopilar items del DOM
   const items=[];
   document.querySelectorAll('#edit-circ-items-list .circuit-modal-item').forEach(row=>{
     const iid=row.id.replace('edit-circ-item-','');
     const nameEl=document.getElementById(`edit-circ-item-name-${iid}`);
-    const ytEl=document.getElementById(`edit-circ-item-yt-${iid}`);
     const n=nameEl?nameEl.value.trim():'';
-    if(n) items.push({nombre:n,yt:ytEl?ytEl.value.trim():''});
+    if(n) items.push({nombre:n,yt:editCircuitItemYt[iid]||''});
   });
   const {nombre:sNombre,nota:sNota}=serializeCircuit(nombre,modalidad,items);
   try{
@@ -2497,6 +2543,9 @@ function removeCircuitItem(id){
 document.addEventListener('click', e=>{
   if(!e.target.closest('.circuit-item-autocomplete')){
     document.querySelectorAll('.circuit-item-autocomplete .ac-list').forEach(l=>l.style.display='none');
+  }
+  if(!e.target.closest('#edit-circuit-modal .circuit-item-autocomplete')){
+    document.querySelectorAll('#edit-circ-items-list .ac-list').forEach(l=>l.style.display='none');
   }
 });
 
