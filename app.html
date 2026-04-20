@@ -598,6 +598,13 @@ select.form-input option { background:#0d1a12; color:var(--text); }
 .biserie-ex-block:last-child { margin-bottom:0; }
 .biserie-ex-block-label { font-size:9px; font-weight:700; color:#A082FF; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.4rem; }
 .biserie-ex-block-name { font-size:16px; font-weight:500; color:var(--text); letter-spacing:-0.3px; font-family:var(--font-display); font-style:italic; margin-bottom:0.75rem; }
+
+/* ── REORDEN ── */
+.ex-reorder { display:flex; flex-direction:column; gap:2px; flex-shrink:0; }
+.ex-reorder-btn { width:22px; height:22px; border-radius:6px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:var(--text2); font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; line-height:1; padding:0; }
+.ex-reorder-btn:hover { border-color:var(--border-green); color:var(--green); background:rgba(74,222,128,0.06); }
+.ex-reorder-btn:disabled { opacity:0.2; cursor:default; }
+.ex-reorder-btn:disabled:hover { border-color:var(--border); color:var(--text2); background:transparent; }
 </style>
 </head>
 <body>
@@ -2412,9 +2419,11 @@ function rutSelectDate(ds){rutSelectedDate=ds;rutBuildCalStrip();rutRenderDay();
 
 function rutRenderDay(){
   if(!rutCurrentClientId)return;
-  const exs=pAllEjercicios.filter(e=>String(e._clientId)===String(rutCurrentClientId)&&e.fecha_sesion===rutSelectedDate);
-  document.getElementById('rut-prog-total').textContent=exs.length;
-  const isToday=rutSelectedDate===TODAY;
+  const exs = rutApplyOrder(
+    pAllEjercicios.filter(e=>String(e._clientId)===String(rutCurrentClientId)&&e.fecha_sesion===rutSelectedDate),
+    rutCurrentClientId, rutSelectedDate
+  );
+  document.getElementById('rut-prog-total').textContent=exs.length;  const isToday=rutSelectedDate===TODAY;
   document.getElementById('rut-prog-fecha').textContent=isToday?'Hoy':new Date(rutSelectedDate+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
   const dayLogs=pAllLogs.filter(l=>l.cliente_id==rutCurrentClientId&&l.fecha===rutSelectedDate);
   const isCompleted=exs.length>0&&dayLogs.length>0;
@@ -2423,7 +2432,15 @@ function rutRenderDay(){
   const logByEx={};dayLogs.forEach(l=>{logByEx[l.ejercicio_id]=l;});
   if(!exs.length){document.getElementById('rut-exercise-list').innerHTML='<div class="empty">No hay ejercicios para este día.<br>Usá "+ Ejercicio" o "+ Circuito" para comenzar.</div>';return;}
 
-  document.getElementById('rut-exercise-list').innerHTML=exs.map((ex,i)=>{
+  const total=exs.length;
+  document.getElementById('rut-exercise-list').innerHTML=exs.map(function(ex,i){
+    var upDis=i===0?'disabled':'';
+    var downDis=i===total-1?'disabled':'';
+    var reorderBtns='<div class="ex-reorder">'
+      +'<button class="ex-reorder-btn" onclick="rutMoveEx('+ex.id+',-1)" '+upDis+' title="Subir">▲</button>'
+      +'<button class="ex-reorder-btn" onclick="rutMoveEx('+ex.id+',1)" '+downDis+' title="Bajar">▼</button>'
+      +'</div>';
+
     // ── BISERIE ──
     if(isBiserie(ex)){
       const {nombreA,dataA,nombreB,dataB}=parseBiserie(ex);
@@ -2432,6 +2449,7 @@ function rutRenderDay(){
       if(isCompleted){statusBadge=ex.completado?`<span class="status-badge-done">✓ Completado</span>`:`<span class="status-badge-missed">✕ No completado</span>`;}
       return`<div class="biserie-card ${exDone?'done':''}">
         <div class="biserie-header">
+          ${reorderBtns}
           <div class="biserie-badge">Biserie</div>
           ${statusBadge}
           <button class="ex-edit" onclick="openEditExModal(${ex.id})" title="Editar" style="margin-left:auto">✎</button>
@@ -2452,13 +2470,13 @@ function rutRenderDay(){
     if(isCircuit(ex)){
       const {nombre,modalidad,items}=parseCircuit(ex);
       const log=logByEx[ex.id];
-      // isCompleted por ejercicio individual, no por el día entero
-      const exDone = !!log || ex.completado;
+      const exDone=!!log||ex.completado;
       let statusBadge='';
       if(isCompleted){statusBadge=ex.completado?`<span class="status-badge-done">✓ Completado</span>`:`<span class="status-badge-missed">✕ No completado</span>`;}
       const itemsHtml=items.map(it=>`<div class="circuit-card-item"><div class="circuit-card-item-dot"></div><span>${it.nombre}</span>${it.yt?`<a href="${it.yt}" target="_blank" style="font-size:11px;color:#F87171;text-decoration:none;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);padding:1px 7px;border-radius:20px;margin-left:6px;font-weight:500">YT</a>`:''}</div>`).join('');
       return`<div class="circuit-card ${exDone?'done':''}">
         <div class="circuit-card-header">
+          ${reorderBtns}
           <div class="circuit-card-badge">Circuito</div>
           <span class="circuit-card-name">${nombre}</span>
           ${statusBadge}
@@ -2473,12 +2491,13 @@ function rutRenderDay(){
     // ejercicio normal
     const tags=[ex.series?ex.series+' reps':'',ex.peso,ex.tiempo].filter(Boolean);
     const log=logByEx[ex.id];
-    const exDone = !!log || ex.completado;
+    const exDone=!!log||ex.completado;
     let statusBadge='';
     if(isCompleted){statusBadge=ex.completado?`<span class="status-badge-done">✓ Completado</span>`:`<span class="status-badge-missed">✕ No completado</span>`;}
     const loadHistoryHtml=pRenderLoadHistoryBlock(rutCurrentClientId,ex.nombre);
     return`<div class="exercise-card ${exDone?'done':''}">
       <div class="ex-header">
+        ${reorderBtns}
         <div style="width:26px;height:26px;border-radius:8px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.15);color:var(--green);font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${String.fromCharCode(65+i)}</div>
         <span class="ex-name">${ex.nombre}</span>${statusBadge}
         <button class="ex-expand" onclick="rutToggleDetail(${ex.id})">${rutOpenDetails[ex.id]?'−':'+'}</button>
@@ -2625,9 +2644,49 @@ async function saveEditCircuit(){
     showToast('Circuito actualizado ✓');
   }catch(e){showToast('Error al guardar: '+e.message.slice(0,60),true);}
 }
+// ════ ORDEN DE EJERCICIOS ════
+function rutOrderKey(clientId, fecha){ return `ex_order_${clientId}_${fecha}`; }
+
+function rutGetOrder(clientId, fecha){
+  try{ return JSON.parse(localStorage.getItem(rutOrderKey(clientId,fecha)))||null; }catch(e){ return null; }
+}
+
+function rutSaveOrder(clientId, fecha, ids){
+  try{ localStorage.setItem(rutOrderKey(clientId,fecha), JSON.stringify(ids)); }catch(e){}
+}
+
+function rutApplyOrder(exs, clientId, fecha){
+  const saved = rutGetOrder(clientId, fecha);
+  if(!saved || !saved.length) return exs;
+  const map = {};
+  exs.forEach(e => map[e.id] = e);
+  const ordered = saved.map(id => map[id]).filter(Boolean);
+  // Agregar los que no estaban en el orden guardado (nuevos) al final
+  exs.forEach(e => { if(!saved.includes(e.id)) ordered.push(e); });
+  return ordered;
+}
+
+function rutMoveEx(id, dir){
+  const exs = pAllEjercicios.filter(e=>String(e._clientId)===String(rutCurrentClientId)&&e.fecha_sesion===rutSelectedDate);
+  const ordered = rutApplyOrder(exs, rutCurrentClientId, rutSelectedDate);
+  const idx = ordered.findIndex(e=>e.id===id);
+  if(idx<0) return;
+  const newIdx = idx+dir;
+  if(newIdx<0||newIdx>=ordered.length) return;
+  // Swap
+  [ordered[idx],ordered[newIdx]]=[ordered[newIdx],ordered[idx]];
+  rutSaveOrder(rutCurrentClientId, rutSelectedDate, ordered.map(e=>e.id));
+  rutRenderDay();
+}
 async function rutRemoveEx(id){
   if(!confirm('¿Eliminar?'))return;
-  try{await dbDelete('ejercicios',id);pAllEjercicios=pAllEjercicios.filter(e=>e.id!==id);rutBuildCalStrip();rutRenderDay();showToast('Eliminado');}catch(e){showToast('Error',true);}
+  try{
+    await dbDelete('ejercicios',id);
+    pAllEjercicios=pAllEjercicios.filter(e=>e.id!==id);
+    const saved=rutGetOrder(rutCurrentClientId,rutSelectedDate);
+    if(saved) rutSaveOrder(rutCurrentClientId,rutSelectedDate,saved.filter(x=>x!==id));
+    rutBuildCalStrip();rutRenderDay();showToast('Eliminado');
+  }catch(e){showToast('Error',true);}
 }
 
 // MODAL EJERCICIO
