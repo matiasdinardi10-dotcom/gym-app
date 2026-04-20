@@ -581,6 +581,23 @@ select.form-input option { background:#0d1a12; color:var(--text); }
 .timer-btn-play:active { transform:scale(0.95); }
 .timer-btn-sm { width:46px; height:46px; border-radius:50%; border:1px solid var(--border); background:rgba(255,255,255,0.025); color:var(--text2); font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
 .timer-btn-sm:active { background:rgba(255,255,255,0.07); }
+
+/* ── BISERIE ── */
+.biserie-card { border:1px solid rgba(160,130,255,0.2); border-radius:var(--radius); margin-bottom:0.5rem; background:rgba(160,130,255,0.03); transition:all 0.2s; overflow:hidden; position:relative; cursor:pointer; }
+.biserie-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; background:#A082FF; }
+.biserie-card.done { border-color:rgba(160,130,255,0.3); background:rgba(160,130,255,0.06); }
+.biserie-badge { background:rgba(160,130,255,0.1); border:1px solid rgba(160,130,255,0.25); color:#A082FF; font-size:9px; font-weight:700; padding:3px 8px; border-radius:8px; letter-spacing:0.07em; text-transform:uppercase; flex-shrink:0; }
+.biserie-header { display:flex; align-items:center; gap:8px; padding:0.85rem 1.1rem 0.6rem; }
+.biserie-ex { padding:0.45rem 1.1rem 0.55rem; border-top:1px solid rgba(160,130,255,0.08); }
+.biserie-ex-label { font-size:9px; font-weight:700; color:#A082FF; text-transform:uppercase; letter-spacing:0.09em; margin-bottom:2px; opacity:0.7; }
+.biserie-ex-name { font-size:13px; color:var(--text); font-weight:400; }
+.biserie-ex-tags { display:flex; gap:5px; flex-wrap:wrap; margin-top:3px; }
+.biserie-session-card { background:rgba(160,130,255,0.04); border:1px solid rgba(160,130,255,0.2); border-radius:var(--radius); padding:1.4rem; margin-bottom:0.9rem; }
+.biserie-session-badge { display:inline-flex; background:rgba(160,130,255,0.12); border:1px solid rgba(160,130,255,0.25); color:#A082FF; font-size:11px; font-weight:700; padding:5px 12px; border-radius:10px; margin-bottom:1rem; letter-spacing:0.06em; }
+.biserie-ex-block { background:rgba(255,255,255,0.025); border:1px solid rgba(160,130,255,0.12); border-radius:var(--radius-sm); padding:1rem; margin-bottom:0.75rem; }
+.biserie-ex-block:last-child { margin-bottom:0; }
+.biserie-ex-block-label { font-size:9px; font-weight:700; color:#A082FF; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.4rem; }
+.biserie-ex-block-name { font-size:16px; font-weight:500; color:var(--text); letter-spacing:-0.3px; font-family:var(--font-display); font-style:italic; margin-bottom:0.75rem; }
 </style>
 </head>
 <body>
@@ -955,7 +972,9 @@ select.form-input option { background:#0d1a12; color:var(--text); }
   <!-- MODAL EJERCICIO -->
   <div class="p-modal-overlay" id="ex-modal">
     <div class="p-modal">
-      <h2>Agregar ejercicio</h2>
+      <h2 id="ex-modal-title">Agregar ejercicio</h2>
+      <!-- Ejercicio A -->
+      <div style="font-size:10px;font-weight:700;color:#A082FF;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:6px" id="ex-modal-label-a" style="display:none"></div>
       <div class="autocomplete-wrap">
         <input type="text" id="ex-f-name" placeholder="Nombre del ejercicio" oninput="onNameInput(this.value)" autocomplete="off" />
         <div class="autocomplete-list" id="ex-autocomplete-list" style="display:none"></div>
@@ -969,6 +988,32 @@ select.form-input option { background:#0d1a12; color:var(--text); }
       <input class="form-input" style="margin-top:0.6rem" type="text" id="ex-f-tiempo" placeholder="Tiempo (ej: 30 min)" />
       <textarea class="form-input" style="resize:none;min-height:60px;margin-top:0.6rem" id="ex-f-nota" placeholder="Indicaciones para el alumno..."></textarea>
       <input class="form-input" type="text" id="ex-f-yt" placeholder="▶ Link YouTube" />
+
+      <!-- Botón biserie (aparece al seleccionar ejercicio) -->
+      <div id="ex-biserie-toggle" style="display:none;margin:0.5rem 0">
+        <button onclick="toggleBiserieField()" id="ex-biserie-btn"
+          style="width:100%;padding:0.6rem;border-radius:var(--radius-sm);border:1px dashed rgba(160,130,255,0.35);background:rgba(160,130,255,0.05);color:#A082FF;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.04em;transition:all 0.2s">
+          ＋ Agregar biserie
+        </button>
+      </div>
+
+      <!-- Ejercicio B (biserie) -->
+      <div id="ex-biserie-wrap" style="display:none;border:1px solid rgba(160,130,255,0.2);border-radius:var(--radius-sm);padding:0.85rem;background:rgba(160,130,255,0.03);margin-bottom:0.5rem">
+        <div style="font-size:10px;font-weight:700;color:#A082FF;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px">Ejercicio B — Biserie</div>
+        <div class="autocomplete-wrap" style="margin-bottom:0.55rem">
+          <input type="text" id="ex-f-name-b" placeholder="Nombre del ejercicio B" oninput="onNameInputB(this.value)" autocomplete="off" />
+          <div class="autocomplete-list" id="ex-autocomplete-list-b" style="display:none"></div>
+        </div>
+        <div id="ex-yt-preview-b" style="display:none"></div>
+        <div class="row2">
+          <input class="form-input" style="margin:0" type="text" id="ex-f-series-b" placeholder="Series x rep" />
+          <input class="form-input" style="margin:0" type="text" id="ex-f-peso-b" placeholder="Peso" />
+        </div>
+        <input class="form-input" style="margin-top:0.55rem" type="text" id="ex-f-tiempo-b" placeholder="Tiempo" />
+        <textarea class="form-input" style="resize:none;min-height:50px;margin-top:0.55rem" id="ex-f-nota-b" placeholder="Indicaciones..."></textarea>
+        <input class="form-input" style="margin-top:0.55rem" type="text" id="ex-f-yt-b" placeholder="▶ Link YouTube" />
+      </div>
+
       <button class="btn-green-p" onclick="addExercise()">+ Agregar a la sesión</button>
       <button class="btn-cancel-p" onclick="closeExModal()">Cancelar</button>
     </div>
@@ -1073,6 +1118,8 @@ const QUOTES = [
 
 // Prefijo para identificar circuitos en la tabla ejercicios
 const CIRCUIT_PREFIX = '__CIRCUIT__';
+// Prefijo para biseries
+const BISERIE_PREFIX = '__BISERIE__';
 
 async function dbGet(t,p=''){const r=await fetch(`${SB_URL}/rest/v1/${t}?${p}`,{headers:SBH});if(!r.ok)throw new Error(await r.text());return r.json();}
 async function dbPost(t,b){const r=await fetch(`${SB_URL}/rest/v1/${t}`,{method:'POST',headers:{...SBH,'Prefer':'return=representation'},body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return r.json();}
@@ -1124,6 +1171,29 @@ function serializeCircuit(nombre, modalidad, items){
     nombre: CIRCUIT_PREFIX + nombre,
     nota: modalidad + '\n---\n' + notaItems
   };
+}
+
+// Helpers biserie
+// Formato: nombre=__BISERIE__ExA|||ExB, nota=seriesA|||ytA\n---\nseriesB|||pesoB|||tiempoB|||notaB|||ytB
+function isBiserie(ex){ return ex.nombre && ex.nombre.startsWith(BISERIE_PREFIX); }
+function parseBiserie(ex){
+  const parts = ex.nombre.replace(BISERIE_PREFIX,'').split('|||');
+  const nombreA = parts[0]||'';
+  const nombreB = parts[1]||'';
+  const notaParts = (ex.nota||'').split('\n---\n');
+  function parseExData(s){
+    const p=(s||'').split('|||');
+    return {series:p[0]||'',peso:p[1]||'',tiempo:p[2]||'',nota:p[3]||'',yt:p[4]||''};
+  }
+  return {
+    nombreA, dataA: parseExData(notaParts[0]),
+    nombreB, dataB: parseExData(notaParts[1]),
+  };
+}
+function serializeBiserie(nombreA, dataA, nombreB, dataB){
+  const encA=[dataA.series||'',dataA.peso||'',dataA.tiempo||'',dataA.nota||'',dataA.yt||''].join('|||');
+  const encB=[dataB.series||'',dataB.peso||'',dataB.tiempo||'',dataB.nota||'',dataB.yt||''].join('|||');
+  return { nombre: BISERIE_PREFIX+nombreA+'|||'+nombreB, nota: encA+'\n---\n'+encB };
 }
 
 // ════ AUTH ════
@@ -1616,12 +1686,23 @@ function aRenderHome(){
       <div class="motivational">${quote}</div>`;
     return;
   }
-  exs.forEach(ex=>{if(!aSessionState[ex.id])aSessionState[ex.id]={status:null,comment:'',series:[],attachments:[]};});
+  exs.forEach(ex=>{if(!aSessionState[ex.id])aSessionState[ex.id]={status:null,comment:'',series:[],seriesB:[],attachments:[]};});
   aSessionExs=exs;
   const done=exs.filter(e=>aSessionState[e.id]?.status==='done').length;
   const missed=exs.filter(e=>aSessionState[e.id]?.status==='missed').length;
   const allMarked=done+missed===exs.length;
   const exItems=exs.map((ex,i)=>{
+    if(isBiserie(ex)){
+      const {nombreA,dataA,nombreB,dataB}=parseBiserie(ex);
+      const st=aSessionState[ex.id];
+      const cardCls=st?.status==='done'?'done':st?.status==='missed'?'missed':'';
+      const dotClass=st?.status==='done'?'dot-done':st?.status==='missed'?'dot-missed':'dot-pending';
+      return`<div class="biserie-card ${cardCls}" onclick="aOpenExercise(${i})">
+        <div class="biserie-header"><div class="biserie-badge">Biserie</div><div class="ex-status-dot ${dotClass}" style="margin-left:auto"></div></div>
+        <div class="biserie-ex"><div class="biserie-ex-label">A</div><div class="biserie-ex-name">${nombreA}</div></div>
+        <div class="biserie-ex"><div class="biserie-ex-label">B</div><div class="biserie-ex-name">${nombreB}</div></div>
+      </div>`;
+    }
     if(isCircuit(ex)) return aRenderCircuitPreview(ex,i);
     const st=aSessionState[ex.id];
     const dotClass=st?.status==='done'?'dot-done':st?.status==='missed'?'dot-missed':'dot-pending';
@@ -1669,6 +1750,51 @@ function aRenderCard(){
     const st=aSessionState[e.id];let cls=i===aSessionIdx?'current':st?.status==='done'?'done':st?.status==='missed'?'missed':'';
     return`<div class="prog-dot ${cls}"></div>`;
   }).join('');
+
+  // Si es biserie, render especial
+  if(isBiserie(ex)){
+    const {nombreA,dataA,nombreB,dataB}=parseBiserie(ex);
+    const state=aSessionState[ex.id];
+    const numSeriesA=parseInt(dataA.series)||3;
+    const numSeriesB=parseInt(dataB.series)||3;
+    let seriesHtmlA='',seriesHtmlB='';
+    for(let s=0;s<numSeriesA;s++){const sv=(state.series||[])[s]||{};seriesHtmlA+=`<div class="series-row"><div class="series-num">S${s+1}</div><div class="series-inputs"><input class="series-input" id="bs-a-peso-${s}" placeholder="kg" value="${sv.peso||''}" /><input class="series-input" id="bs-a-reps-${s}" placeholder="reps" value="${sv.reps||''}" /><input class="series-input" id="bs-a-rprir-${s}" placeholder="RPE" value="${sv.rprir||''}" /></div></div>`;}
+    for(let s=0;s<numSeriesB;s++){const sv=(state.seriesB||[])[s]||{};seriesHtmlB+=`<div class="series-row"><div class="series-num">S${s+1}</div><div class="series-inputs"><input class="series-input" id="bs-b-peso-${s}" placeholder="kg" value="${sv.peso||''}" /><input class="series-input" id="bs-b-reps-${s}" placeholder="reps" value="${sv.reps||''}" /><input class="series-input" id="bs-b-rprir-${s}" placeholder="RPE" value="${sv.rprir||''}" /></div></div>`;}
+    const commentOpen=state.status?'open':'';const commentColor=state.status==='done'?'green':state.status==='missed'?'red':'';
+    const colHeader=`<div style="display:flex;align-items:center;gap:6px;padding:0 0 6px;border-bottom:1px solid var(--border);margin-bottom:2px"><div style="width:28px"></div><div style="flex:1;font-size:10px;color:var(--text2);text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">KG</div><div style="flex:1;font-size:10px;color:var(--text2);text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">REPS</div><div style="flex:1;font-size:10px;color:var(--text2);text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">RPE</div></div>`;
+    document.getElementById('session-body').innerHTML=`
+      <div class="biserie-session-card">
+        <div class="biserie-session-badge">Biserie</div>
+        <div class="biserie-ex-block">
+          <div class="biserie-ex-block-label">Ejercicio A</div>
+          <div class="biserie-ex-block-name">${nombreA}</div>
+          ${dataA.nota?`<div class="ex-card-note" style="margin-bottom:0.75rem">${dataA.nota}</div>`:''}
+          ${(dataA.series||dataA.peso||dataA.tiempo)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:0.75rem">${dataA.series?`<span style="background:rgba(160,130,255,0.1);border:1px solid rgba(160,130,255,0.2);color:#A082FF;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500">${dataA.series} reps</span>`:''}${dataA.peso?`<span style="background:rgba(160,130,255,0.1);border:1px solid rgba(160,130,255,0.2);color:#A082FF;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500">${dataA.peso} kg</span>`:''}${dataA.tiempo?`<span style="background:rgba(160,130,255,0.1);border:1px solid rgba(160,130,255,0.2);color:#A082FF;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500">${dataA.tiempo}</span>`:''}</div>`:''}
+          <div class="series-list">${colHeader}${seriesHtmlA}</div>
+          ${dataA.yt?`<a class="ex-card-link yt" href="${dataA.yt}" target="_blank" style="display:inline-flex;margin-top:0.5rem">▶ Video</a>`:''}
+        </div>
+        <div class="biserie-ex-block">
+          <div class="biserie-ex-block-label">Ejercicio B</div>
+          <div class="biserie-ex-block-name">${nombreB}</div>
+          ${dataB.nota?`<div class="ex-card-note" style="margin-bottom:0.75rem">${dataB.nota}</div>`:''}
+          ${(dataB.series||dataB.peso||dataB.tiempo)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:0.75rem">${dataB.series?`<span style="background:rgba(160,130,255,0.1);border:1px solid rgba(160,130,255,0.2);color:#A082FF;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500">${dataB.series} reps</span>`:''}${dataB.peso?`<span style="background:rgba(160,130,255,0.1);border:1px solid rgba(160,130,255,0.2);color:#A082FF;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500">${dataB.peso} kg</span>`:''}${dataB.tiempo?`<span style="background:rgba(160,130,255,0.1);border:1px solid rgba(160,130,255,0.2);color:#A082FF;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500">${dataB.tiempo}</span>`:''}</div>`:''}
+          <div class="series-list">${colHeader}${seriesHtmlB}</div>
+          ${dataB.yt?`<a class="ex-card-link yt" href="${dataB.yt}" target="_blank" style="display:inline-flex;margin-top:0.5rem">▶ Video</a>`:''}
+        </div>
+        <div class="action-btns" style="margin-top:1rem">
+          <button class="btn-missed ${state.status==='missed'?'active':''}" onclick="aSetStatus('missed')">✕ No completado</button>
+          <button class="btn-completed ${state.status==='done'?'active':''}" onclick="aSetStatus('done')">✓ Completado</button>
+        </div>
+        <div class="comment-wrap ${commentOpen} ${commentColor}" id="comment-wrap">
+          <textarea id="ex-comment" placeholder="${state.status==='done'?'¿Cómo te fue?':'¿Qué pasó?'}">${state.comment||''}</textarea>
+        </div>
+      </div>
+      <div class="session-nav-btns">
+        ${aSessionIdx>0?`<button class="btn-prev" onclick="aNavSession(-1)">← Anterior</button>`:'<div></div>'}
+        ${isLast?`<button class="btn-summary-orange" onclick="aSaveCardAndSummary()">Finalizar →</button>`:`<button class="btn-next" onclick="aSaveCardAndNext()">Siguiente →</button>`}
+      </div>`;
+    return;
+  }
 
   // Si es circuito, render especial
   if(isCircuit(ex)){
@@ -1763,6 +1889,16 @@ function aSetStatus(status){
 }
 function aSaveCurrentCard(){
   const ex=aSessionExs[aSessionIdx];const state=aSessionState[ex.id];
+  if(isBiserie(ex)){
+    const {dataA,dataB}=parseBiserie(ex);
+    const numA=parseInt(dataA.series)||3; const numB=parseInt(dataB.series)||3;
+    state.series=[];
+    for(let s=0;s<numA;s++){state.series.push({peso:document.getElementById(`bs-a-peso-${s}`)?.value.trim()||'',reps:document.getElementById(`bs-a-reps-${s}`)?.value.trim()||'',rprir:document.getElementById(`bs-a-rprir-${s}`)?.value.trim()||''});}
+    state.seriesB=[];
+    for(let s=0;s<numB;s++){state.seriesB.push({peso:document.getElementById(`bs-b-peso-${s}`)?.value.trim()||'',reps:document.getElementById(`bs-b-reps-${s}`)?.value.trim()||'',rprir:document.getElementById(`bs-b-rprir-${s}`)?.value.trim()||''});}
+    state.comment=document.getElementById('ex-comment')?.value.trim()||'';
+    return;
+  }
   if(!isCircuit(ex)){
     const numSeries=parseInt(ex.series)||3;state.series=[];
     for(let s=0;s<numSeries;s++){
@@ -1825,6 +1961,20 @@ function aShowSummary(){
     const st=aSessionState[ex.id];const status=st?.status;
     const statusLabel=status==='done'?'Completado':status==='missed'?'No completado':'Pendiente';
     const statusCls=status==='done'?'done':status==='missed'?'missed':'';
+    if(isBiserie(ex)){
+      const {nombreA,nombreB}=parseBiserie(ex);
+      const seriesA=st?.series?.filter(s=>s.peso||s.reps).map((s,si)=>`A-S${si+1}: ${[s.peso?s.peso+'kg':'',s.reps?s.reps+' reps':'',s.rprir?'RPE '+s.rprir:''].filter(Boolean).join(' · ')}`).join('<br>')||'';
+      const seriesB=(st?.seriesB||[]).filter(s=>s.peso||s.reps).map((s,si)=>`B-S${si+1}: ${[s.peso?s.peso+'kg':'',s.reps?s.reps+' reps':'',s.rprir?'RPE '+s.rprir:''].filter(Boolean).join(' · ')}`).join('<br>')||'';
+      return`<div class="summary-item" style="border-color:rgba(160,130,255,0.2)">
+        <div class="summary-item-name" style="justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="biserie-badge">Biserie</span><span>${nombreA} + ${nombreB}</span>${statusCls?`<span class="summary-status ${statusCls}">${statusLabel}</span>`:''}</div>
+          <button onclick="aSummaryGoTo(${i})" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text2);cursor:pointer;padding:3px 10px;border-radius:20px;font-size:11px;flex-shrink:0">Corregir</button>
+        </div>
+        ${seriesA?`<div style="font-size:12px;color:#A082FF;margin-top:4px;line-height:1.7">${seriesA}</div>`:''}
+        ${seriesB?`<div style="font-size:12px;color:#A082FF;line-height:1.7">${seriesB}</div>`:''}
+        ${st?.comment?`<div class="summary-comment">"${st.comment}"</div>`:''}
+      </div>`;
+    }
     if(isCircuit(ex)){
       const {nombre}=parseCircuit(ex);
       return`<div class="summary-item" style="border-color:rgba(34,211,238,0.15)">
@@ -1861,6 +2011,21 @@ async function aSaveFinalSession(){
     for(const ex of aSessionExs){
       const st=aSessionState[ex.id];if(!st)continue;
       const isCompleted=st.status==='done';
+
+      // ── BISERIE ──
+      if(isBiserie(ex)){
+        const seriesA=st.series?.filter(s=>s.peso||s.reps).map((s,i)=>`A-S${i+1}: ${[s.peso?s.peso+'kg':'',s.reps?s.reps+' reps':'',s.rprir?'RPE '+s.rprir:''].filter(Boolean).join(' ')}`).join(' | ')||'';
+        const seriesB=(st.seriesB||[]).filter(s=>s.peso||s.reps).map((s,i)=>`B-S${i+1}: ${[s.peso?s.peso+'kg':'',s.reps?s.reps+' reps':'',s.rprir?'RPE '+s.rprir:''].filter(Boolean).join(' ')}`).join(' | ')||'';
+        const seriesSummary=[seriesA,seriesB].filter(Boolean).join(' || ')||null;
+        const existing=aLogs.find(l=>l.ejercicio_id===ex.id&&l.fecha===aSelectedDate);
+        if(existing){await dbPatch('logs_entrenamiento',existing.id,{series_realizadas:seriesSummary,nota:st.comment||null});}
+        else{const nl=await dbPost('logs_entrenamiento',{cliente_id:aCurrentCliente.id,ejercicio_id:ex.id,fecha:aSelectedDate,series_realizadas:seriesSummary,peso_usado:null,rpe:null,nota:st.comment||null});aLogs.push(nl[0]);}
+        await dbPatch('ejercicios',ex.id,{completado:isCompleted,devolucion:st.comment||null});
+        const localEx=aEjercicios.find(e=>e.id===ex.id);if(localEx){localEx.completado=isCompleted;localEx.devolucion=st.comment||null;}
+        continue;
+      }
+
+      // ── CIRCUITO ──
       if(isCircuit(ex)){
         const existing=aLogs.find(l=>l.ejercicio_id===ex.id&&l.fecha===aSelectedDate);
         if(!existing){const nl=await dbPost('logs_entrenamiento',{cliente_id:aCurrentCliente.id,ejercicio_id:ex.id,fecha:aSelectedDate,series_realizadas:null,peso_usado:null,rpe:null,nota:st.comment||null});aLogs.push(nl[0]);}
@@ -2259,6 +2424,31 @@ function rutRenderDay(){
   if(!exs.length){document.getElementById('rut-exercise-list').innerHTML='<div class="empty">No hay ejercicios para este día.<br>Usá "+ Ejercicio" o "+ Circuito" para comenzar.</div>';return;}
 
   document.getElementById('rut-exercise-list').innerHTML=exs.map((ex,i)=>{
+    // ── BISERIE ──
+    if(isBiserie(ex)){
+      const {nombreA,dataA,nombreB,dataB}=parseBiserie(ex);
+      const exDone=!!logByEx[ex.id]||ex.completado;
+      let statusBadge='';
+      if(isCompleted){statusBadge=ex.completado?`<span class="status-badge-done">✓ Completado</span>`:`<span class="status-badge-missed">✕ No completado</span>`;}
+      return`<div class="biserie-card ${exDone?'done':''}">
+        <div class="biserie-header">
+          <div class="biserie-badge">Biserie</div>
+          ${statusBadge}
+          <button class="ex-edit" onclick="openEditExModal(${ex.id})" title="Editar" style="margin-left:auto">✎</button>
+          <button class="ex-delete" onclick="rutRemoveEx(${ex.id})" title="Eliminar">✕</button>
+        </div>
+        <div class="biserie-ex">
+          <div class="biserie-ex-label">A</div>
+          <div class="biserie-ex-name">${nombreA}</div>
+          <div class="biserie-ex-tags">${[dataA.series,dataA.peso,dataA.tiempo].filter(Boolean).map(t=>`<span class="tag">${t}</span>`).join('')}${dataA.yt?`<a class="yt-link" href="${dataA.yt}" target="_blank">▶ Video</a>`:''}</div>
+        </div>
+        <div class="biserie-ex">
+          <div class="biserie-ex-label">B</div>
+          <div class="biserie-ex-name">${nombreB}</div>
+          <div class="biserie-ex-tags">${[dataB.series,dataB.peso,dataB.tiempo].filter(Boolean).map(t=>`<span class="tag">${t}</span>`).join('')}${dataB.yt?`<a class="yt-link" href="${dataB.yt}" target="_blank">▶ Video</a>`:''}</div>
+        </div>
+      </div>`;
+    }
     if(isCircuit(ex)){
       const {nombre,modalidad,items}=parseCircuit(ex);
       const log=logByEx[ex.id];
@@ -2458,15 +2648,82 @@ function rutSelectExercise(n,yt){
   const history=pGetLoadHistory(rutCurrentClientId,n,1);
   if(history.length&&history[0].peso_usado)document.getElementById('ex-f-peso').value=history[0].peso_usado;
   if(yt){document.getElementById('ex-yt-preview').innerHTML=`<div class="yt-preview">▶ <a href="${yt}" target="_blank" style="color:#FF6666;font-weight:600">${n}</a></div>`;document.getElementById('ex-yt-preview').style.display='block';}
+  // Mostrar opción biserie al seleccionar ejercicio A
+  document.getElementById('ex-biserie-toggle').style.display='block';
 }
-document.addEventListener('click',e=>{if(!e.target.closest('.autocomplete-wrap'))document.getElementById('ex-autocomplete-list').style.display='none';});
-function openExModal(){document.getElementById('ex-modal').classList.add('open');document.getElementById('ex-yt-preview').style.display='none';document.getElementById('ex-modal-load-history').style.display='none';}
-function closeExModal(){document.getElementById('ex-modal').classList.remove('open');['ex-f-name','ex-f-series','ex-f-peso','ex-f-tiempo','ex-f-nota','ex-f-yt'].forEach(id=>document.getElementById(id).value='');document.getElementById('ex-yt-preview').style.display='none';document.getElementById('ex-modal-load-history').style.display='none';}
+function rutSelectExerciseB(n,yt){
+  document.getElementById('ex-f-name-b').value=n;
+  document.getElementById('ex-f-yt-b').value=yt||'';
+  document.getElementById('ex-autocomplete-list-b').style.display='none';
+  if(yt){document.getElementById('ex-yt-preview-b').innerHTML=`<div class="yt-preview">▶ <a href="${yt}" target="_blank" style="color:#FF6666;font-weight:600">${n}</a></div>`;document.getElementById('ex-yt-preview-b').style.display='block';}
+  else{document.getElementById('ex-yt-preview-b').style.display='none';}
+}
+function onNameInputB(val){
+  const list=document.getElementById('ex-autocomplete-list-b');
+  if(!val||val.length<2){list.style.display='none';return;}
+  const matches=pBiblioteca.filter(b=>b.nombre.toLowerCase().includes(val.toLowerCase()));
+  if(!matches.length){list.style.display='none';return;}
+  list.innerHTML=matches.map(b=>`<div class="autocomplete-item" onclick="rutSelectExerciseB('${b.nombre.replace(/'/g,"\\'")}','${(b.link_youtube||'').replace(/'/g,"\\'")}')"><span>${b.nombre}</span>${b.link_youtube?'<span class="yt-badge">▶ Video</span>':''}</div>`).join('');
+  list.style.display='block';
+}
+let exModalBiserieActive=false;
+function toggleBiserieField(){
+  exModalBiserieActive=!exModalBiserieActive;
+  document.getElementById('ex-biserie-wrap').style.display=exModalBiserieActive?'block':'none';
+  document.getElementById('ex-biserie-btn').textContent=exModalBiserieActive?'✕ Quitar biserie':'＋ Agregar biserie';
+  document.getElementById('ex-modal-title').textContent=exModalBiserieActive?'Agregar biserie':'Agregar ejercicio';
+  if(!exModalBiserieActive){
+    ['ex-f-name-b','ex-f-series-b','ex-f-peso-b','ex-f-tiempo-b','ex-f-nota-b','ex-f-yt-b'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('ex-yt-preview-b').style.display='none';
+    document.getElementById('ex-autocomplete-list-b').style.display='none';
+  }
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.autocomplete-wrap'))document.getElementById('ex-autocomplete-list').style.display='none';
+  if(!e.target.closest('#ex-biserie-wrap .autocomplete-wrap'))document.getElementById('ex-autocomplete-list-b').style.display='none';
+});
+function openExModal(){
+  exModalBiserieActive=false;
+  document.getElementById('ex-modal').classList.add('open');
+  document.getElementById('ex-yt-preview').style.display='none';
+  document.getElementById('ex-modal-load-history').style.display='none';
+  document.getElementById('ex-biserie-toggle').style.display='none';
+  document.getElementById('ex-biserie-wrap').style.display='none';
+  document.getElementById('ex-biserie-btn').textContent='＋ Agregar biserie';
+  document.getElementById('ex-modal-title').textContent='Agregar ejercicio';
+}
+function closeExModal(){
+  exModalBiserieActive=false;
+  document.getElementById('ex-modal').classList.remove('open');
+  ['ex-f-name','ex-f-series','ex-f-peso','ex-f-tiempo','ex-f-nota','ex-f-yt',
+   'ex-f-name-b','ex-f-series-b','ex-f-peso-b','ex-f-tiempo-b','ex-f-nota-b','ex-f-yt-b'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ex-yt-preview').style.display='none';
+  document.getElementById('ex-yt-preview-b').style.display='none';
+  document.getElementById('ex-modal-load-history').style.display='none';
+  document.getElementById('ex-biserie-toggle').style.display='none';
+  document.getElementById('ex-biserie-wrap').style.display='none';
+}
 async function addExercise(){
   const nombre=document.getElementById('ex-f-name').value.trim();if(!nombre){showToast('Escribí el nombre',true);return;}
   const cid=parseInt(rutCurrentClientId);let rutina=null;
   try{const rutinas=await dbGet('rutinas',`cliente_id=eq.${cid}&limit=1`);if(rutinas.length){rutina=rutinas[0];}else{const cl=pClientes.find(c=>c.id==cid);const n=await dbPost('rutinas',{cliente_id:cid,nombre:'Rutina de '+(cl?cl.nombre:''),fecha:TODAY});rutina=n[0];}}catch(e){showToast('Error: '+e.message.slice(0,60),true);return;}
   let yt=document.getElementById('ex-f-yt').value.trim();if(yt&&!yt.startsWith('http'))yt='https://'+yt;
+
+  // Biserie
+  if(exModalBiserieActive){
+    const nombreB=document.getElementById('ex-f-name-b').value.trim();
+    if(!nombreB){showToast('Escribí el nombre del ejercicio B',true);return;}
+    let ytB=document.getElementById('ex-f-yt-b').value.trim();if(ytB&&!ytB.startsWith('http'))ytB='https://'+ytB;
+    const dataA={series:document.getElementById('ex-f-series').value.trim(),peso:document.getElementById('ex-f-peso').value.trim(),tiempo:document.getElementById('ex-f-tiempo').value.trim(),nota:document.getElementById('ex-f-nota').value.trim(),yt};
+    const dataB={series:document.getElementById('ex-f-series-b').value.trim(),peso:document.getElementById('ex-f-peso-b').value.trim(),tiempo:document.getElementById('ex-f-tiempo-b').value.trim(),nota:document.getElementById('ex-f-nota-b').value.trim(),yt:ytB};
+    const {nombre:bsNombre,nota:bsNota}=serializeBiserie(nombre,dataA,nombreB,dataB);
+    try{
+      const res=await dbPost('ejercicios',{rutina_id:rutina.id,nombre:bsNombre,series:null,peso:null,tiempo:null,nota:bsNota,link_youtube:null,completado:false,devolucion:null,fecha_sesion:rutSelectedDate});
+      const nuevo=res[0];nuevo._clientId=cid;pAllEjercicios.push(nuevo);closeExModal();rutBuildCalStrip();rutRenderDay();showToast('Biserie agregada ✓');
+    }catch(e){showToast('Error: '+e.message.slice(0,60),true);}
+    return;
+  }
+
   try{
     const res=await dbPost('ejercicios',{rutina_id:rutina.id,nombre,series:document.getElementById('ex-f-series').value.trim()||null,peso:document.getElementById('ex-f-peso').value.trim()||null,tiempo:document.getElementById('ex-f-tiempo').value.trim()||null,nota:document.getElementById('ex-f-nota').value.trim()||null,link_youtube:yt||null,completado:false,devolucion:null,fecha_sesion:rutSelectedDate});
     const nuevo=res[0];nuevo._clientId=cid;pAllEjercicios.push(nuevo);closeExModal();rutBuildCalStrip();rutRenderDay();showToast('Ejercicio agregado ✓');
