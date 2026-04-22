@@ -1144,13 +1144,21 @@ function hideLogin(){
 }
 function formatSeries(series_realizadas){
   if(!series_realizadas) return '';
-  // Si tiene formato "S1: ... | S2: ..." mostrar en líneas con badge
+  // Formato biserie: "A-S1: 60kg 8 reps || B-S1: 40kg 10 reps"
+  if(series_realizadas.includes(' || ')){
+    return series_realizadas.split(' || ').map(s=>{
+      const isBs=s.startsWith('A-')||s.startsWith('B-');
+      const color=isBs?'#A082FF':'var(--green)';
+      return`<div style="font-size:12px;color:${color};padding:2px 0">${s}</div>`;
+    }).join('');
+  }
+  // Formato normal: "S1: 60kg 8 reps | S2: ..."
   if(series_realizadas.includes(' | ')){
     return series_realizadas.split(' | ').map(s=>{
-      const match=s.match(/^(S\d+):\s*(.+)$/);
+      const match=s.match(/^([AB]-?S\d+):\s*(.+)$/)||s.match(/^(S\d+):\s*(.+)$/);
       if(match){
         return`<div style="display:flex;align-items:center;gap:6px;padding:3px 0">
-          <span style="background:rgba(0,230,118,0.12);border:1px solid rgba(0,230,118,0.2);color:var(--green);font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;font-family:var(--font-display);flex-shrink:0">${match[1]}</span>
+          <span style="background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.2);color:var(--green);font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;flex-shrink:0">${match[1]}</span>
           <span style="font-size:12px;color:var(--green);font-weight:500">${match[2]}</span>
         </div>`;
       }
@@ -1580,6 +1588,22 @@ async function aEditExercise(exId){
   }catch(e){showToast('Error al editar',true);console.error(e);}
 }
 
+async function aEditBiserie(exId){
+  try{
+    const log=aLogs.find(l=>l.ejercicio_id===exId&&l.fecha===aSelectedDate);
+    if(log){await dbDelete('logs_entrenamiento',log.id);aLogs=aLogs.filter(l=>l.id!==log.id);}
+    const ex=aEjercicios.find(e=>e.id===exId);
+    if(ex){await dbPatch('ejercicios',exId,{completado:false,devolucion:null});ex.completado=false;ex.devolucion=null;}
+    aSessionState={};
+    aSessionState[exId]={status:null,comment:'',series:[],seriesB:[],attachments:[]};
+    aSessionExs=[ex];aSessionIdx=0;
+    showToast('Biserie desbloqueada ✓');
+    aBuildDayStrip();aHideAllViews();
+    document.getElementById('a-view-session').style.display='block';
+    aRenderCard();window.scrollTo(0,0);
+  }catch(e){showToast('Error al editar',true);console.error(e);}
+}
+
 async function aEditCircuit(exId){
   try{
     const log=aLogs.find(l=>l.ejercicio_id===exId&&l.fecha===aSelectedDate);
@@ -1667,6 +1691,32 @@ function aRenderHome(){
     const done=exs.filter(e=>e.completado===true).length;
     const missed=exs.filter(e=>e.completado===false).length;
     const exCards=exs.map((ex,i)=>{
+      // ── BISERIE día cerrado ──
+      if(isBiserie(ex)){
+        const {nombreA,dataA,nombreB,dataB}=parseBiserie(ex);
+        const isDone=ex.completado===true;
+        const log=aLogs.find(l=>l.ejercicio_id===ex.id&&l.fecha===aSelectedDate);
+        const logText=log?.series_realizadas||'';
+        // Separar series A y B del log (guardadas como "A-S1:... || B-S1:...")
+        const parts=logText.split(' || ');
+        const seriesAHtml=parts.filter(p=>p.startsWith('A-')).map(p=>`<div style="font-size:12px;color:#A082FF;padding:2px 0">${p}</div>`).join('');
+        const seriesBHtml=parts.filter(p=>p.startsWith('B-')).map(p=>`<div style="font-size:12px;color:#A082FF;padding:2px 0">${p}</div>`).join('');
+        const comment=ex.devolucion||log?.nota||'';
+        return`<div class="done-circuit-card ${isDone?'is-done':'is-missed'}" style="border-color:rgba(160,130,255,${isDone?'0.3':'0.15'})">
+          <div class="done-circuit-header">
+            <div class="done-circuit-badge" style="background:rgba(160,130,255,0.1);border-color:rgba(160,130,255,0.25);color:#A082FF">Biserie</div>
+            <div class="done-circuit-name">${nombreA} + ${nombreB}</div>
+            <span class="done-ex-badge ${isDone?'done':'missed'}">${isDone?'✓ Hecho':'✕ No hecho'}</span>
+            <button onclick="aEditBiserie(${ex.id})" style="margin-left:auto;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text2);cursor:pointer;padding:4px 10px;border-radius:20px;font-size:11px;white-space:nowrap;flex-shrink:0">Corregir</button>
+          </div>
+          ${seriesAHtml||seriesBHtml?`<div class="done-ex-logged" style="margin:0 1.1rem 0.9rem">
+            <div class="done-ex-logged-title">Lo que registraste</div>
+            ${seriesAHtml?`<div style="font-size:10px;color:#A082FF;text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;margin-bottom:2px">A — ${nombreA}</div>${seriesAHtml}`:''}
+            ${seriesBHtml?`<div style="font-size:10px;color:#A082FF;text-transform:uppercase;letter-spacing:0.08em;margin-top:6px;margin-bottom:2px">B — ${nombreB}</div>${seriesBHtml}`:''}
+            ${comment?`<div class="done-ex-comment">💬 "${comment}"</div>`:''}
+          </div>`:''}
+        </div>`;
+      }
       if(isCircuit(ex)) return aRenderDoneCircuit(ex, true);
       const log=aLogs.find(l=>l.ejercicio_id===ex.id&&l.fecha===aSelectedDate);
       const isExDone=ex.completado===true;
