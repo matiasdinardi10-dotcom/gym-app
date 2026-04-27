@@ -2551,13 +2551,11 @@ function rutRenderDay(){
           <div class="biserie-ex-label">A</div>
           <div class="biserie-ex-name">${nombreA}</div>
           <div class="biserie-ex-tags">${[dataA.series,dataA.peso,dataA.tiempo].filter(Boolean).map(t=>`<span class="tag">${t}</span>`).join('')}${dataA.yt?`<a class="yt-link" href="${dataA.yt}" target="_blank">▶ Video</a>`:''}</div>
-          ${seriesAStr&&!isOpen?`<div style="font-size:12px;color:#A082FF;margin-top:5px;font-weight:400">${seriesAStr}</div>`:''}
         </div>
         <div class="biserie-ex">
           <div class="biserie-ex-label">B</div>
           <div class="biserie-ex-name">${nombreB}</div>
           <div class="biserie-ex-tags">${[dataB.series,dataB.peso,dataB.tiempo].filter(Boolean).map(t=>`<span class="tag">${t}</span>`).join('')}${dataB.yt?`<a class="yt-link" href="${dataB.yt}" target="_blank">▶ Video</a>`:''}</div>
-          ${seriesBStr&&!isOpen?`<div style="font-size:12px;color:#A082FF;margin-top:5px;font-weight:400">${seriesBStr}</div>`:''}
         </div>
         ${!isOpen?comentario:''}
         <div class="ex-details ${isOpen?'open':''}" style="margin-left:0;margin-top:4px">
