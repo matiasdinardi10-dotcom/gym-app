@@ -2517,21 +2517,25 @@ function rutRenderDay(){
       let statusBadge='';
       if(isCompleted){statusBadge=ex.completado?`<span class="status-badge-done">✓ Completado</span>`:`<span class="status-badge-missed">✕ No completado</span>`;}
 
-      // Parsear series registradas por el alumno
+      // Series registradas por el alumno
       let seriesAHtml='', seriesBHtml='';
       if(log?.series_realizadas){
         const parts=log.series_realizadas.split(' || ');
         seriesAHtml=parts.filter(p=>p.startsWith('A-')).map(p=>`<div style="font-size:12px;color:#A082FF;padding:2px 0">${p.replace(/^A-/,'')}</div>`).join('');
         seriesBHtml=parts.filter(p=>p.startsWith('B-')).map(p=>`<div style="font-size:12px;color:#A082FF;padding:2px 0">${p.replace(/^B-/,'')}</div>`).join('');
       }
-      const comentario=ex.devolucion?`<div style="font-size:12px;color:var(--text2);font-style:italic;padding:6px 0 0">"${ex.devolucion}"</div>`:'';
+      const comentario=ex.devolucion?`<div style="font-size:12px;color:var(--text2);font-style:italic;padding:6px 8px 0">"${ex.devolucion}"</div>`:'';
+      const histA=pRenderLoadHistoryBlock(rutCurrentClientId,nombreA);
+      const histB=pRenderLoadHistoryBlock(rutCurrentClientId,nombreB);
+      const isOpen=rutOpenDetails[ex.id];
 
       return`<div class="biserie-card ${exDone?'done':''}">
         <div class="biserie-header">
           ${reorderBtns}
           <div class="biserie-badge">Biserie</div>
           ${statusBadge}
-          <button class="ex-edit" onclick="openEditExModal(${ex.id})" title="Editar" style="margin-left:auto">✎</button>
+          <button class="ex-expand" onclick="rutToggleDetail(${ex.id})" style="margin-left:auto">${isOpen?'−':'+'}</button>
+          <button class="ex-edit" onclick="openEditExModal(${ex.id})" title="Editar">✎</button>
           <button class="ex-delete" onclick="rutRemoveEx(${ex.id})" title="Eliminar">✕</button>
         </div>
         <div class="biserie-ex">
@@ -2547,6 +2551,12 @@ function rutRenderDay(){
           ${seriesBHtml?`<div style="margin-top:5px;padding:6px 8px;background:rgba(160,130,255,0.05);border-radius:8px;border-left:2px solid rgba(160,130,255,0.3)">${seriesBHtml}</div>`:''}
         </div>
         ${comentario}
+        <div class="ex-details ${isOpen?'open':''}" style="margin-left:0">
+          <div style="font-size:9px;font-weight:700;color:#A082FF;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Historial — ${nombreA}</div>
+          ${histA}
+          <div style="font-size:9px;font-weight:700;color:#A082FF;text-transform:uppercase;letter-spacing:0.1em;margin:10px 0 6px">Historial — ${nombreB}</div>
+          ${histB}
+        </div>
       </div>`;
     }
     if(isCircuit(ex)){
