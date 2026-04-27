@@ -2517,16 +2517,25 @@ function rutRenderDay(){
       let statusBadge='';
       if(isCompleted){statusBadge=ex.completado?`<span class="status-badge-done">✓ Completado</span>`:`<span class="status-badge-missed">✕ No completado</span>`;}
 
-      // Series registradas por el alumno
-      let seriesAHtml='', seriesBHtml='';
+      // Series registradas — separar A y B
+      let seriesAStr='', seriesBStr='';
       if(log?.series_realizadas){
         const parts=log.series_realizadas.split(' || ');
-        seriesAHtml=parts.filter(p=>p.startsWith('A-')).map(p=>`<div style="font-size:12px;color:#A082FF;padding:2px 0">${p.replace(/^A-/,'')}</div>`).join('');
-        seriesBHtml=parts.filter(p=>p.startsWith('B-')).map(p=>`<div style="font-size:12px;color:#A082FF;padding:2px 0">${p.replace(/^B-/,'')}</div>`).join('');
+        // Para preview (sin abrir): texto compacto en una línea
+        const partsA=parts.filter(p=>p.startsWith('A-')).map(p=>p.replace(/^A-/,''));
+        const partsB=parts.filter(p=>p.startsWith('B-')).map(p=>p.replace(/^B-/,''));
+        seriesAStr=partsA.join(' | ');
+        seriesBStr=partsB.join(' | ');
       }
-      const comentario=ex.devolucion?`<div style="font-size:12px;color:var(--text2);font-style:italic;padding:6px 8px 0">"${ex.devolucion}"</div>`:'';
+
+      // Para historial expandido: usar formatSeries con las series filtradas
+      const logAText=seriesAStr?seriesAStr.split(' | ').map((s,si)=>`S${si+1}: ${s}`).join(' | '):'';
+      const logBText=seriesBStr?seriesBStr.split(' | ').map((s,si)=>`S${si+1}: ${s}`).join(' | '):'';
+      const histAFormatted=logAText?`<div class="log-prev" style="border-color:rgba(160,130,255,0.2);background:rgba(160,130,255,0.04)">Hoy — A: ${formatSeries(logAText)}</div>`:'';
+      const histBFormatted=logBText?`<div class="log-prev" style="border-color:rgba(160,130,255,0.2);background:rgba(160,130,255,0.04)">Hoy — B: ${formatSeries(logBText)}</div>`:'';
       const histA=pRenderLoadHistoryBlock(rutCurrentClientId,nombreA);
       const histB=pRenderLoadHistoryBlock(rutCurrentClientId,nombreB);
+      const comentario=ex.devolucion?`<div style="font-size:12px;color:var(--text2);font-style:italic;padding:8px 10px;background:rgba(160,130,255,0.03);border-radius:8px;border-left:2px solid rgba(160,130,255,0.3);margin-top:6px">"${ex.devolucion}"</div>`:'';
       const isOpen=rutOpenDetails[ex.id];
 
       return`<div class="biserie-card ${exDone?'done':''}">
@@ -2542,17 +2551,20 @@ function rutRenderDay(){
           <div class="biserie-ex-label">A</div>
           <div class="biserie-ex-name">${nombreA}</div>
           <div class="biserie-ex-tags">${[dataA.series,dataA.peso,dataA.tiempo].filter(Boolean).map(t=>`<span class="tag">${t}</span>`).join('')}${dataA.yt?`<a class="yt-link" href="${dataA.yt}" target="_blank">▶ Video</a>`:''}</div>
-          ${seriesAHtml?`<div style="margin-top:5px;padding:6px 8px;background:rgba(160,130,255,0.05);border-radius:8px;border-left:2px solid rgba(160,130,255,0.3)">${seriesAHtml}</div>`:''}
+          ${seriesAStr&&!isOpen?`<div style="font-size:12px;color:#A082FF;margin-top:5px;font-weight:400">${seriesAStr}</div>`:''}
         </div>
         <div class="biserie-ex">
           <div class="biserie-ex-label">B</div>
           <div class="biserie-ex-name">${nombreB}</div>
           <div class="biserie-ex-tags">${[dataB.series,dataB.peso,dataB.tiempo].filter(Boolean).map(t=>`<span class="tag">${t}</span>`).join('')}${dataB.yt?`<a class="yt-link" href="${dataB.yt}" target="_blank">▶ Video</a>`:''}</div>
-          ${seriesBHtml?`<div style="margin-top:5px;padding:6px 8px;background:rgba(160,130,255,0.05);border-radius:8px;border-left:2px solid rgba(160,130,255,0.3)">${seriesBHtml}</div>`:''}
+          ${seriesBStr&&!isOpen?`<div style="font-size:12px;color:#A082FF;margin-top:5px;font-weight:400">${seriesBStr}</div>`:''}
         </div>
-        ${comentario}
-        <div class="ex-details ${isOpen?'open':''}" style="margin-left:0">
-          <div style="font-size:9px;font-weight:700;color:#A082FF;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Historial — ${nombreA}</div>
+        ${!isOpen?comentario:''}
+        <div class="ex-details ${isOpen?'open':''}" style="margin-left:0;margin-top:4px">
+          ${histAFormatted}
+          ${histBFormatted}
+          ${comentario}
+          <div style="font-size:9px;font-weight:700;color:#A082FF;text-transform:uppercase;letter-spacing:0.1em;margin:10px 0 6px">Historial — ${nombreA}</div>
           ${histA}
           <div style="font-size:9px;font-weight:700;color:#A082FF;text-transform:uppercase;letter-spacing:0.1em;margin:10px 0 6px">Historial — ${nombreB}</div>
           ${histB}
