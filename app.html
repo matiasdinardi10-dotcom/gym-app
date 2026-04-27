@@ -2512,9 +2512,20 @@ function rutRenderDay(){
     // ── BISERIE ──
     if(isBiserie(ex)){
       const {nombreA,dataA,nombreB,dataB}=parseBiserie(ex);
-      const exDone=!!logByEx[ex.id]||ex.completado;
+      const log=logByEx[ex.id];
+      const exDone=!!log||ex.completado;
       let statusBadge='';
       if(isCompleted){statusBadge=ex.completado?`<span class="status-badge-done">✓ Completado</span>`:`<span class="status-badge-missed">✕ No completado</span>`;}
+
+      // Parsear series registradas por el alumno
+      let seriesAHtml='', seriesBHtml='';
+      if(log?.series_realizadas){
+        const parts=log.series_realizadas.split(' || ');
+        seriesAHtml=parts.filter(p=>p.startsWith('A-')).map(p=>`<div style="font-size:12px;color:#A082FF;padding:2px 0">${p.replace(/^A-/,'')}</div>`).join('');
+        seriesBHtml=parts.filter(p=>p.startsWith('B-')).map(p=>`<div style="font-size:12px;color:#A082FF;padding:2px 0">${p.replace(/^B-/,'')}</div>`).join('');
+      }
+      const comentario=ex.devolucion?`<div style="font-size:12px;color:var(--text2);font-style:italic;padding:6px 0 0">"${ex.devolucion}"</div>`:'';
+
       return`<div class="biserie-card ${exDone?'done':''}">
         <div class="biserie-header">
           ${reorderBtns}
@@ -2527,12 +2538,15 @@ function rutRenderDay(){
           <div class="biserie-ex-label">A</div>
           <div class="biserie-ex-name">${nombreA}</div>
           <div class="biserie-ex-tags">${[dataA.series,dataA.peso,dataA.tiempo].filter(Boolean).map(t=>`<span class="tag">${t}</span>`).join('')}${dataA.yt?`<a class="yt-link" href="${dataA.yt}" target="_blank">▶ Video</a>`:''}</div>
+          ${seriesAHtml?`<div style="margin-top:5px;padding:6px 8px;background:rgba(160,130,255,0.05);border-radius:8px;border-left:2px solid rgba(160,130,255,0.3)">${seriesAHtml}</div>`:''}
         </div>
         <div class="biserie-ex">
           <div class="biserie-ex-label">B</div>
           <div class="biserie-ex-name">${nombreB}</div>
           <div class="biserie-ex-tags">${[dataB.series,dataB.peso,dataB.tiempo].filter(Boolean).map(t=>`<span class="tag">${t}</span>`).join('')}${dataB.yt?`<a class="yt-link" href="${dataB.yt}" target="_blank">▶ Video</a>`:''}</div>
+          ${seriesBHtml?`<div style="margin-top:5px;padding:6px 8px;background:rgba(160,130,255,0.05);border-radius:8px;border-left:2px solid rgba(160,130,255,0.3)">${seriesBHtml}</div>`:''}
         </div>
+        ${comentario}
       </div>`;
     }
     if(isCircuit(ex)){
