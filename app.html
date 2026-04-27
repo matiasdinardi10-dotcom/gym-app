@@ -2352,14 +2352,32 @@ function activityDot(status){
 }
 function pGetLoadHistory(clientId,exNombre,limit=5){
   const cid=parseInt(clientId);
-  const exIds=pAllEjercicios.filter(e=>String(e._clientId)===String(cid)&&e.nombre.toLowerCase()===exNombre.toLowerCase()).map(e=>e.id);
+  const exIds=pAllEjercicios.filter(e=>{
+    if(String(e._clientId)!==String(cid))return false;
+    if(isBiserie(e)){const {nombreA,nombreB}=parseBiserie(e);return nombreA.toLowerCase()===exNombre.toLowerCase()||nombreB.toLowerCase()===exNombre.toLowerCase();}
+    return e.nombre.toLowerCase()===exNombre.toLowerCase();
+  }).map(e=>e.id);
   if(!exIds.length)return[];
   return pAllLogs.filter(l=>l.cliente_id===cid&&exIds.includes(l.ejercicio_id)).sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,limit);
 }
 function pRenderLoadHistoryBlock(clientId,exNombre){
   const history=pGetLoadHistory(clientId,exNombre,5);
   if(!history.length)return`<div class="load-history-block"><div class="load-history-title">Historial de cargas</div><div class="load-history-empty">Sin registros previos</div></div>`;
-  const rows=history.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});const serHtml=l.series_realizadas?formatSeries(l.series_realizadas):`<span style="color:var(--green);font-weight:600">${l.peso_usado?l.peso_usado+'kg':'—'}</span>`;const rpe=!l.series_realizadas&&l.rpe?'RPE '+l.rpe:'';return`<div class="load-history-row" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="display:flex;justify-content:space-between;width:100%"><span class="load-history-date">${d}</span>${rpe?`<span class="load-history-rpe">${rpe}</span>`:''}</div><div>${serHtml}</div></div>`;}).join('');
+  const rows=history.map(l=>{
+    const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});
+    let serHtml='';
+    if(l.series_realizadas){
+      const ex=pAllEjercicios.find(e=>e.id===l.ejercicio_id);
+      if(ex&&isBiserie(ex)){
+        const {nombreA}=parseBiserie(ex);
+        const prefix=nombreA.toLowerCase()===exNombre.toLowerCase()?'A-':'B-';
+        const filtradas=l.series_realizadas.split(' || ').filter(s=>s.startsWith(prefix));
+        serHtml=filtradas.length?filtradas.map(s=>`<div style="color:#A082FF;font-size:12px">${s.replace(/^[AB]-/,'')}</div>`).join(''):formatSeries(l.series_realizadas);
+      } else { serHtml=formatSeries(l.series_realizadas); }
+    } else { serHtml=`<span style="color:var(--green);font-weight:600">${l.peso_usado?l.peso_usado+'kg':'—'}</span>`; }
+    const rpe=!l.series_realizadas&&l.rpe?'RPE '+l.rpe:'';
+    return`<div class="load-history-row" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="display:flex;justify-content:space-between;width:100%"><span class="load-history-date">${d}</span>${rpe?`<span class="load-history-rpe">${rpe}</span>`:''}</div><div>${serHtml}</div></div>`;
+  }).join('');
   return`<div class="load-history-block"><div class="load-history-title">Historial de cargas</div>${rows}</div>`;
 }
 function pRenderModalLoadHistory(clientId,exNombre){
@@ -2943,7 +2961,7 @@ async function rutLoadHistorial(clientId){
   const cid=parseInt(clientId);const clientLogs=pAllLogs.filter(l=>l.cliente_id===cid);
   if(!clientLogs.length){document.getElementById('rut-historial-content').innerHTML='<div class="empty">No hay registros aún.</div>';return;}
   const byDate={};clientLogs.forEach(l=>{if(!byDate[l.fecha])byDate[l.fecha]=[];byDate[l.fecha].push(l);});
-  document.getElementById('rut-historial-content').innerHTML=Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).map(([fecha,entries])=>{const label=new Date(fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});return`<div class="p-section"><div class="p-log-block-date">📅 ${label.toUpperCase()}</div>${entries.map(e=>{const ex=pAllEjercicios.find(x=>x.id===e.ejercicio_id);const exNombre=ex?(isCircuit(ex)?parseCircuit(ex).nombre:ex.nombre):'—';const load=[e.series_realizadas,e.peso_usado?e.peso_usado+'kg':'',e.rpe?'RPE '+e.rpe:''].filter(Boolean).join(' · ');return`<div class="p-log-row"><span class="p-log-ex-name">${exNombre}</span><span class="p-log-ex-load">${load||'—'}</span></div>`;}).join('')}</div>`;}).join('');
+  document.getElementById('rut-historial-content').innerHTML=Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).map(([fecha,entries])=>{const label=new Date(fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});return`<div class="p-section"><div class="p-log-block-date">📅 ${label.toUpperCase()}</div>${entries.map(e=>{const ex=pAllEjercicios.find(x=>x.id===e.ejercicio_id);const exNombre=ex?(isBiserie(ex)?'Biserie: '+parseBiserie(ex).nombreA+' + '+parseBiserie(ex).nombreB:isCircuit(ex)?parseCircuit(ex).nombre:ex.nombre):'—';const load=[e.series_realizadas,e.peso_usado?e.peso_usado+'kg':'',e.rpe?'RPE '+e.rpe:''].filter(Boolean).join(' · ');return`<div class="p-log-row"><span class="p-log-ex-name">${exNombre}</span><span class="p-log-ex-load">${load||'—'}</span></div>`;}).join('')}</div>`;}).join('');
 }
 function rutRenderBiblioteca(){
   if(!pBiblioteca.length){document.getElementById('bib-list').innerHTML='<div class="empty">Tu biblioteca está vacía.</div>';return;}
@@ -2960,7 +2978,7 @@ async function rutLoadSesionesAlumno(clientId){
   if(!clientId)return;const cid=parseInt(clientId);const clientLogs=pAllLogs.filter(l=>l.cliente_id===cid);const el=document.getElementById('rut-sesiones-content');
   if(!clientLogs.length){el.innerHTML='<div class="empty">Este alumno no ha guardado sesiones aún.</div>';return;}
   const byDate={};clientLogs.forEach(l=>{if(!byDate[l.fecha])byDate[l.fecha]=[];byDate[l.fecha].push(l);});
-  el.innerHTML=Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).map(([fecha,entries])=>{const label=new Date(fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});return`<div class="p-section"><div class="p-log-block-date">📅 ${label.toUpperCase()}</div>${entries.map(e=>{const ex=pAllEjercicios.find(x=>x.id===e.ejercicio_id);const exNombre=ex?(isCircuit(ex)?'🔄 '+parseCircuit(ex).nombre:ex.nombre):'—';const serHtml2=e.series_realizadas?formatSeries(e.series_realizadas):'';const nota=e.nota||ex?.devolucion||'';const completado=ex?.completado;const bg=completado?'rgba(0,230,118,0.1)':'rgba(255,68,68,0.08)';const tc=completado?'var(--green)':'var(--red)';const bc=completado?'rgba(0,230,118,0.2)':'rgba(255,68,68,0.2)';return`<div class="p-log-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding:8px 0"><div style="display:flex;justify-content:space-between;width:100%;align-items:center"><span class="p-log-ex-name">${exNombre}</span><span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${bg};color:${tc};border:1px solid ${bc}">${completado?'✓ Completado':'✕ No completado'}</span></div>${serHtml2}${nota?`<div style="font-size:12px;color:var(--text2);font-style:italic">"${nota}"</div>`:''}</div>`;}).join('')}</div>`;}).join('');
+  el.innerHTML=Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).map(([fecha,entries])=>{const label=new Date(fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});return`<div class="p-section"><div class="p-log-block-date">📅 ${label.toUpperCase()}</div>${entries.map(e=>{const ex=pAllEjercicios.find(x=>x.id===e.ejercicio_id);const exNombre=ex?(isBiserie(ex)?'Biserie: '+parseBiserie(ex).nombreA+' + '+parseBiserie(ex).nombreB:isCircuit(ex)?parseCircuit(ex).nombre:ex.nombre):'—';const serHtml2=e.series_realizadas?formatSeries(e.series_realizadas):'';const nota=e.nota||ex?.devolucion||'';const completado=ex?.completado;const bg=completado?'rgba(0,230,118,0.1)':'rgba(255,68,68,0.08)';const tc=completado?'var(--green)':'var(--red)';const bc=completado?'rgba(0,230,118,0.2)':'rgba(255,68,68,0.2)';return`<div class="p-log-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding:8px 0"><div style="display:flex;justify-content:space-between;width:100%;align-items:center"><span class="p-log-ex-name">${exNombre}</span><span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${bg};color:${tc};border:1px solid ${bc}">${completado?'✓ Completado':'✕ No completado'}</span></div>${serHtml2}${nota?`<div style="font-size:12px;color:var(--text2);font-style:italic">"${nota}"</div>`:''}</div>`;}).join('')}</div>`;}).join('');
 }
 
 function rutRenderFeedback(){
@@ -3025,8 +3043,6 @@ window.onload = async () => {
   }
   document.getElementById('login-screen').style.display='flex';
 };
-</script>
-<script>
 // ════ TIMER ════
 let timerState = {
   work:40, rest:20, restCycle:60, rounds:8, cycles:3, prepare:5,
@@ -3063,32 +3079,23 @@ function timerSetMode(mode){
 
 // ── CRONÓMETRO ──
 function swRender(){
-  const s = swState;
-  const total = s.elapsed;
-  const hh = Math.floor(total/3600);
-  const mm = Math.floor((total%3600)/60);
-  const ss = total%60;
-  const display = hh>0
-    ? `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`
-    : `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
-  // Arc: full circle when running, pulse every 60s
-  const progress = s.running ? (ss/60) : 0;
-  const arc = timerArcSVG(progress, '#22D3EE');
-
+  const s=swState;
+  const t=s.elapsed;
+  const hh=Math.floor(t/3600),mm=Math.floor((t%3600)/60),ss=t%60;
+  const display=hh>0?`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`:`${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+  const pct=s.running?(ss/60)*100:0;
   document.getElementById('a-view-timer').innerHTML=`
   <div class="timer-wrap">
     ${timerHeaderHtml('stopwatch')}
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem 1rem 0.5rem">
-      <div style="position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center">
-        ${arc}
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
-          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:#22D3EE;opacity:0.7">${s.running ? 'Corriendo' : 'Cronómetro'}</div>
-          <div id="sw-display" style="font-family:var(--font-display);font-size:${hh>0?'52':'68'}px;font-weight:400;letter-spacing:-3px;color:#22D3EE;line-height:1">${display}</div>
-          <div style="font-size:11px;color:var(--text2);font-weight:400">${s.running ? 'Tocá pausa para detener' : 'Tocá play para empezar'}</div>
-        </div>
+    <div style="display:flex;flex-direction:column;align-items:center;padding:2.5rem 1.5rem 1.5rem">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.18em;color:#22D3EE;opacity:0.8;margin-bottom:0.75rem">${s.running?'Corriendo':'Cronómetro'}</div>
+      <div id="sw-display" style="font-family:var(--font-display);font-size:${hh>0?'64':'90'}px;font-weight:300;letter-spacing:-4px;color:#22D3EE;line-height:1;margin-bottom:0.75rem">${display}</div>
+      <div style="font-size:12px;color:var(--text2);font-weight:400;margin-bottom:1.5rem">${s.running?'Tocá pausa para detener':'Tocá play para empezar'}</div>
+      <div style="width:100%;max-width:280px;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden">
+        <div id="sw-bar" style="height:100%;border-radius:2px;width:${pct}%;background:#22D3EE;transition:width 0.95s linear"></div>
       </div>
     </div>
-    <div class="timer-controls" style="padding:0.25rem 1.1rem 1rem">
+    <div style="display:flex;gap:20px;align-items:center;justify-content:center;padding:0 1.1rem 1.5rem">
       <button class="timer-btn-sm" onclick="swReset()">↺</button>
       <button class="timer-btn-play" onclick="swToggle()" style="background:linear-gradient(145deg,#22D3EE,#0891B2)">${s.running?'⏸':'▶'}</button>
       <div style="width:46px"></div>
@@ -3107,11 +3114,8 @@ function swStart(){
     const display=hh>0?`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`:`${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
     const d=document.getElementById('sw-display');
     if(d) d.textContent=display;
-    // update arc each second
-    const progress = ss/60;
-    const r=96,circ=2*Math.PI*r,dash=circ*progress,gap=circ-dash;
-    const arc=document.querySelectorAll('circle[stroke-linecap]')[0];
-    if(arc) arc.setAttribute('stroke-dasharray',`${dash} ${gap}`);
+    const bar=document.getElementById('sw-bar');
+    if(bar) bar.style.width=((ss/60)*100)+'%';
   },1000);
 }
 function swPause(){ swState.running=false; clearInterval(swState.interval); swRender(); }
@@ -3119,27 +3123,22 @@ function swReset(){ clearInterval(swState.interval); swState={running:false,elap
 
 // ── CUENTA REGRESIVA ──
 function cdRender(){
-  const s = cdState;
-  const mm = String(Math.floor(s.timeLeft/60)).padStart(2,'0');
-  const ss = String(s.timeLeft%60).padStart(2,'0');
-  const pct = s.total>0 ? s.timeLeft/s.total : 1;
-  const color = pct>0.5 ? '#4ADE80' : pct>0.25 ? '#FB923C' : '#F87171';
-  const arc = timerArcSVG(pct, color);
-
+  const s=cdState;
+  const mm=String(Math.floor(s.timeLeft/60)).padStart(2,'0');
+  const ss=String(s.timeLeft%60).padStart(2,'0');
+  const pct=s.total>0?Math.round((s.timeLeft/s.total)*100):100;
+  const color=pct>50?'#4ADE80':pct>25?'#FB923C':'#F87171';
   document.getElementById('a-view-timer').innerHTML=`
   <div class="timer-wrap">
     ${timerHeaderHtml('countdown')}
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem 1rem 0.5rem">
-      <div style="position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center">
-        ${arc}
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
-          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:${color};opacity:0.75">${s.running?'Contando…':s.timeLeft===0?'¡Listo!':'Cuenta regresiva'}</div>
-          <div id="cd-display" style="font-family:var(--font-display);font-size:68px;font-weight:400;letter-spacing:-4px;color:${color};line-height:1">${mm}:${ss}</div>
-          <div style="font-size:11px;color:var(--text2);font-weight:400">${s.running?'Tocá pausa para detener':s.timeLeft===0?'Tiempo agotado':'Configurá el tiempo abajo'}</div>
-        </div>
+    <div style="display:flex;flex-direction:column;align-items:center;padding:2.5rem 1.5rem 1.5rem">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.18em;color:${color};opacity:0.8;margin-bottom:0.75rem">${s.running?'Contando…':s.timeLeft===0?'¡Listo!':'Cuenta regresiva'}</div>
+      <div id="cd-display" style="font-family:var(--font-display);font-size:90px;font-weight:300;letter-spacing:-6px;color:${color};line-height:1;margin-bottom:0.75rem">${mm}:${ss}</div>
+      <div style="font-size:12px;color:var(--text2);font-weight:400;margin-bottom:1.5rem">${s.running?'Tocá pausa para detener':s.timeLeft===0?'Tiempo agotado':'Configurá el tiempo abajo'}</div>
+      <div style="width:100%;max-width:280px;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden">
+        <div id="cd-bar" style="height:100%;border-radius:2px;width:${pct}%;background:${color};transition:width 0.95s linear,background 0.3s ease"></div>
       </div>
     </div>
-    ${!s.running&&s.timeLeft===s.total?`
     <div style="margin:0 1.1rem 0.9rem;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:var(--radius);padding:0.9rem 1rem">
       <div style="font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px">Tiempo</div>
       <div style="display:flex;align-items:center;gap:6px">
@@ -3151,10 +3150,10 @@ function cdRender(){
         <button class="timer-stepper-btn" style="font-size:11px;width:36px;border-radius:8px" onclick="cdAdj(10)">+10s</button>
         <button class="timer-stepper-btn" style="font-size:11px;width:36px;border-radius:8px" onclick="cdAdj(60)">+1m</button>
       </div>
-    </div>`:''}
-    <div class="timer-controls" style="padding:0.25rem 1.1rem 1rem">
+    </div>
+    <div style="display:flex;gap:20px;align-items:center;justify-content:center;padding:0 1.1rem 1.5rem">
       <button class="timer-btn-sm" onclick="cdReset()">↺</button>
-      <button class="timer-btn-play" onclick="cdToggle()" style="background:linear-gradient(145deg,${color},${color}bb)">${s.running?'⏸':s.timeLeft===0?'↺':'▶'}</button>
+      <button class="timer-btn-play" onclick="cdToggle()" id="cd-play-btn" style="background:linear-gradient(145deg,${color},${color}99)">${s.running?'⏸':(s.timeLeft===0?'↺':'▶')}</button>
       <div style="width:46px"></div>
     </div>
   </div>`;
@@ -3177,11 +3176,9 @@ function cdStart(){
     if(cdState.timeLeft<=3) timerCountdownBeep();
     const d=document.getElementById('cd-display');
     if(d){const mm=String(Math.floor(cdState.timeLeft/60)).padStart(2,'0');const ss=String(cdState.timeLeft%60).padStart(2,'0');d.textContent=`${mm}:${ss}`;}
-    // update arc
-    const pct=cdState.total>0?cdState.timeLeft/cdState.total:0;
-    const r=96,circ=2*Math.PI*r,dash=circ*Math.max(0,pct),gap=circ-dash;
-    const arc=document.querySelectorAll('circle[stroke-linecap]')[0];
-    if(arc) arc.setAttribute('stroke-dasharray',`${dash} ${gap}`);
+    const pct=cdState.total>0?Math.round((cdState.timeLeft/cdState.total)*100):0;
+    const bar=document.getElementById('cd-bar');
+    if(bar) bar.style.width=pct+'%';
   },1000);
 }
 function cdPause(){ cdState.running=false; clearInterval(cdState.interval); cdRender(); }
@@ -3215,131 +3212,67 @@ function aShowTimer(){
   timerRender();
 }
 function aHideTimer(){ timerStop(); aShowHome(); }
-function timerArcSVG(progress, color, size=220){
-  const r = size/2 - 14;
-  const cx = size/2, cy = size/2;
-  const circ = 2 * Math.PI * r;
-  const dash = circ * Math.max(0, Math.min(1, progress));
-  const gap  = circ - dash;
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg);position:absolute;inset:0">
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="10"/>
-    <circle id="timer-arc" cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="10"
-      stroke-linecap="round" stroke-dasharray="${dash} ${gap}"
-      style="transition:stroke-dasharray 0.95s linear,stroke 0.3s ease"/>
-  </svg>`;
-}
-
 function timerFormatTotal(s){
-  const total = s.prepare + s.cycles*(s.rounds*s.work + (s.rounds-1)*s.rest) + (s.cycles-1)*s.restCycle;
-  const mm = Math.floor(total/60);
-  const ss = total % 60;
-  return mm>0 ? (ss>0 ? `${mm}m ${ss}s` : `${mm} min`) : `${ss}s`;
+  const total=s.prepare+s.cycles*(s.rounds*s.work+(s.rounds-1)*s.rest)+(s.cycles-1)*s.restCycle;
+  const mm=Math.floor(total/60),ss=total%60;
+  return mm>0?(ss>0?`${mm}m ${ss}s`:`${mm} min`):`${ss}s`;
 }
 
-// ── Actualiza solo los elementos del DOM que cambian, sin reconstruir ──
 function timerDOMUpdate(){
-  const s = timerState;
-  const ph = TIMER_PHASES[s.phase] || TIMER_PHASES.idle;
-  const isIdle = s.phase==='idle' || s.phase==='done';
-  const sec = isIdle ? s.work : s.timeLeft;
-  const mm  = String(Math.floor(sec/60)).padStart(2,'0');
-  const ss  = String(sec%60).padStart(2,'0');
-
-  // Tiempo
-  const disp = document.getElementById('t-display');
-  if(disp) disp.textContent = `${mm}:${ss}`;
-
-  // Fase label
-  const lbl = document.getElementById('t-phase');
-  if(lbl){ lbl.textContent = ph.label; lbl.style.color = ph.color; }
-
-  // Info line
-  const info = document.getElementById('t-info');
-  if(info){
-    info.textContent = isIdle
-      ? `${s.rounds} rondas · ${s.cycles} ciclos`
-      : s.phase==='done' ? '¡Buen trabajo!'
-      : `Ronda ${s.currentRound}/${s.rounds} · Ciclo ${s.currentCycle}/${s.cycles}`;
+  const s=timerState;
+  const ph=TIMER_PHASES[s.phase]||TIMER_PHASES.idle;
+  const isIdle=s.phase==='idle'||s.phase==='done';
+  const sec=isIdle?s.work:s.timeLeft;
+  const mm=String(Math.floor(sec/60)).padStart(2,'0');
+  const ss=String(sec%60).padStart(2,'0');
+  const disp=document.getElementById('t-display');
+  if(disp){disp.textContent=`${mm}:${ss}`;disp.style.color=ph.color;}
+  const lbl=document.getElementById('t-phase');
+  if(lbl){lbl.textContent=ph.label;lbl.style.color=ph.color;}
+  const info=document.getElementById('t-info');
+  if(info) info.textContent=isIdle?`${s.rounds} rondas · ${s.cycles} ciclos`:s.phase==='done'?'¡Buen trabajo!':`Ronda ${s.currentRound}/${s.rounds} · Ciclo ${s.currentCycle}/${s.cycles}`;
+  const btn=document.getElementById('t-play-btn');
+  if(btn){btn.textContent=s.running?'⏸':s.phase==='done'?'↺':'▶';btn.style.background=`linear-gradient(145deg,${ph.color},${ph.color}99)`;}
+  const bar=document.getElementById('t-progress-bar');
+  if(bar){
+    let pct=100;
+    if(!isIdle){const total=s.phase==='prepare'?s.prepare:s.phase==='work'?s.work:s.phase==='rest'?s.rest:s.restCycle;pct=total>0?Math.round((s.timeLeft/total)*100):0;}
+    bar.style.width=pct+'%';bar.style.background=ph.color;
   }
-
-  // Color del display
-  if(disp) disp.style.color = ph.color;
-
-  // Botón play
-  const btn = document.getElementById('t-play-btn');
-  if(btn){
-    btn.textContent = s.running ? '⏸' : s.phase==='done' ? '↺' : '▶';
-    btn.style.background = `linear-gradient(145deg,${ph.color},${ph.color}99)`;
-  }
-
-  // Arco
-  const arc = document.getElementById('timer-arc');
-  if(arc){
-    let progress = 1;
-    if(!isIdle){
-      const total = s.phase==='prepare' ? s.prepare
-                  : s.phase==='work'    ? s.work
-                  : s.phase==='rest'    ? s.rest
-                  : s.phase==='rest-cycle' ? s.restCycle : 1;
-      progress = total>0 ? s.timeLeft/total : 0;
-    }
-    const r=96, circ=2*Math.PI*r;
-    const dash = circ*Math.max(0,Math.min(1,progress));
-    arc.setAttribute('stroke-dasharray',`${dash} ${circ-dash}`);
-    arc.setAttribute('stroke', ph.color);
-  }
-
-  // Config: mostrar/ocultar y actualizar total
-  const cfg = document.getElementById('t-config-wrap');
-  if(cfg) cfg.style.display = isIdle ? 'block' : 'none';
-  const tot = document.getElementById('t-total-val');
-  if(tot) tot.textContent = timerFormatTotal(s);
-
-  // Botón skip
-  const skip = document.getElementById('t-skip-btn');
-  if(skip) skip.style.visibility = isIdle ? 'hidden' : 'visible';
+  const cfg=document.getElementById('t-config-wrap');
+  if(cfg) cfg.style.display=isIdle?'block':'none';
+  const tot=document.getElementById('t-total-val');
+  if(tot) tot.textContent=timerFormatTotal(s);
+  const skip=document.getElementById('t-skip-btn');
+  if(skip) skip.style.visibility=isIdle?'hidden':'visible';
 }
 
 function timerRender(){
-  const s = timerState;
-  const ph = TIMER_PHASES[s.phase] || TIMER_PHASES.idle;
-  const isIdle = s.phase==='idle' || s.phase==='done';
-  const sec = isIdle ? s.work : s.timeLeft;
-  const mm  = String(Math.floor(sec/60)).padStart(2,'0');
-  const ss2 = String(sec%60).padStart(2,'0');
-  let progress = 1;
-  if(!isIdle){
-    const total = s.phase==='prepare' ? s.prepare
-                : s.phase==='work'    ? s.work
-                : s.phase==='rest'    ? s.rest
-                : s.phase==='rest-cycle' ? s.restCycle : 1;
-    progress = total>0 ? s.timeLeft/total : 0;
-  }
-
-  document.getElementById('a-view-timer').innerHTML = `
+  const s=timerState;
+  const ph=TIMER_PHASES[s.phase]||TIMER_PHASES.idle;
+  const isIdle=s.phase==='idle'||s.phase==='done';
+  const sec=isIdle?s.work:s.timeLeft;
+  const mm=String(Math.floor(sec/60)).padStart(2,'0');
+  const ss=String(sec%60).padStart(2,'0');
+  let pct=100;
+  if(!isIdle){const total=s.phase==='prepare'?s.prepare:s.phase==='work'?s.work:s.phase==='rest'?s.rest:s.restCycle;pct=total>0?Math.round((s.timeLeft/total)*100):0;}
+  const infoText=isIdle?`${s.rounds} rondas · ${s.cycles} ciclos`:s.phase==='done'?'¡Buen trabajo!':`Ronda ${s.currentRound}/${s.rounds} · Ciclo ${s.currentCycle}/${s.cycles}`;
+  document.getElementById('a-view-timer').innerHTML=`
   <div class="timer-wrap" style="overflow-y:auto">
     ${timerHeaderHtml('interval')}
-
-    <!-- Círculo fijo -->
-    <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:0.75rem 1rem 0">
-      <div style="position:relative;width:220px;height:220px">
-        ${timerArcSVG(progress, ph.color)}
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px">
-          <div id="t-phase" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:${ph.color};opacity:0.75">${ph.label}</div>
-          <div id="t-display" style="font-family:var(--font-display);font-size:68px;font-weight:400;letter-spacing:-4px;color:${ph.color};line-height:1">${mm}:${ss2}</div>
-          <div id="t-info" style="font-size:11px;color:var(--text2);font-weight:400;letter-spacing:0.03em">${isIdle?`${s.rounds} rondas · ${s.cycles} ciclos`:s.phase==='done'?'¡Buen trabajo!':`Ronda ${s.currentRound}/${s.rounds} · Ciclo ${s.currentCycle}/${s.cycles}`}</div>
-        </div>
+    <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:2.5rem 1.5rem 1.5rem">
+      <div id="t-phase" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.18em;color:${ph.color};opacity:0.8;margin-bottom:0.75rem">${ph.label}</div>
+      <div id="t-display" style="font-family:var(--font-display);font-size:90px;font-weight:300;letter-spacing:-6px;color:${ph.color};line-height:1;margin-bottom:0.75rem">${mm}:${ss}</div>
+      <div id="t-info" style="font-size:12px;color:var(--text2);font-weight:400;letter-spacing:0.04em;margin-bottom:1.5rem">${infoText}</div>
+      <div style="width:100%;max-width:280px;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden">
+        <div id="t-progress-bar" style="height:100%;border-radius:2px;transition:width 0.95s linear,background 0.3s ease;width:${pct}%;background:${ph.color}"></div>
       </div>
     </div>
-
-    <!-- Controles fijos -->
-    <div style="flex-shrink:0;display:flex;gap:16px;align-items:center;justify-content:center;padding:0.5rem 1.1rem 0.75rem">
+    <div style="flex-shrink:0;display:flex;gap:20px;align-items:center;justify-content:center;padding:0 1.1rem 1.5rem">
       <button class="timer-btn-sm" onclick="timerReset()" title="Reiniciar">↺</button>
       <button id="t-play-btn" class="timer-btn-play" onclick="timerToggle()" style="background:linear-gradient(145deg,${ph.color},${ph.color}99)">${s.running?'⏸':s.phase==='done'?'↺':'▶'}</button>
       <button id="t-skip-btn" class="timer-btn-sm" onclick="timerSkip()" title="Saltar" style="visibility:${isIdle?'hidden':'visible'}">⏭</button>
     </div>
-
-    <!-- Config (solo en idle) -->
     <div id="t-config-wrap" style="display:${isIdle?'block':'none'}">
       <div class="timer-config" style="margin:0 1.1rem">
         ${timerRow('Preparación','Antes de empezar','prepare','s',s.prepare)}
