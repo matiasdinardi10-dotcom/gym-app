@@ -2,7 +2,7 @@
   "name": "MD Pro Training",
   "short_name": "MD Training",
   "description": "Tu entrenamiento personal con MD Pro Training",
-  "start_url": "/app.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#080C0A",
   "theme_color": "#00E676",
