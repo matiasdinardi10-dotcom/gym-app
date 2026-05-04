@@ -1,6 +1,6 @@
-const CACHE_NAME = 'md-pro-training-v1';
+const CACHE_NAME = 'md-pro-training-v2';
 const ASSETS = [
-  '/app.html',
+  '/index.html',
   '/manifest.json'
 ];
 
