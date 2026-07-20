@@ -675,7 +675,11 @@ select.form-input option { background:#0d1a12; color:var(--text); }
         </div>
       </div>
     </div>
-    <div class="day-strip" id="day-strip"></div>
+    <div style="display:flex;align-items:center;gap:6px;padding:0 1.25rem 0">
+      <button onclick="aWeekShift(-7)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s" id="btn-week-prev">‹</button>
+      <div class="day-strip" id="day-strip" style="flex:1;padding:0;margin:0"></div>
+      <button onclick="aWeekShift(7)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s" id="btn-week-next">›</button>
+    </div>
     <div class="loading" id="home-loading">Cargando tu rutina…</div>
     <div id="home-content" style="display:none;padding:1.25rem"></div>
   </div>
@@ -901,67 +905,6 @@ select.form-input option { background:#0d1a12; color:var(--text); }
     </div>
   </div>
 
-  <!-- COBROS -->
-  <div class="p-screen" id="p-screen-cobros">
-    <h1 class="page-title">Cobros y Turnos</h1>
-    <div class="sub-tab-bar">
-      <button class="sub-tab active" onclick="cobSwitchTab('cobros')">Cobros</button>
-      <button class="sub-tab" onclick="cobSwitchTab('turnos')">Turnos</button>
-    </div>
-    <div class="p-sub-view active" id="cob-cobros">
-      <div class="metrics" id="cob-summary">
-        <div class="metric"><div class="metric-label">Cobrado este mes</div><div class="metric-value green">$—</div></div>
-        <div class="metric"><div class="metric-label">Por cobrar</div><div class="metric-value">$—</div></div>
-      </div>
-      <div class="p-section">
-        <div class="section-title">Estado de pagos</div>
-        <div id="cob-payment-list"><div class="loading">Cargando…</div></div>
-      </div>
-      <div class="p-section">
-        <div class="section-title">Registrar cobro</div>
-        <select class="form-input" id="cob-client"></select>
-        <div class="row2">
-          <input class="form-input" style="margin:0" type="number" id="cob-monto" placeholder="Monto ($)" />
-          <select class="form-input" style="margin:0" id="cob-medio"><option value="Transferencia">Transferencia</option><option value="Efectivo">Efectivo</option></select>
-        </div>
-        <div class="row2" style="margin-top:0.6rem">
-          <input class="form-input" style="margin:0" type="text" id="cob-mes" placeholder="Concepto" />
-          <input class="form-input" style="margin:0" type="date" id="cob-fecha" />
-        </div>
-        <select class="form-input" style="margin-top:0.6rem" id="cob-estado"><option value="pagado">Pagado</option><option value="pendiente">Pendiente</option></select>
-        <button class="btn-green-p" onclick="addCobro()">+ Registrar cobro</button>
-      </div>
-      <div class="p-section">
-        <div class="section-title">Historial</div>
-        <div id="cob-history"><div class="loading">Cargando…</div></div>
-      </div>
-    </div>
-    <div class="p-sub-view" id="cob-turnos">
-      <div class="p-section">
-        <div class="cal-header">
-          <button class="cal-nav" onclick="cobChangeMonth(-1)">‹</button>
-          <span class="cal-title" id="cob-cal-title"></span>
-          <button class="cal-nav" onclick="cobChangeMonth(1)">›</button>
-        </div>
-        <div class="cal-grid" id="cob-cal-grid"></div>
-      </div>
-      <div class="p-section">
-        <div class="section-title">Próximas sesiones</div>
-        <div id="cob-session-list"><div class="loading">Cargando…</div></div>
-      </div>
-      <div class="p-section">
-        <div class="section-title">Agendar sesión</div>
-        <select class="form-input" id="cob-t-client"></select>
-        <div class="row2">
-          <input class="form-input" style="margin:0" type="date" id="cob-t-fecha" />
-          <input class="form-input" style="margin:0" type="time" id="cob-t-hora" />
-        </div>
-        <input class="form-input" style="margin-top:0.6rem" type="text" id="cob-t-nota" placeholder="Nota (opcional)" />
-        <button class="btn-green-p" onclick="addTurno()">+ Agendar sesión</button>
-      </div>
-    </div>
-  </div>
-
   <!-- MODAL CLIENTE -->
   <div class="p-modal-overlay" id="cl-modal">
     <div class="p-modal">
@@ -1088,10 +1031,6 @@ select.form-input option { background:#0d1a12; color:var(--text); }
     <button class="nav-btn" id="nav-biblioteca" onclick="pSwitchScreen('biblioteca')">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
       <span class="nav-label">Biblioteca</span>
-    </button>
-    <button class="nav-btn" id="nav-cobros" onclick="pSwitchScreen('cobros')">
-      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      <span class="nav-label">Cobros</span>
     </button>
   </nav>
 </div>
@@ -1347,23 +1286,39 @@ async function aDoRefresh(){
   catch(e){ showToast('Error al actualizar',true); }
   btn.style.animation='';btn.style.opacity='1';btn.disabled=false;btn.textContent='↻';
 }
+let aWeekOffset=0;
+
+function aWeekShift(days){
+  aWeekOffset+=days;
+  if(aWeekOffset>7) aWeekOffset=7;
+  aBuildDayStrip();
+}
+
 function aBuildDayStrip(){
   const exDates=new Set(aEjercicios.filter(e=>e.fecha_sesion).map(e=>e.fecha_sesion));
   const logDates=new Set(aLogs.map(l=>l.fecha));
-  const today=new Date();let html='';
-  for(let i=-14;i<=14;i++){
-    const d=new Date(today);d.setDate(today.getDate()+i);const ds=localDateStr(d);
+  const today=new Date();
+  const weekStart=new Date(today);
+  weekStart.setDate(today.getDate()+aWeekOffset);
+  const dow=weekStart.getDay();
+  const diffToMon=dow===0?-6:1-dow;
+  weekStart.setDate(weekStart.getDate()+diffToMon);
+  let html='';
+  for(let i=0;i<7;i++){
+    const d=new Date(weekStart);d.setDate(weekStart.getDate()+i);
+    const ds=localDateStr(d);
     const hasEx=exDates.has(ds);const isClosed=hasEx&&logDates.has(ds);
     const isToday=ds===TODAY;
     const cls=[isToday?'today':'',hasEx&&!isClosed?'has-ex':'',isClosed?'is-done':'',ds===aSelectedDate?'selected':''].filter(Boolean).join(' ');
     html+=`<div class="day-btn ${cls}" onclick="aSelectDay('${ds}')">
-      ${isToday?`<div style="font-size:8px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:0.08em;font-family:var(--font-display);margin-bottom:1px">HOY</div>`:`<div class="dn">${DAYS[d.getDay()]}</div>`}
+      ${isToday?`<div style="font-size:7px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:1px">HOY</div>`:`<div class="dn">${DAYS[d.getDay()]}</div>`}
       <div class="dd">${d.getDate()}</div>
       ${isClosed?`<div style="font-size:9px;color:var(--green);margin-top:2px">✓</div>`:''}
     </div>`;
   }
   document.getElementById('day-strip').innerHTML=html;
-  setTimeout(()=>{const sel=document.querySelector('.day-btn.selected')||document.querySelector('.day-btn.today');if(sel)sel.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},100);
+  const btnNext=document.getElementById('btn-week-next');
+  if(btnNext) btnNext.style.opacity=aWeekOffset>=7?'0.2':'1';
 }
 function aSelectDay(ds){
   // Guardar card activa antes de cambiar
@@ -2233,7 +2188,7 @@ function aDrawLineChart(dataPoints){
 }
 
 // ════ PANEL PROFE ════
-let pClientes=[],pAllEjercicios=[],pAllLogs=[],pAllSesiones=[],pAllCobros=[],pBiblioteca=[];
+let pClientes=[],pAllEjercicios=[],pAllLogs=[],pAllSesiones=[],pBiblioteca=[];
 const AV_CLS=['av-teal','av-blue','av-coral','av-purple','av-amber'];
 function avClass(n){let h=0;for(let c of n)h+=c.charCodeAt(0);return AV_CLS[h%AV_CLS.length];}
 function initials(n){return n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();}
@@ -2245,22 +2200,22 @@ async function initProfe(){
   window.scrollTo(0,0);
   try{
     // Todo en paralelo
-    const [clientes, biblioteca, cobros, sesiones, rutinas, rawEx, logs] = await Promise.all([
+    const [clientes, biblioteca, sesiones, rutinas, rawEx, logs] = await Promise.all([
       dbGet('clientes','order=nombre.asc'),
       dbGet('biblioteca_ejercicios','order=nombre.asc'),
-      dbGet('cobros','order=fecha_pago.desc'),
+
       dbGet('sesiones','order=fecha.asc'),
       dbGet('rutinas',''),
       dbGet('ejercicios','order=id.asc'),
       dbGet('logs_entrenamiento','order=fecha.desc')
     ]);
-    pClientes=clientes; pBiblioteca=biblioteca; pAllCobros=cobros; pAllSesiones=sesiones; pAllLogs=logs;
+    pClientes=clientes; pBiblioteca=biblioteca; pAllSesiones=sesiones; pAllLogs=logs;
     const rm={};rutinas.forEach(r=>{rm[r.id]=r.cliente_id;});
     pAllEjercicios=rawEx.map(e=>({...e,_clientId:rm[e.rutina_id]||null}));
     const opts=pClientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
     ['rut-sel-cliente','rut-sel-historial','rut-sel-sesiones','cob-client','cob-t-client'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
     if(pClientes.length){rutCurrentClientId=pClientes[0].id;cobCalMonth=new Date().getMonth();cobCalYear=new Date().getFullYear();}
-    clRenderList();rutBuildCalStrip();rutRenderDay();rutRenderBiblioteca();cobRenderCobros();cobRenderCal();
+    clRenderList();rutBuildCalStrip();rutRenderDay();rutRenderBiblioteca();
     document.getElementById('cob-fecha').value=TODAY;document.getElementById('cob-t-fecha').value=TODAY;
   }catch(e){showToast('Error al conectar',true);console.error(e);}
 }
@@ -3022,48 +2977,6 @@ function rutRenderFeedback(){
   if(!withFb.length){el.innerHTML=`<div class="empty">${cl?cl.nombre+' no':' No'} ha dejado comentarios aún.</div>`;return;}
   el.innerHTML=withFb.map(e=>{const nombre=isCircuit(e)?'🔄 '+parseCircuit(e).nombre:e.nombre;return`<div style="padding:0.85rem 0;border-bottom:1px solid var(--border)"><div style="font-size:12px;color:var(--green);margin:4px 0;font-weight:500">${nombre}</div><div style="font-size:13px;color:var(--text2)">${e.devolucion}</div></div>`;}).join('');
 }
-
-// COBROS
-let cobCalMonth=new Date().getMonth(),cobCalYear=new Date().getFullYear();
-function cobSwitchTab(tab){document.querySelectorAll('#p-screen-cobros .sub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('#p-screen-cobros .p-sub-view').forEach(v=>v.classList.remove('active'));const tabs=['cobros','turnos'];document.querySelectorAll('#p-screen-cobros .sub-tab')[tabs.indexOf(tab)].classList.add('active');document.getElementById('cob-'+tab).classList.add('active');if(tab==='turnos')cobRenderCal();}
-function cobRenderCobros(){
-  const now=new Date();const mesActual=now.getMonth();const anioActual=now.getFullYear();
-  const cobradoMes=pAllCobros.filter(c=>c.estado==='pagado'&&c.fecha_pago&&new Date(c.fecha_pago).getMonth()===mesActual&&new Date(c.fecha_pago).getFullYear()===anioActual).reduce((s,c)=>s+(c.monto||0),0);
-  const porCobrar=pAllCobros.filter(c=>c.estado==='pendiente').reduce((s,c)=>s+(c.monto||0),0);
-  document.getElementById('cob-summary').innerHTML=`<div class="metric"><div class="metric-label">Cobrado este mes</div><div class="metric-value green">$${cobradoMes.toLocaleString()}</div></div><div class="metric"><div class="metric-label">Por cobrar</div><div class="metric-value ${porCobrar>0?'orange':''}">$${porCobrar.toLocaleString()}</div></div>`;
-  const byClient={};pAllCobros.forEach(c=>{if(!byClient[c.cliente_id])byClient[c.cliente_id]=c;});const rows=Object.values(byClient);
-  document.getElementById('cob-payment-list').innerHTML=!rows.length?'<div class="empty">Sin cobros registrados</div>':rows.map(c=>{const cl=pClientes.find(x=>x.id===c.cliente_id);const name=cl?cl.nombre:'—';return`<div class="payment-row"><div class="pay-avatar ${avClass(name)}">${initials(name)}</div><div class="pay-info"><div class="pay-name">${name}</div><div class="pay-detail">${c.mes||'—'} · ${c.medio_pago||'—'}</div></div><span class="pay-amount">$${(c.monto||0).toLocaleString()}</span><span class="badge badge-${c.estado}">${c.estado==='pagado'?'Pagado':'Pendiente'}</span>${c.estado==='pendiente'?`<button class="btn-confirm" onclick="cobConfirmarPago(${c.id})">Confirmar</button>`:''}</div>`;}).join('');
-  document.getElementById('cob-history').innerHTML=!pAllCobros.length?'<div class="empty">Sin historial</div>':pAllCobros.slice(0,10).map(c=>{const cl=pClientes.find(x=>x.id===c.cliente_id);const name=cl?cl.nombre:'—';return`<div class="payment-row"><div class="pay-avatar ${avClass(name)}" style="width:30px;height:30px;font-size:10px">${initials(name)}</div><div class="pay-info"><div class="pay-name" style="font-size:12px">${name} · ${c.mes||'—'}</div><div class="pay-detail">${c.fecha_pago?c.fecha_pago.split('-').reverse().join('/'):'—'} · ${c.medio_pago||'—'}</div></div><span class="pay-amount" style="font-size:13px">$${(c.monto||0).toLocaleString()}</span><span class="badge badge-${c.estado}">${c.estado==='pagado'?'Pagado':'Pendiente'}</span></div>`;}).join('');
-}
-async function cobConfirmarPago(id){try{await dbPatch('cobros',id,{estado:'pagado',fecha_pago:TODAY});const c=pAllCobros.find(x=>x.id===id);if(c){c.estado='pagado';c.fecha_pago=TODAY;}cobRenderCobros();showToast('Pago confirmado ✓');}catch(e){showToast('Error',true);}}
-async function addCobro(){
-  const cliente_id=document.getElementById('cob-client').value;const monto=parseFloat(document.getElementById('cob-monto').value);const medio_pago=document.getElementById('cob-medio').value;const mes=document.getElementById('cob-mes').value.trim();const fecha_pago=document.getElementById('cob-fecha').value;const estado=document.getElementById('cob-estado').value;
-  if(!monto||!mes||!fecha_pago){showToast('Completá todos los campos',true);return;}
-  try{const res=await dbPost('cobros',{cliente_id,monto,medio_pago,mes,fecha_pago,estado});pAllCobros.unshift(res[0]);document.getElementById('cob-monto').value='';document.getElementById('cob-mes').value='';cobRenderCobros();showToast('Cobro registrado ✓');}catch(e){showToast('Error: '+e.message.slice(0,60),true);}
-}
-function cobRenderCal(){
-  const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  document.getElementById('cob-cal-title').textContent=months[cobCalMonth]+' '+cobCalYear;
-  const days=['LU','MA','MI','JU','VI','SÁ','DO'];
-  const firstDay=new Date(cobCalYear,cobCalMonth,1).getDay();const offset=firstDay===0?6:firstDay-1;const daysInMonth=new Date(cobCalYear,cobCalMonth+1,0).getDate();const now=new Date();
-  const sessionDays=new Set(pAllSesiones.filter(t=>{const d=new Date(t.fecha+'T00:00:00');return d.getFullYear()===cobCalYear&&d.getMonth()===cobCalMonth;}).map(t=>parseInt(t.fecha.split('-')[2])));
-  let html=days.map(d=>`<div class="cal-day-name">${d}</div>`).join('');
-  for(let i=0;i<offset;i++)html+='<div class="cal-grid-day empty">·</div>';
-  for(let d=1;d<=daysInMonth;d++){const isToday=now.getFullYear()===cobCalYear&&now.getMonth()===cobCalMonth&&now.getDate()===d;html+=`<div class="cal-grid-day ${sessionDays.has(d)?'has-s':''} ${isToday?'is-today':''}">${d}</div>`;}
-  document.getElementById('cob-cal-grid').innerHTML=html;cobRenderSessions();
-}
-function cobRenderSessions(){
-  const now=new Date();now.setHours(0,0,0,0);const upcoming=pAllSesiones.filter(t=>new Date(t.fecha+'T00:00:00')>=now).slice(0,8);
-  if(!upcoming.length){document.getElementById('cob-session-list').innerHTML='<div class="empty">No hay sesiones próximas</div>';return;}
-  document.getElementById('cob-session-list').innerHTML=upcoming.map(t=>{const cl=pClientes.find(x=>x.id===t.cliente_id);const name=cl?cl.nombre:'—';const d=new Date(t.fecha+'T00:00:00');const label=d.toLocaleDateString('es-UY',{weekday:'short',day:'numeric',month:'short'});return`<div class="session-item"><div class="session-dot"></div><div class="session-info"><span style="font-weight:600;font-family:var(--font-display)">${name}</span>${t.notas?` · ${t.notas}`:''}<div class="session-time">${label.toUpperCase()} a las ${t.hora||'—'}</div></div><button class="session-delete" onclick="cobDeleteSesion(${t.id})">✕</button></div>`;}).join('');
-}
-function cobChangeMonth(dir){cobCalMonth+=dir;if(cobCalMonth>11){cobCalMonth=0;cobCalYear++;}if(cobCalMonth<0){cobCalMonth=11;cobCalYear--;}cobRenderCal();}
-async function addTurno(){
-  const cliente_id=document.getElementById('cob-t-client').value;const fecha=document.getElementById('cob-t-fecha').value;const hora=document.getElementById('cob-t-hora').value;const notas=document.getElementById('cob-t-nota').value.trim();
-  if(!fecha||!hora){showToast('Elegí fecha y hora',true);return;}
-  try{const res=await dbPost('sesiones',{cliente_id,fecha,hora,notas:notas||null});pAllSesiones.push(res[0]);pAllSesiones.sort((a,b)=>a.fecha.localeCompare(b.fecha));document.getElementById('cob-t-nota').value='';cobRenderCal();showToast('Sesión agendada ✓');}catch(e){showToast('Error: '+e.message.slice(0,60),true);}
-}
-async function cobDeleteSesion(id){if(!confirm('¿Eliminar esta sesión?'))return;try{await dbDelete('sesiones',id);pAllSesiones=pAllSesiones.filter(s=>s.id!==id);cobRenderCal();showToast('Sesión eliminada');}catch(e){showToast('Error',true);}}
 
 // INIT
 window.onload = async () => {
