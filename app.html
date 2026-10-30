@@ -860,7 +860,12 @@ select.form-input option { background:#0d1a12; color:var(--text); }
       <button class="sub-tab" onclick="rutSwitchTab('feedback')">Feedback</button>
     </div>
     <div class="p-sub-view active" id="rut-sesion">
-      <div class="cal-strip" id="rut-cal-strip"></div>
+         <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+     <button class="form-input" style="width:40px;padding:8px 0" onclick="rutShiftStrip(-14)">‹</button>
+     <input type="date" id="rut-date-pick" class="form-input" style="flex:1" onchange="rutPickDate(this.value)">
+     <button class="form-input" style="width:40px;padding:8px 0" onclick="rutShiftStrip(14)">›</button>
+     <button class="form-input" style="width:auto;padding:8px 12px" onclick="rutPickDate(TODAY)">Hoy</button>
+   </div><div class="cal-strip" id="rut-cal-strip"></div>
       <div class="rut-day-header">
         <div>
           <div class="rut-day-title" id="rut-prog-fecha">Hoy</div>
@@ -2409,8 +2414,7 @@ async function saveClient(){
 async function deleteClient(id){if(!confirm('¿Eliminar este cliente?'))return;try{await dbDelete('clientes',id);pClientes=pClientes.filter(c=>c.id!==id);showClientList();clRenderList();showToast('Cliente eliminado');}catch(e){showToast('Error',true);}}
 
 // RUTINAS
-let rutCurrentClientId=null,rutSelectedDate=TODAY,rutOpenDetails={};
-function rutSwitchTab(tab){
+let rutCurrentClientId=null,rutSelectedDate=TODAY,rutOpenDetails={},rutStripOffset=0;function rutSwitchTab(tab){
   document.querySelectorAll('.sub-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('#p-screen-rutinas .p-sub-view').forEach(v=>v.classList.remove('active'));
   const tabs=['sesion','sesiones','feedback'];
@@ -2436,7 +2440,7 @@ function rutBuildCalStrip(){
   const logDates=new Set(pAllLogs.filter(l=>l.cliente_id==rutCurrentClientId).map(l=>l.fecha));
   const today=new Date();let html='';
   for(let i=-7;i<=6;i++){
-    const d=new Date(today);d.setDate(today.getDate()+i);const ds=localDateStr(d);
+    const d=new Date(today);d.setDate(today.getDate()+i+rutStripOffset);const ds=localDateStr(d);
     const hasSession=!!exsByDate[ds];const isCompleted=hasSession&&logDates.has(ds);const isSelected=ds===rutSelectedDate;const isToday=ds===TODAY;
     let bg='var(--surface)',border='var(--border)',nameC='var(--text2)',numC='var(--text)',extra='';
     if(isCompleted&&!isSelected){bg='rgba(0,230,118,0.12)';border='rgba(0,230,118,0.3)';nameC='rgba(0,230,118,0.7)';numC='var(--green)';extra='<div style="font-size:9px;color:var(--green);margin-top:2px">✓</div>';}
@@ -2451,6 +2455,15 @@ function rutBuildCalStrip(){
   document.getElementById('rut-cal-strip').innerHTML=html;
 }
 function rutSelectDate(ds){rutSelectedDate=ds;rutBuildCalStrip();rutRenderDay();}
+     function rutShiftStrip(days){rutStripOffset+=days;rutBuildCalStrip();}
+   function rutPickDate(ds){
+     if(!ds)return;
+     rutStripOffset=Math.round((new Date(ds+'T00:00:00')-new Date(TODAY+'T00:00:00'))/86400000);
+     rutSelectedDate=ds;
+     const p=document.getElementById('rut-date-pick');if(p)p.value=ds;
+     rutBuildCalStrip();rutRenderDay();
+     const s=document.getElementById('rut-cal-strip');if(s)s.scrollLeft=(s.scrollWidth-s.clientWidth)/2;
+   }
 
 function rutRenderDay(){
   if(!rutCurrentClientId)return;
