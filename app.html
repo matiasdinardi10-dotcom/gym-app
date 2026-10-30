@@ -910,6 +910,24 @@ select.form-input option { background:#0d1a12; color:var(--text); }
     </div>
   </div>
 
+    <div class="p-screen" id="p-screen-plantillas">
+    <h1 class="page-title">Plantillas</h1>
+    <div class="p-section">
+      <div class="section-title" id="pl-form-title">Nueva plantilla</div>
+      <input class="form-input" id="pl-nombre" placeholder="Nombre (ej: Día 1 - Pecho y tríceps)" />
+      <datalist id="pl-bib-dl"></datalist>
+      <div id="pl-ex-list"></div>
+      <button class="btn-add-item" onclick="plAddEx()">+ Agregar ejercicio</button>
+      <div style="font-size:12px;color:var(--text2);margin:12px 0 4px">Asignar a alumnos</div>
+      <div id="pl-clientes"></div>
+      <button class="btn-green-p" onclick="plSave()">Guardar plantilla</button>
+      <button class="btn-cancel-p" id="pl-cancel" style="display:none" onclick="plReset()">Cancelar edición</button>
+    </div>
+    <div class="p-section">
+      <div class="section-title">Plantillas guardadas</div>
+      <div id="pl-list"><div class="loading">Cargando…</div></div>
+    </div>
+  </div>
   <!-- MODAL CLIENTE -->
   <div class="p-modal-overlay" id="cl-modal">
     <div class="p-modal">
@@ -1036,6 +1054,10 @@ select.form-input option { background:#0d1a12; color:var(--text); }
     <button class="nav-btn" id="nav-biblioteca" onclick="pSwitchScreen('biblioteca')">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
       <span class="nav-label">Biblioteca</span>
+    </button>
+        <button class="nav-btn" id="nav-plantillas" onclick="pSwitchScreen('plantillas')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h10"/></svg>
+      <span class="nav-label">Plantillas</span>
     </button>
   </nav>
 </div>
@@ -2242,6 +2264,7 @@ function pSwitchScreen(name){
   document.getElementById('p-screen-'+name).classList.add('active');
   document.getElementById('nav-'+name)?.classList.add('active');
   if(name==='biblioteca')rutRenderBiblioteca();
+    if(name==='plantillas')plRender();
   window.scrollTo(0,0);
 }
 
@@ -2987,7 +3010,79 @@ async function addToBiblioteca(){
   try{const res=await dbPost('biblioteca_ejercicios',{nombre,link_youtube:yt||null});pBiblioteca.push(res[0]);document.getElementById('bib-nombre').value='';document.getElementById('bib-yt').value='';rutRenderBiblioteca();showToast(nombre+' guardado ✓');}catch(e){showToast('Error',true);}
 }
 async function deleteBib(id){if(!confirm('¿Eliminar de la biblioteca?'))return;try{await dbDelete('biblioteca_ejercicios',id);pBiblioteca=pBiblioteca.filter(b=>b.id!==id);rutRenderBiblioteca();showToast('Eliminado');}catch(e){showToast('Error',true);}}
-
+// ════ PLANTILLAS ════
+let plData=[],plEjs=[{nombre:'',series:'',link:''}],plClientes=[],plEditingId=null;
+function plEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function plRender(){
+  document.getElementById('pl-bib-dl').innerHTML=pBiblioteca.map(b=>`<option value="${plEsc(b.nombre)}">`).join('');
+  plRenderClientes();plRenderEx();plLoad();
+}
+async function plLoad(){
+  try{plData=await dbGet('plantillas','order=id.desc');}catch(e){console.error(e);showToast('Error al cargar plantillas',true);plData=[];}
+  plRenderList();
+}
+function plRenderEx(){
+  document.getElementById('pl-ex-list').innerHTML=plEjs.map((e,i)=>`<div class="bib-item" style="flex-direction:column;align-items:stretch;gap:6px">
+    <div style="display:flex;gap:6px">
+      <input class="form-input" style="flex:1;margin:0" list="pl-bib-dl" placeholder="Ejercicio" value="${plEsc(e.nombre)}" oninput="plSetEx(${i},'nombre',this.value)" onchange="plPickBib(${i},this.value)">
+      <button class="bib-delete" onclick="plDelEx(${i})">✕</button>
+    </div>
+    <input class="form-input" style="margin:0" placeholder="Series y reps (ej: 4×10)" value="${plEsc(e.series)}" oninput="plSetEx(${i},'series',this.value)">
+    <input class="form-input" style="margin:0" placeholder="▶ Link de video" value="${plEsc(e.link)}" oninput="plSetEx(${i},'link',this.value)">
+  </div>`).join('');
+}
+function plSetEx(i,k,v){plEjs[i][k]=v;}
+function plPickBib(i,v){
+  const b=pBiblioteca.find(x=>x.nombre===v);
+  if(b&&b.link_youtube&&!plEjs[i].link){plEjs[i].link=b.link_youtube;plRenderEx();}
+}
+function plAddEx(){plEjs.push({nombre:'',series:'',link:''});plRenderEx();}
+function plDelEx(i){plEjs.splice(i,1);if(!plEjs.length)plEjs.push({nombre:'',series:'',link:''});plRenderEx();}
+function plRenderClientes(){
+  document.getElementById('pl-clientes').innerHTML=pClientes.map(c=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:14px"><input type="checkbox" ${plClientes.includes(c.id)?'checked':''} onchange="plToggleCli(${c.id},this.checked)"> ${c.nombre}</label>`).join('')||'<div class="empty">Todavía no hay alumnos.</div>';
+}
+function plToggleCli(id,on){plClientes=plClientes.filter(x=>x!==id);if(on)plClientes.push(id);}
+function plRenderList(){
+  const el=document.getElementById('pl-list');
+  if(!plData.length){el.innerHTML='<div class="empty">Todavía no armaste plantillas.</div>';return;}
+  el.innerHTML=plData.map(p=>{
+    const nombres=(p.cliente_ids||[]).map(id=>(pClientes.find(c=>c.id===id)||{}).nombre).filter(Boolean).join(', ')||'Sin asignar';
+    return `<div class="bib-item"><div><div class="bib-name">${plEsc(p.nombre)}</div><div style="font-size:11px;color:var(--text2);margin-top:3px">${(p.ejercicios||[]).length} ejercicios · ${plEsc(nombres)}</div></div><div style="display:flex;gap:6px"><button class="bib-delete" style="color:var(--green)" onclick="plEdit(${p.id})">✎</button><button class="bib-delete" onclick="plDelete(${p.id})">✕</button></div></div>`;
+  }).join('');
+}
+function plReset(){
+  plEditingId=null;plEjs=[{nombre:'',series:'',link:''}];plClientes=[];
+  document.getElementById('pl-nombre').value='';
+  document.getElementById('pl-form-title').textContent='Nueva plantilla';
+  document.getElementById('pl-cancel').style.display='none';
+  plRenderEx();plRenderClientes();
+}
+function plEdit(id){
+  const p=plData.find(x=>x.id===id);if(!p)return;
+  plEditingId=id;
+  plEjs=(p.ejercicios||[]).map(e=>({nombre:e.nombre||'',series:e.series||'',link:e.link||''}));
+  if(!plEjs.length)plEjs=[{nombre:'',series:'',link:''}];
+  plClientes=[...(p.cliente_ids||[])];
+  document.getElementById('pl-nombre').value=p.nombre;
+  document.getElementById('pl-form-title').textContent='Editando plantilla';
+  document.getElementById('pl-cancel').style.display='block';
+  plRenderEx();plRenderClientes();window.scrollTo(0,0);
+}
+async function plSave(){
+  const nombre=document.getElementById('pl-nombre').value.trim();
+  if(!nombre){showToast('Escribí el nombre',true);return;}
+  const ejercicios=plEjs.map(e=>{let l=e.link.trim();if(l&&!l.startsWith('http'))l='https://'+l;return{nombre:e.nombre.trim(),series:e.series.trim(),link:l};}).filter(e=>e.nombre);
+  if(!ejercicios.length){showToast('Agregá al menos un ejercicio',true);return;}
+  const body={nombre,ejercicios,cliente_ids:plClientes};
+  try{
+    if(plEditingId)await dbPatch('plantillas',plEditingId,body);else await dbPost('plantillas',body);
+    plReset();await plLoad();showToast('Plantilla guardada ✓');
+  }catch(e){console.error(e);showToast('Error al guardar',true);}
+}
+async function plDelete(id){
+  if(!confirm('¿Eliminar esta plantilla?'))return;
+  try{await dbDelete('plantillas',id);if(plEditingId===id)plReset();await plLoad();showToast('Eliminada');}catch(e){showToast('Error',true);}
+}
 async function rutLoadSesionesAlumno(clientId){
   if(!clientId)return;const cid=parseInt(clientId);const clientLogs=pAllLogs.filter(l=>l.cliente_id===cid);const el=document.getElementById('rut-sesiones-content');
   if(!clientLogs.length){el.innerHTML='<div class="empty">Este alumno no ha guardado sesiones aún.</div>';return;}
