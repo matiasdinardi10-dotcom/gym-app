@@ -2277,7 +2277,7 @@ async function initProfe(){
     ['rut-sel-cliente','rut-sel-historial','rut-sel-sesiones','cob-client','cob-t-client'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
     if(pClientes.length){rutCurrentClientId=pClientes[0].id;cobCalMonth=new Date().getMonth();cobCalYear=new Date().getFullYear();}
     clRenderList();rutBuildCalStrip();rutRenderDay();rutRenderBiblioteca();
-    document.getElementById('cob-fecha').value=TODAY;document.getElementById('cob-t-fecha').value=TODAY;
+    
   }catch(e){showToast('Error al conectar',true);console.error(e);}
 }
 function pSwitchScreen(name){
