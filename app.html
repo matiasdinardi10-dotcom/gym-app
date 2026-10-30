@@ -3045,8 +3045,11 @@ async function plLoad(){
 }
 function plRenderEx(){
   document.getElementById('pl-ex-list').innerHTML=plEjs.map((e,i)=>`<div class="bib-item" style="flex-direction:column;align-items:stretch;gap:6px">
-    <div style="display:flex;gap:6px">
-      <input class="form-input" style="flex:1;margin:0" list="pl-bib-dl" placeholder="Ejercicio" value="${plEsc(e.nombre)}" oninput="plSetEx(${i},'nombre',this.value)" onchange="plPickBib(${i},this.value)">
+    <div style="display:flex;gap:6px;align-items:flex-start">
+      <div class="autocomplete-wrap" style="flex:1;margin:0">
+        <input class="form-input" style="margin:0" placeholder="Ejercicio" autocomplete="off" value="${plEsc(e.nombre)}" oninput="plSetEx(${i},'nombre',this.value);plAc(${i},this.value)">
+        <div class="autocomplete-list" id="pl-ac-${i}" style="display:none"></div>
+      </div>
       <button class="bib-delete" onclick="plDelEx(${i})">✕</button>
     </div>
     <input class="form-input" style="margin:0" placeholder="Series y reps (ej: 4×10)" value="${plEsc(e.series)}" oninput="plSetEx(${i},'series',this.value)">
@@ -3054,6 +3057,20 @@ function plRenderEx(){
   </div>`).join('');
 }
 function plSetEx(i,k,v){plEjs[i][k]=v;}
+  function plAc(i,val){
+  const list=document.getElementById('pl-ac-'+i);if(!list)return;
+  if(!val||val.length<2){list.style.display='none';return;}
+  const matches=pBiblioteca.filter(b=>b.nombre.toLowerCase().includes(val.toLowerCase()));
+  if(!matches.length){list.style.display='none';return;}
+  list.innerHTML=matches.map(b=>`<div class="autocomplete-item" onclick="plPick(${i},${b.id})"><span>${plEsc(b.nombre)}</span>${b.link_youtube?'<span class="yt-badge">▶ Video</span>':''}</div>`).join('');
+  list.style.display='block';
+}
+function plPick(i,bid){
+  const b=pBiblioteca.find(x=>x.id===bid);if(!b)return;
+  plEjs[i].nombre=b.nombre;plEjs[i].link=b.link_youtube||'';
+  plRenderEx();
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.autocomplete-wrap'))document.querySelectorAll('[id^="pl-ac-"]').forEach(l=>l.style.display='none');});
 function plPickBib(i,v){
   const b=pBiblioteca.find(x=>x.nombre===v);
   if(b&&b.link_youtube&&!plEjs[i].link){plEjs[i].link=b.link_youtube;plRenderEx();}
