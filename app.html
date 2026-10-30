@@ -680,6 +680,9 @@ select.form-input option { background:#0d1a12; color:var(--text); }
       <div class="day-strip" id="day-strip" style="flex:1;padding:0;margin:0"></div>
       <button onclick="aWeekShift(7)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s" id="btn-week-next">›</button>
     </div>
+        <div style="padding:0.6rem 1.25rem 0">
+      <button onclick="aShowPlantillas()" style="width:100%;padding:0.8rem;border-radius:var(--radius);border:1px solid var(--border);background:rgba(255,255,255,0.03);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-display)">📋 Mis rutinas</button>
+    </div>
     <div class="loading" id="home-loading">Cargando tu rutina…</div>
     <div id="home-content" style="display:none;padding:1.25rem"></div>
   </div>
@@ -734,7 +737,13 @@ select.form-input option { background:#0d1a12; color:var(--text); }
     </div>
     <div id="log-table-wrap"></div>
   </div>
-
+  <div id="a-view-plantillas" style="display:none;padding:1.25rem;padding-bottom:calc(var(--nav-height) + 1.25rem)">
+    <div class="a-summary-header">
+      <button class="a-back-btn" onclick="aShowHome()">←</button>
+      <div class="summary-title">Mis rutinas 📋</div>
+    </div>
+    <div id="a-pl-content"><div class="loading">Cargando…</div></div>
+  </div>
   <div id="a-view-timer" style="display:none;min-height:100vh;background:var(--bg)"></div>
 
   <!-- PERFIL -->
@@ -1381,8 +1390,7 @@ function aHideAllViews(){
   if(aSelectedDate && Object.keys(aSessionState).length){
     aSessionStateCache[aSelectedDate]=JSON.parse(JSON.stringify(aSessionState));
   }
-  ['a-view-home','a-view-session','a-view-summary','a-view-progress','a-view-timer','a-view-perfil'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.style.display='none';
+     ['a-view-home','a-view-session','a-view-summary','a-view-progress','a-view-timer','a-view-perfil','a-view-plantillas'].forEach(id=>{    const el=document.getElementById(id);if(el)el.style.display='none';
   });
 }
 
@@ -1548,6 +1556,20 @@ function aRenderPerfil(){
 }
 
 function aShowHome(){aSwitchTab('inicio');}
+  async function aShowPlantillas(){
+  aHideAllViews();
+  document.querySelectorAll('#a-bottom-nav .nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('a-view-plantillas').style.display='block';
+  window.scrollTo(0,0);
+  const el=document.getElementById('a-pl-content');
+  el.innerHTML='<div class="loading">Cargando…</div>';
+  try{
+    const rows=await dbGet('plantillas',`cliente_ids=cs.%7B${aCurrentCliente.id}%7D&order=id.asc`);
+    if(!rows.length){el.innerHTML='<div class="empty">Todavía no tenés rutinas asignadas.</div>';return;}
+    el.innerHTML=rows.map(p=>`<details class="p-section"><summary style="cursor:pointer;font-weight:700;font-family:var(--font-display);font-size:16px">${aPlEsc(p.nombre)}</summary><div style="margin-top:10px">${(p.ejercicios||[]).map(e=>`<div style="padding:9px 0;border-top:1px solid var(--border)"><div style="font-size:14px;font-weight:600">${aPlEsc(e.nombre)}</div>${e.series?`<div style="font-size:13px;color:var(--green);margin-top:2px">${aPlEsc(e.series)}</div>`:''}${e.link?`<div style="margin-top:4px"><a href="${aPlEsc(e.link)}" target="_blank" rel="noopener" style="color:#FF6666;font-size:12px;text-decoration:none">▶ Ver video</a></div>`:''}</div>`).join('')}</div></details>`).join('');
+  }catch(e){console.error(e);el.innerHTML='<div class="empty">No se pudieron cargar las rutinas.</div>';}
+}
+function aPlEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 function aShowProgress(){aSwitchTab('progreso');}
 function aShowTimer(){aSwitchTab('timer');}
 function aToggleCompletedDay(){
