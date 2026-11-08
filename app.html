@@ -875,6 +875,12 @@ body::before, body::after { display:none; }
 .cli-opt.selected { background:var(--gold-soft); }
 .cli-sub { margin-left:auto; font-size:11px; color:var(--text2); max-width:40%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 #cli-list { max-height:55vh; overflow-y:auto; margin:0.5rem 0; }
+
+.av-opt-foto { border:1px dashed var(--gold) !important; background:var(--bg2); }
+.av-opt-foto.selected { border-style:solid !important; }
+.av-foto-ph { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; color:var(--gold); }
+.av-foto-ph .i { width:18px; height:18px; }
+.av-foto-ph small { font-size:9px; font-family:var(--font-mono); letter-spacing:0.06em; text-transform:uppercase; }
 </style>
 </head>
 <body>
@@ -911,11 +917,13 @@ body::before, body::after { display:none; }
     <div class="login-field"><label>Edad</label><input type="number" id="reg-edad" placeholder="25" /></div>
     <div class="login-field"><label>Objetivo</label><input type="text" id="reg-objetivo" placeholder="Ej: Ganar masa muscular" /></div>
     <div class="login-field">
-      <label>Avatar (opcional)</label>
+      <label>Foto o avatar (opcional)</label>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:6px" id="reg-avatar-presets">
         <div onclick="regSelectAvatar(null,this)" id="reg-av-none" style="aspect-ratio:1;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-dim));display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;border:3px solid var(--green);box-sizing:border-box;font-family:var(--font-display);font-weight:800;color:#000" title="Iniciales">AB</div>
       </div>
       <input type="hidden" id="reg-avatar-id" value="" />
+      <input type="file" id="reg-foto-input" accept="image/*" onchange="regUploadFoto(event)" style="display:none" />
+      <div style="font-size:11px;color:var(--text2);margin-top:4px">Podés subir tu foto o elegir un avatar. La ven solo vos y tu entrenador.</div>
     </div>
     <button class="btn-login" onclick="doRegister()">Crear cuenta →</button>
     <div class="login-error" id="reg-error"></div>
@@ -1546,10 +1554,18 @@ function switchAuthTab(tab){
 
 function initRegisterAvatars(){
   const wrap=document.getElementById('reg-avatar-presets');if(!wrap)return;
-  wrap.innerHTML=`<button type="button" class="av-opt selected" onclick="regSelectAvatar(null,this)" aria-label="Mis iniciales"><span class="av-ini" style="background:var(--gold);color:#0B0B0B;width:100%;height:100%;display:flex;align-items:center;justify-content:center;border-radius:50%">AB</span></button>`
+  wrap.innerHTML=`<button type="button" class="av-opt av-opt-foto" id="reg-av-foto" onclick="document.getElementById('reg-foto-input').click()" aria-label="Subir foto de la galería"><span class="av-foto-ph"><span class="i i-camera"></span><small>Foto</small></span></button>`
+    +`<button type="button" class="av-opt selected" onclick="regSelectAvatar(null,this)" aria-label="Mis iniciales"><span class="av-ini" style="background:var(--gold);color:#0B0B0B;width:100%;height:100%;display:flex;align-items:center;justify-content:center;border-radius:50%">AB</span></button>`
     +AVATARS.map(a=>`<button type="button" class="av-opt" onclick="regSelectAvatar('${a.id}',this)" aria-label="Avatar ${a.id}">${a.svg}</button>`).join('');
 }
 
+async function regUploadFoto(event){
+  const file=event.target.files[0];event.target.value='';if(!file)return;
+  let data;try{data=await fotoPerfilDesdeArchivo(file);}catch(e){showToast('No se pudo leer la foto',true);return;}
+  const btn=document.getElementById('reg-av-foto');
+  btn.innerHTML=`<img src="${data}" alt="Tu foto" style="width:100%;height:100%;object-fit:cover;display:block">`;
+  regSelectAvatar(data,btn);
+}
 function regSelectAvatar(id, el){
   document.getElementById('reg-avatar-id').value=id||'';
   document.querySelectorAll('#reg-avatar-presets .av-opt').forEach(d=>d.classList.remove('selected'));
@@ -1591,10 +1607,14 @@ async function doRegister(){
     if(!r.ok||data.error||data.error_code){errEl.textContent=data.msg||data.error_description||data.error?.message||'Error al crear la cuenta.';errEl.style.display='block';return;}
     // Alta en "clientes". Si Supabase ya la creó (trigger de supabase/seguridad.sql) no se duplica.
     const alta={nombre,email,edad,objetivo:objetivo||null,estado:'nuevo',fecha_alta:TODAY};
+    const avatarElegido=document.getElementById('reg-avatar-id')?.value||'';
     if(data.access_token){
       authSave(data);
-      try{const ya=await dbGet('clientes',`email=eq.${encodeURIComponent(email)}&select=id&limit=1`);if(!ya.length)await dbPost('clientes',alta);}
-      catch(e){console.error(e);}
+      try{
+        const ya=await dbGet('clientes',`email=eq.${encodeURIComponent(email)}&select=id&limit=1`);
+        let id=ya[0]?.id;if(!id){const n=await dbPost('clientes',alta);id=n[0]?.id;}
+        if(id&&avatarValido(avatarElegido)){try{await dbPatch('clientes',id,{avatar:avatarElegido});}catch(e){/* se sincroniza al entrar */}}
+      }catch(e){console.error(e);}
       sessionStorage.removeItem('auth_token');sessionStorage.removeItem('auth_refresh');sessionStorage.removeItem('auth_exp');
     }else{
       try{await dbPost('clientes',alta);}catch(e){/* con seguridad activa lo crea el trigger */}
@@ -1832,22 +1852,29 @@ function openAvatarModal(){
   document.getElementById('avatar-modal').classList.add('open');
 }
 function closeAvatarModal(){document.getElementById('avatar-modal').classList.remove('open');}
-function aUploadAvatar(event){
-  const file=event.target.files[0];event.target.value='';if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const img=new Image();
-    img.onload=()=>{
-      const canvas=document.createElement('canvas');const size=240;canvas.width=size;canvas.height=size;
-      const min=Math.min(img.width,img.height);const sx=(img.width-min)/2,sy=(img.height-min)/2;
-      canvas.getContext('2d').drawImage(img,sx,sy,min,min,0,0,size,size);
-      const data=canvas.toDataURL('image/jpeg',0.75);
-      try{localStorage.setItem(aGetAvatarKey(),data);}catch(err){showToast('No hay espacio para guardar la foto',true);return;}
-      closeAvatarModal();aRenderAvatar();aRenderHeaderAvatar();aGuardarAvatarEnFicha(data);showToast('Foto actualizada ✓');
+// Convierte una imagen elegida en una foto de perfil cuadrada de 240 px (JPEG, data URL)
+function fotoPerfilDesdeArchivo(file){
+  return new Promise((resolve,reject)=>{
+    if(!file||!file.type.startsWith('image/')){reject(new Error('no es imagen'));return;}
+    const reader=new FileReader();reader.onerror=reject;
+    reader.onload=e=>{
+      const img=new Image();img.onerror=reject;
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');const size=240;canvas.width=size;canvas.height=size;
+        const min=Math.min(img.width,img.height);const sx=(img.width-min)/2,sy=(img.height-min)/2;
+        canvas.getContext('2d').drawImage(img,sx,sy,min,min,0,0,size,size);
+        resolve(canvas.toDataURL('image/jpeg',0.75));
+      };
+      img.src=e.target.result;
     };
-    img.src=e.target.result;
-  };
-  reader.readAsDataURL(file);
+    reader.readAsDataURL(file);
+  });
+}
+async function aUploadAvatar(event){
+  const file=event.target.files[0];event.target.value='';if(!file)return;
+  let data;try{data=await fotoPerfilDesdeArchivo(file);}catch(e){showToast('No se pudo leer la foto',true);return;}
+  try{localStorage.setItem(aGetAvatarKey(),data);}catch(err){showToast('No hay espacio para guardar la foto',true);return;}
+  closeAvatarModal();aRenderAvatar();aRenderHeaderAvatar();aGuardarAvatarEnFicha(data);showToast('Foto actualizada ✓');
 }
 
 function aRenderPerfil(){
