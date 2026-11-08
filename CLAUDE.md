@@ -82,7 +82,8 @@ Navegación inferior con 4 pestañas (`aSwitchTab`): **Inicio**, **Timer**, **Pr
 - Carga: `initAlumno` → `aRefreshData` (rutinas + logs del alumno, luego ejercicios de esas rutinas). `aDoRefresh` = botón ↻.
 - Navegación: `aSwitchTab(tab)` (`'inicio' | 'timer' | 'progreso' | 'perfil'`), `aHideAllViews` (lista de vistas; si agregás una vista nueva, sumala ahí), `aShowHome`.
 - Inicio: `aBuildDayStrip`, `aWeekShift`, `aSelectDay`, `aRenderHome`, `aIsDayClosed`, `aCalcStreak`, `aRenderCircuitPreview`, `aRenderDoneCircuit`.
-- Sesión: `aOpenExercise`, `aRenderCard` (normal / biserie / circuito), `aSetStatus`, `aSaveCurrentCard`, `aNavSession`, `aSaveCardAndNext`, `aExitSession`, `aHandleFileUpload`.
+- Sesión: `aOpenExercise`, `aRenderCard` (normal / biserie / circuito), `aSetStatus`, `aSaveCurrentCard`, `aNavSession`, `aSaveCardAndNext`, `aExitSession`.
+- **Fotos adjuntas** (solo en ejercicios normales): `aOpenFileInput`, `aHandleFileUpload` (comprime con `compressImage` y guarda al instante en `sesion_archivos`), `aLoadArchivos` (caché `aArchivosCache` por fecha), `aFillAttachBoxes` (llena los `[data-attach-ex]` de la tarjeta y del día cerrado), `aDeleteArchivo`, `openImgViewer` (ver foto grande). Helpers compartidos: `archivoSrcOk`, `archivosThumbsHtml`.
 - Resumen y guardado: `aShowSummary`, `aSummaryGoTo`, **`aSaveFinalSession`** (escribe en `logs_entrenamiento` y hace PATCH de `ejercicios.completado` / `devolucion`).
 - Corregir día cerrado: `aEditExercise`, `aEditBiserie`, `aEditCircuit` (borran el log de ese día y resetean `completado`).
 - **"Mis rutinas"**: `aShowPlantillas()` (≈1558) lee `plantillas` filtrando `cliente_ids` que contenga el id del alumno (`cs.{id}`) y las muestra como `<details>` de solo lectura (nombre, series, link de video). Escape con `aPlEsc`.
@@ -101,9 +102,10 @@ Navegación inferior con 4 pestañas (`aSwitchTab`): **Inicio**, **Timer**, **Pr
   - Editar: `openEditExModal` / `saveEditExercise`, `openEditCircuitModal` / `saveEditCircuit`.
   - Autocompletado desde biblioteca: `onNameInput`, `rutSelectExercise`, `onNameInputB`, `rutSelectExerciseB`, `onCircuitItemInput`, `selectCircuitItem`, `onEditCircuitItemInput`, `selectEditCircuitItem`.
   - **Orden de ejercicios**: `rutOrderKey`, `rutGetOrder`, `rutSaveOrder`, `rutApplyOrder`, `rutMoveEx`. Se guarda en **`localStorage` del navegador del profe** (`ex_order_<cliente>_<fecha>`), no en la base. El alumno ve los ejercicios ordenados por `id`.
-- Sesiones/feedback: `rutLoadSesionesAlumno`, `rutRenderFeedback`, `rutLoadHistorial`.
+- Fotos del alumno en la rutina del día: `pFillAttachBoxes` (llena los `[data-p-attach-ex]`, caché `pArchivosCache` por `cliente_fecha`; `rutSelectDate` la refresca).
+- Sesiones/feedback: `rutLoadSesionesAlumno`, `rutRenderFeedback`.
 - Biblioteca: `rutRenderBiblioteca`, `addToBiblioteca`, `deleteBib`.
-- **Plantillas (funciones `pl*`)** (≈3037–3126): estado `plData`, `plEjs`, `plClientes`, `plEditingId`. `plRender` (entrada a la pantalla), `plLoad`, `plRenderEx`, `plSetEx`, `plAc` / `plPick` (autocompletado desde biblioteca), `plPickBib`, `plAddEx`, `plDelEx`, `plRenderClientes`, `plToggleCli`, `plRenderList`, `plReset`, `plEdit`, `plSave`, `plDelete`, `plEsc` (escape HTML).
+- **Plantillas (funciones `pl*`)** (≈3037–3126): estado `plData`, `plEjs`, `plClientes`, `plEditingId`. `plRender` (entrada a la pantalla), `plLoad`, `plRenderEx`, `plSetEx`, `plAc` / `plPick` (autocompletado desde biblioteca), `plAddEx`, `plDelEx`, `plRenderClientes`, `plToggleCli`, `plRenderList`, `plReset`, `plEdit`, `plSave`, `plDelete`, `plEsc` (escape HTML).
 
 ### JS — Init, Timer y SW (≈3140–3578)
 - `window.onload`: restaura sesión desde `sessionStorage` o muestra el login.
@@ -132,7 +134,7 @@ Tipos exactos y restricciones en Supabase: **(no verificado)**. Todas usan `id` 
 - **`logs_entrenamiento`**: `id`, `cliente_id`, `ejercicio_id`, `fecha`, `series_realizadas` (texto, ej. `S1: 60kg 8 reps | S2: …`; biserie `A-S1: … || B-S1: …`), `peso_usado`, `rpe`, `nota`.
 - **`sesiones`**: el profe la carga con `dbGetAll('sesiones','order=fecha.asc,id.asc')` en `pAllSesiones`, pero **ninguna otra parte del código la usa**. Campos: solo se ve que tiene `fecha` e `id` **(resto no verificado)**.
 - **`plantillas`**: `id`, `nombre`, `ejercicios` (array JSON de `{nombre, series, link}`), `cliente_ids` (array de ids de clientes; se filtra con `cs.{id}`).
-- **`sesion_archivos`**: **no aparece en `app.html`** (ni lectura ni escritura). Campos y uso: **(no verificado)**. Los adjuntos del alumno (`aHandleFileUpload`) quedan solo en memoria (`aSessionState[...].attachments`) y no se suben a ningún lado.
+- **`sesion_archivos`** (fotos adjuntas del alumno): `id`, `created_at`, `cliente_id`, `ejercicio_id`, `fecha`, `url`, `tipo`. Columnas confirmadas consultando la API; puede tener otras **(no verificado)**. La foto se comprime en el navegador (máx. 1280 px, JPEG) y se guarda como data URL en `url`, con `tipo:'imagen'`. No se usa Supabase Storage: no hay un bucket accesible con la clave pública. Videos: no soportados (pesan demasiado para guardarlos en la base; harían falta un bucket de Storage).
 
 ### Datos que NO están en la base
 - Avatar del alumno: `localStorage` (`avatar_<email>`), por dispositivo.
@@ -148,16 +150,13 @@ Tipos exactos y restricciones en Supabase: **(no verificado)**. Todas usan `id` 
    - Ojo, existente hoy: el panel alumno (`aRefreshData`, y la recarga de logs en `aSaveFinalSession`) usa `dbGet` para `rutinas`, `logs_entrenamiento` y `ejercicios` filtrados por alumno. Si un alumno pasa las 1000 filas, se pierden datos. No cambiarlo sin pedirlo, pero tenerlo en cuenta.
 4. **Solo la clave pública de Supabase puede estar en el código** (la constante `SB_KEY`, que es una clave `sb_publishable_…` / anon). **Nunca** poner una `service_role` ni ninguna clave secreta. No copiar claves ni la URL del proyecto en docs, commits o mensajes.
 5. **`sw.js` cachea con un nombre de versión (`CACHE_NAME`).** Si se agregan o separan archivos (CSS/JS aparte, íconos, etc.), agregarlos a `ASSETS` y subir la versión (`md-pro-training-v4` → `v5`…), así los teléfonos de los alumnos dejan la caché vieja.
-6. **La sección Cobros fue eliminada de la interfaz.** No dejar referencias a sus elementos HTML: `getElementById` de algo que no existe da `null` y rompe en silencio. Restos que todavía quedan en el código (hoy no rompen porque están protegidos con `if(el)` o son asignaciones sueltas):
-   - `initProfe` y `saveClient`: lista de `<select>` que incluye `'cob-client'` y `'cob-t-client'`.
-   - `initProfe`: `cobCalMonth` / `cobCalYear`.
-   Si se tocan esas líneas, se pueden limpiar, pero no agregar nada nuevo de Cobros.
+6. **La sección Cobros fue eliminada de la interfaz.** No dejar referencias a sus elementos HTML: `getElementById` de algo que no existe da `null` y rompe en silencio. Los restos que quedaban (`cob-client`, `cob-t-client`, `cobCalMonth`, `cobCalYear`) ya se borraron: no volver a agregar nada de Cobros.
 7. **Plantillas = solo lectura para el alumno** (ejercicio, series/reps, video). No tienen seguimiento, ni logs, ni "completado". **Las rutinas día a día (`ejercicios` con `fecha_sesion`) sí tienen seguimiento** (`logs_entrenamiento`, `completado`, `devolucion`). No mezclar los dos.
 8. **No cambiar los formatos de texto codificado** (`__CIRCUIT__`, `__BISERIE__`, separadores `|||`, `\n---\n`, ` | `, ` || `): hay datos reales guardados así y varias funciones los parsean.
 
 ### Otras cosas a tener en cuenta (verificadas)
-- Hay funciones definidas dos veces; en JS gana la última: `aShowProgress` (≈1573 y ≈2128) y `aShowTimer` (≈1574 y ≈3309). La navegación real usa `aSwitchTab`.
-- Código muerto: `pRenderDashboard` no se llama nunca y usa elementos `dash-*` que no existen; `pGoToClient` llama a `pOnClientChange`, que no está definida. `#rut-historial` existe en el HTML pero no tiene pestaña. `plPickBib` no se usa.
+- Código muerto ya borrado (no reintroducir): `pRenderDashboard`, `pGoToClient`, `plPickBib`, `rutLoadHistorial` + `#rut-historial`, y las versiones duplicadas de `aShowProgress` / `aShowTimer`. La navegación usa `aSwitchTab` / `pSwitchScreen`.
+- Seguridad: el rol profe se decide solo en el navegador (`PROFE_EMAIL` + `sessionStorage`), y todas las consultas van con la clave pública. La protección real depende de las políticas RLS de Supabase **(no verificado)**.
 - Mucho HTML se arma con template strings e `innerHTML` sin escapar (salvo plantillas, que usan `plEsc` / `aPlEsc`).
 
 ---

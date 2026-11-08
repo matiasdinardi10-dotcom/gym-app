@@ -253,7 +253,12 @@ button,input,textarea,select { font-family:var(--font-body); }
 .series-input::placeholder { color:var(--text3); }
 .attach-btn { display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.08); border-radius:var(--radius-sm); padding:0.8rem 1rem; cursor:pointer; margin-bottom:1.2rem; font-size:13px; color:var(--text2); width:100%; transition:all 0.2s; font-weight:300; }
 .attach-preview { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:1.2rem; }
-.attach-thumb { width:60px; height:60px; border-radius:var(--radius-sm); object-fit:cover; border:1px solid var(--border); }
+.attach-thumb { width:60px; height:60px; border-radius:var(--radius-sm); object-fit:cover; border:1px solid var(--border); cursor:pointer; display:block; }
+.attach-item { position:relative; }
+.attach-del { position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; border:1px solid var(--border); background:#1a1f1c; color:var(--text2); font-size:10px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
+.attach-label { font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin:8px 0 6px; }
+#img-viewer { position:fixed; inset:0; z-index:300; background:rgba(0,0,0,0.92); display:flex; align-items:center; justify-content:center; padding:1rem; cursor:zoom-out; }
+#img-viewer img { max-width:100%; max-height:100%; border-radius:var(--radius-sm); object-fit:contain; }
 .action-btns { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:1.2rem; }
 .btn-missed { padding:0.85rem; border-radius:var(--radius-sm); border:1px solid rgba(248,113,113,0.2); background:rgba(248,113,113,0.04); color:var(--red); font-size:13px; font-weight:500; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.2s; letter-spacing:0.02em; }
 .btn-missed.active { background:rgba(248,113,113,0.1); border-color:var(--red); box-shadow:0 0 12px rgba(248,113,113,0.12); }
@@ -1067,7 +1072,7 @@ select.form-input option { background:#0d1a12; color:var(--text); }
   </nav>
 </div>
 
-<input type="file" id="file-input" accept="image/*,video/*" multiple onchange="aHandleFileUpload(event)" style="display:none" />
+<input type="file" id="file-input" accept="image/*" multiple onchange="aHandleFileUpload(event)" style="display:none" />
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1309,6 +1314,7 @@ async function initAlumno(){
 }
 
 async function aRefreshData(){
+  for(const k in aArchivosCache)delete aArchivosCache[k];
   // Rutinas y logs en paralelo
   const [rutinas, logs] = await Promise.all([
     dbGet('rutinas', `cliente_id=eq.${aCurrentCliente.id}`),
@@ -1739,6 +1745,7 @@ function aRenderHome(){
         <div class="done-ex-header"><div class="done-ex-letter ${isExDone?'':'missed'}">${letters[i]||i+1}</div><div class="done-ex-name">${ex.nombre}</div><span class="done-ex-badge ${isExDone?'done':'missed'}">${isExDone?'✓ Hecho':'✕ No hecho'}</span><button onclick="aEditExercise(${ex.id})" style="margin-left:auto;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text2);cursor:pointer;padding:4px 10px;border-radius:20px;font-size:11px;white-space:nowrap;flex-shrink:0">✏️ Editar</button></div>
         ${prescribedTags.length?`<div class="done-ex-prescribed">${prescribedTags.map(t=>`<span class="prescribed-tag">${t}</span>`).join('')}${ex.nota?`<div class="prescribed-note">${ex.nota}</div>`:''}</div>`:ex.nota?`<div class="done-ex-prescribed"><div class="prescribed-note">${ex.nota}</div></div>`:''}
         ${ex.link_youtube?`<a class="done-yt-link" href="${ex.link_youtube}" target="_blank">▶ Ver video</a>`:''}
+        <div data-attach-ex="${ex.id}" style="padding:0 1.1rem"></div>
         ${seriesRows||comment?`<div class="done-ex-logged"><div class="done-ex-logged-title">Lo que registraste</div>${seriesRows}${comment?`<div class="done-ex-comment">💬 "${comment}"</div>`:''}</div>`:''}
       </div>`;
     }).join('');
@@ -1751,6 +1758,7 @@ function aRenderHome(){
       </div>
       <div class="completed-day-content ${aCompletedDayExpanded?'open':''}" id="a-completed-day-content">${exCards}</div>
       <div class="motivational">${quote}</div>`;
+    aFillAttachBoxes();
     return;
   }
   exs.forEach(ex=>{if(!aSessionState[ex.id])aSessionState[ex.id]={status:null,comment:'',series:[],seriesB:[],attachments:[]};});
@@ -1902,7 +1910,6 @@ function aRenderCard(){
   const rpeVal=state.rpe||'';
   const exLogs=aLogs.filter(l=>l.ejercicio_id===ex.id&&l.fecha<aSelectedDate).slice(-5);
   const histHtml=exLogs.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'short',day:'numeric',month:'short'});const load=[l.series_realizadas,l.peso_usado,l.rpe?'RPE '+l.rpe:''].filter(Boolean).join(' · ');return`<div class="history-entry"><div class="history-date">📅 ${d.toUpperCase()}</div>${load?`<div class="history-load">${load}</div>`:''}</div>`;}).join('');
-  let attachHtml='';if(state.attachments?.length)attachHtml=`<div class="attach-preview">${state.attachments.map(a=>`<img class="attach-thumb" src="${a}"/>`).join('')}</div>`;
   const commentOpen=state.status?'open':'';const commentColor=state.status==='done'?'green':state.status==='missed'?'red':'';
   document.getElementById('session-body').innerHTML=`
     <div class="ex-card">
@@ -1932,8 +1939,8 @@ function aRenderCard(){
         ${seriesHtml}
       </div>
       ${histHtml?`<button class="history-btn" onclick="aToggleHistory('hist-${ex.id}')">🕐 Ver historial</button><div class="history-content" id="hist-${ex.id}">${histHtml}</div>`:''}
-      <label class="attach-btn" onclick="aOpenFileInput(${ex.id})">📎 Adjuntar foto o video</label>
-      ${attachHtml}
+      <label class="attach-btn" onclick="aOpenFileInput(${ex.id})">📎 Adjuntar foto</label>
+      <div data-attach-ex="${ex.id}" data-attach-del="1"></div>
       <div class="action-btns">
         <button class="btn-missed ${state.status==='missed'?'active':''}" onclick="aSetStatus('missed')">✕ No completado</button>
         <button class="btn-completed ${state.status==='done'?'active':''}" onclick="aSetStatus('done')">✓ Completado</button>
@@ -1946,6 +1953,7 @@ function aRenderCard(){
       ${aSessionIdx>0?`<button class="btn-prev" onclick="aNavSession(-1)">← Anterior</button>`:'<div></div>'}
       ${isLast?`<button class="btn-summary-orange" onclick="aSaveCardAndSummary()">Finalizar →</button>`:`<button class="btn-next" onclick="aSaveCardAndNext()">Siguiente →</button>`}
     </div>`;
+  aFillAttachBoxes();
 }
 function aToggleHistory(id){document.getElementById(id)?.classList.toggle('open');}
 function aSetStatus(status){
@@ -1986,27 +1994,77 @@ function aSaveCardAndSummary(){aSaveCurrentCard();aShowSummary();}
 function aNavSession(dir){aSaveCurrentCard();aSessionIdx=Math.max(0,aSessionIdx+dir);aRenderCard();window.scrollTo(0,0);}
 function aExitSession(){aSaveCurrentCard();document.getElementById('a-view-session').style.display='none';aShowHome();}
 function aOpenFileInput(exId){aCurrentExIdForFile=exId;document.getElementById('file-input').click();}
-function aHandleFileUpload(event){
-  const files=event.target.files;if(!files.length||!aCurrentExIdForFile)return;
-  const state=aSessionState[aCurrentExIdForFile];if(!state.attachments)state.attachments=[];
-  // Guardar lo que el alumno escribió antes de redibujar
-  if(aSessionExs[aSessionIdx]?.id===aCurrentExIdForFile){
-    const numSeries=parseInt(aSessionExs[aSessionIdx].series)||3;
-    state.series=[];
-    for(let s=0;s<numSeries;s++){
-      state.series.push({
-        peso:document.getElementById(`s-peso-${s}`)?.value.trim()||'',
-        reps:document.getElementById(`s-reps-${s}`)?.value.trim()||'',
-        rpe:document.getElementById(`s-rprir-${s}`)?.value.trim()||'',
-        rprir:document.getElementById(`s-rprir-${s}`)?.value.trim()||''
-      });
-    }
-    state.rpe=state.series[0]?.rpe||'';
-    state.rir=document.getElementById('s-rir-general')?.value.trim()||'';
-    state.comment=document.getElementById('ex-comment')?.value.trim()||'';
+// ════ ADJUNTOS (tabla sesion_archivos) ════
+// Las fotos se comprimen en el navegador y se guardan como data URL en sesion_archivos.url
+const aArchivosCache={}; // fecha -> filas del alumno
+async function aLoadArchivos(fecha){
+  if(!aArchivosCache[fecha])aArchivosCache[fecha]=await dbGet('sesion_archivos',`cliente_id=eq.${aCurrentCliente.id}&fecha=eq.${fecha}&order=id.asc`);
+  return aArchivosCache[fecha];
+}
+function archivoSrcOk(u){return typeof u==='string'&&(u.startsWith('data:image/')||u.startsWith('https://'));}
+function archivosThumbsHtml(rows,canDelete){
+  return rows.filter(r=>archivoSrcOk(r.url)).map(r=>`<div class="attach-item"><img class="attach-thumb" src="${r.url}" onclick="openImgViewer(this.src)" alt="Foto adjunta"/>${canDelete?`<button class="attach-del" onclick="aDeleteArchivo(${r.id})" title="Quitar">✕</button>`:''}</div>`).join('');
+}
+// Llena los contenedores [data-attach-ex] de la vista actual del alumno
+async function aFillAttachBoxes(){
+  if(!aCurrentCliente||!document.querySelector('[data-attach-ex]'))return;
+  const fecha=aSelectedDate;let rows;
+  try{rows=await aLoadArchivos(fecha);}catch(e){console.error(e);return;}
+  if(fecha!==aSelectedDate)return;
+  document.querySelectorAll('[data-attach-ex]').forEach(box=>{
+    const mine=rows.filter(r=>String(r.ejercicio_id)===box.dataset.attachEx);
+    const canDel=!!box.dataset.attachDel;
+    box.innerHTML=mine.length?`${canDel?'':'<div class="attach-label">📎 Fotos</div>'}<div class="attach-preview">${archivosThumbsHtml(mine,canDel)}</div>`:'';
+  });
+}
+function compressImage(file,max=1280,quality=0.72){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();reader.onerror=reject;
+    reader.onload=e=>{
+      const img=new Image();img.onerror=reject;
+      img.onload=()=>{
+        const sc=Math.min(1,max/Math.max(img.width,img.height));
+        const c=document.createElement('canvas');c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        resolve(c.toDataURL('image/jpeg',quality));
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+async function aHandleFileUpload(event){
+  const files=Array.from(event.target.files||[]);event.target.value='';
+  const exId=aCurrentExIdForFile;if(!files.length||!exId||!aCurrentCliente)return;
+  const fecha=aSelectedDate;
+  const imgs=files.filter(f=>f.type.startsWith('image/'));
+  if(!imgs.length){showToast('Por ahora solo se pueden adjuntar fotos',true);return;}
+  showToast(imgs.length>1?'Subiendo fotos…':'Subiendo foto…');
+  let ok=0;
+  for(const f of imgs){
+    try{
+      const url=await compressImage(f);
+      const res=await dbPost('sesion_archivos',{cliente_id:aCurrentCliente.id,ejercicio_id:exId,fecha,url,tipo:'imagen'});
+      (aArchivosCache[fecha]=aArchivosCache[fecha]||[]).push(res[0]);ok++;
+    }catch(e){console.error(e);}
   }
-  Array.from(files).forEach(file=>{const reader=new FileReader();reader.onload=e=>{state.attachments.push(e.target.result);if(aSessionExs[aSessionIdx]?.id===aCurrentExIdForFile)aRenderCard();};reader.readAsDataURL(file);});
-  event.target.value='';
+  aFillAttachBoxes();
+  if(ok===imgs.length)showToast(ok>1?ok+' fotos guardadas ✓':'Foto guardada ✓');
+  else showToast(ok?`Se guardaron ${ok} de ${imgs.length} fotos`:'No se pudo subir la foto',true);
+}
+async function aDeleteArchivo(id){
+  if(!confirm('¿Quitar esta foto?'))return;
+  try{
+    await dbDelete('sesion_archivos',id);
+    for(const k in aArchivosCache)aArchivosCache[k]=aArchivosCache[k].filter(r=>r.id!==id);
+    aFillAttachBoxes();showToast('Foto quitada');
+  }catch(e){console.error(e);showToast('Error al quitar la foto',true);}
+}
+function openImgViewer(src){
+  if(!archivoSrcOk(src))return;
+  const v=document.createElement('div');v.id='img-viewer';v.onclick=()=>v.remove();
+  const img=document.createElement('img');img.src=src;img.alt='Foto adjunta';v.appendChild(img);
+  document.body.appendChild(v);
 }
 function aSummaryGoTo(idx){
   // Volver a la sesión en el ejercicio específico
@@ -2425,7 +2483,7 @@ function rutBuildCalStrip(){
   }
   document.getElementById('rut-cal-strip').innerHTML=html;
 }
-function rutSelectDate(ds){rutSelectedDate=ds;rutBuildCalStrip();rutRenderDay();}
+function rutSelectDate(ds){rutSelectedDate=ds;delete pArchivosCache[rutCurrentClientId+'_'+ds];rutBuildCalStrip();rutRenderDay();}
      function rutShiftStrip(days){rutStripOffset+=days;rutBuildCalStrip();}
    function rutPickDate(ds){
      if(!ds)return;
@@ -2558,6 +2616,7 @@ function rutRenderDay(){
         <button class="ex-delete" onclick="rutRemoveEx(${ex.id})" title="Eliminar">✕</button>
       </div>
       <div class="ex-tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}${ex.link_youtube?`<a class="yt-link" href="${ex.link_youtube}" target="_blank">▶ Video</a>`:''}</div>
+      <div data-p-attach-ex="${ex.id}"></div>
       <div class="ex-details ${rutOpenDetails[ex.id]?'open':''}">
         ${ex.nota?`<div class="ex-note">${ex.nota}</div>`:''}
         ${log?`<div class="log-prev">Alumno registró hoy: ${log.series_realizadas||[log.peso_usado?log.peso_usado+'kg':'',log.rpe?'RPE '+log.rpe:''].filter(Boolean).join(' · ')||'sin cargas'}</div>`:''}
@@ -2566,6 +2625,20 @@ function rutRenderDay(){
       </div>
     </div>`;
   }).join('');
+  pFillAttachBoxes(rutCurrentClientId,rutSelectedDate);
+}
+const pArchivosCache={}; // "cliente_fecha" -> filas
+async function pFillAttachBoxes(cid,fecha){
+  if(!document.querySelector('[data-p-attach-ex]'))return;
+  const key=cid+'_'+fecha;
+  try{if(!pArchivosCache[key])pArchivosCache[key]=await dbGet('sesion_archivos',`cliente_id=eq.${cid}&fecha=eq.${fecha}&order=id.asc`);}
+  catch(e){console.error(e);return;}
+  if(String(cid)!==String(rutCurrentClientId)||fecha!==rutSelectedDate)return;
+  const rows=pArchivosCache[key];
+  document.querySelectorAll('[data-p-attach-ex]').forEach(box=>{
+    const mine=rows.filter(r=>String(r.ejercicio_id)===box.dataset.pAttachEx);
+    box.innerHTML=mine.length?`<div class="attach-label">📎 Fotos del alumno</div><div class="attach-preview" style="margin-bottom:0.5rem">${archivosThumbsHtml(mine,false)}</div>`:'';
+  });
 }
 function rutToggleDetail(id){rutOpenDetails[id]=!rutOpenDetails[id];rutRenderDay();}
 
