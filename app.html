@@ -258,7 +258,11 @@ button,input,textarea,select { font-family:var(--font-body); }
 .attach-del { position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; border:1px solid var(--border); background:#1a1f1c; color:var(--text2); font-size:10px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
 .attach-label { font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin:8px 0 6px; }
 #img-viewer { position:fixed; inset:0; z-index:300; background:rgba(0,0,0,0.92); display:flex; align-items:center; justify-content:center; padding:1rem; cursor:zoom-out; }
-#img-viewer img { max-width:100%; max-height:100%; border-radius:var(--radius-sm); object-fit:contain; }
+#img-viewer img, #img-viewer video { max-width:100%; max-height:100%; border-radius:var(--radius-sm); object-fit:contain; }
+.viewer-close { position:absolute; top:calc(env(safe-area-inset-top) + 12px); right:12px; width:40px; height:40px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.6); color:#fff; font-size:16px; cursor:pointer; }
+.attach-video { position:relative; cursor:pointer; }
+.attach-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; text-shadow:0 1px 4px rgba(0,0,0,0.8); pointer-events:none; }
+.attach-status { font-size:12px; color:var(--text2); margin-bottom:8px; }
 .action-btns { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:1.2rem; }
 .btn-missed { padding:0.85rem; border-radius:var(--radius-sm); border:1px solid rgba(248,113,113,0.2); background:rgba(248,113,113,0.04); color:var(--red); font-size:13px; font-weight:500; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.2s; letter-spacing:0.02em; }
 .btn-missed.active { background:rgba(248,113,113,0.1); border-color:var(--red); box-shadow:0 0 12px rgba(248,113,113,0.12); }
@@ -1072,7 +1076,7 @@ select.form-input option { background:#0d1a12; color:var(--text); }
   </nav>
 </div>
 
-<input type="file" id="file-input" accept="image/*" multiple onchange="aHandleFileUpload(event)" style="display:none" />
+<input type="file" id="file-input" accept="image/*,video/*" multiple onchange="aHandleFileUpload(event)" style="display:none" />
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1156,6 +1160,10 @@ function formatSeries(series_realizadas){
   return`<div style="font-size:12px;color:var(--green)">${series_realizadas}</div>`;
 }
 function showToast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('error',err);t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// Orden de ejercicios de un día: columna 'orden' si existe; si no, por id (orden de carga)
+function exOrderKey(e){return (e.orden!==null&&e.orden!==undefined)?Number(e.orden):1e9+e.id;}
+function sortExs(exs){return exs.slice().sort((a,b)=>exOrderKey(a)-exOrderKey(b));}
 
 // Helpers circuito
 function isCircuit(ex){ return ex.nombre && ex.nombre.startsWith(CIRCUIT_PREFIX); }
@@ -1694,7 +1702,7 @@ function aRenderHome(){
   const sc=document.getElementById('streak-count');
   if(sc)sc.textContent=streak;
   if(sb)sb.className=streak===0?'streak-badge zero':'streak-badge';
-  const exs=aEjercicios.filter(e=>e.fecha_sesion===aSelectedDate);
+  const exs=sortExs(aEjercicios.filter(e=>e.fecha_sesion===aSelectedDate));
   document.getElementById('home-loading').style.display='none';
   const el=document.getElementById('home-content');el.style.display='block';
   const isToday=aSelectedDate===TODAY;
@@ -1939,7 +1947,7 @@ function aRenderCard(){
         ${seriesHtml}
       </div>
       ${histHtml?`<button class="history-btn" onclick="aToggleHistory('hist-${ex.id}')">🕐 Ver historial</button><div class="history-content" id="hist-${ex.id}">${histHtml}</div>`:''}
-      <label class="attach-btn" onclick="aOpenFileInput(${ex.id})">📎 Adjuntar foto</label>
+      <label class="attach-btn" onclick="aOpenFileInput(${ex.id})">📎 Adjuntar foto o video</label>
       <div data-attach-ex="${ex.id}" data-attach-del="1"></div>
       <div class="action-btns">
         <button class="btn-missed ${state.status==='missed'?'active':''}" onclick="aSetStatus('missed')">✕ No completado</button>
@@ -1995,15 +2003,25 @@ function aNavSession(dir){aSaveCurrentCard();aSessionIdx=Math.max(0,aSessionIdx+
 function aExitSession(){aSaveCurrentCard();document.getElementById('a-view-session').style.display='none';aShowHome();}
 function aOpenFileInput(exId){aCurrentExIdForFile=exId;document.getElementById('file-input').click();}
 // ════ ADJUNTOS (tabla sesion_archivos) ════
-// Las fotos se comprimen en el navegador y se guardan como data URL en sesion_archivos.url
+// Fotos: se comprimen en el navegador y se guardan como data URL en sesion_archivos.url (tipo 'imagen').
+// Videos: se suben al bucket público de Storage ARCH_BUCKET y en url queda su link público (tipo 'video').
+const ARCH_BUCKET='sesion-archivos';
+const ARCH_MAX_VIDEO_MB=50;
+const ARCH_PUBLIC_PREFIX=`${SB_URL}/storage/v1/object/public/${ARCH_BUCKET}/`;
 const aArchivosCache={}; // fecha -> filas del alumno
 async function aLoadArchivos(fecha){
   if(!aArchivosCache[fecha])aArchivosCache[fecha]=await dbGet('sesion_archivos',`cliente_id=eq.${aCurrentCliente.id}&fecha=eq.${fecha}&order=id.asc`);
   return aArchivosCache[fecha];
 }
-function archivoSrcOk(u){return typeof u==='string'&&(u.startsWith('data:image/')||u.startsWith('https://'));}
+function archivoSrcOk(u){return typeof u==='string'&&(u.startsWith('data:image/')||u.startsWith(ARCH_PUBLIC_PREFIX));}
+function archivoEsVideo(r){return r.tipo==='video';}
 function archivosThumbsHtml(rows,canDelete){
-  return rows.filter(r=>archivoSrcOk(r.url)).map(r=>`<div class="attach-item"><img class="attach-thumb" src="${r.url}" onclick="openImgViewer(this.src)" alt="Foto adjunta"/>${canDelete?`<button class="attach-del" onclick="aDeleteArchivo(${r.id})" title="Quitar">✕</button>`:''}</div>`).join('');
+  return rows.filter(r=>archivoSrcOk(r.url)).map(r=>{
+    const media=archivoEsVideo(r)
+      ?`<div class="attach-video" onclick="openMediaViewer('${r.url}','video')"><video class="attach-thumb" src="${r.url}#t=0.1" muted playsinline preload="metadata"></video><span class="attach-play">▶</span></div>`
+      :`<img class="attach-thumb" src="${r.url}" onclick="openMediaViewer(this.src,'imagen')" alt="Foto adjunta"/>`;
+    return `<div class="attach-item">${media}${canDelete?`<button class="attach-del" onclick="aDeleteArchivo(${r.id})" title="Quitar" aria-label="Quitar adjunto">✕</button>`:''}</div>`;
+  }).join('');
 }
 // Llena los contenedores [data-attach-ex] de la vista actual del alumno
 async function aFillAttachBoxes(){
@@ -2014,7 +2032,7 @@ async function aFillAttachBoxes(){
   document.querySelectorAll('[data-attach-ex]').forEach(box=>{
     const mine=rows.filter(r=>String(r.ejercicio_id)===box.dataset.attachEx);
     const canDel=!!box.dataset.attachDel;
-    box.innerHTML=mine.length?`${canDel?'':'<div class="attach-label">📎 Fotos</div>'}<div class="attach-preview">${archivosThumbsHtml(mine,canDel)}</div>`:'';
+    box.innerHTML=mine.length?`${canDel?'':'<div class="attach-label">📎 Archivos</div>'}<div class="attach-preview">${archivosThumbsHtml(mine,canDel)}</div>`:'';
   });
 }
 function compressImage(file,max=1280,quality=0.72){
@@ -2033,38 +2051,81 @@ function compressImage(file,max=1280,quality=0.72){
     reader.readAsDataURL(file);
   });
 }
+// Sube un video a Storage con barra de progreso. Devuelve la URL pública.
+function uploadVideo(file,path,onProgress){
+  return new Promise((resolve,reject)=>{
+    const xhr=new XMLHttpRequest();
+    xhr.open('POST',`${SB_URL}/storage/v1/object/${ARCH_BUCKET}/${path}`);
+    xhr.setRequestHeader('apikey',SB_KEY);xhr.setRequestHeader('Authorization','Bearer '+SB_KEY);
+    xhr.setRequestHeader('Content-Type',file.type||'video/mp4');xhr.setRequestHeader('x-upsert','false');
+    xhr.upload.onprogress=e=>{if(e.lengthComputable)onProgress(Math.round(e.loaded/e.total*100));};
+    xhr.onload=()=>xhr.status>=200&&xhr.status<300?resolve(ARCH_PUBLIC_PREFIX+path):reject(new Error(xhr.status+' '+xhr.responseText));
+    xhr.onerror=()=>reject(new Error('red'));
+    xhr.send(file);
+  });
+}
+function aSetUploadStatus(exId,text){
+  const box=document.querySelector(`[data-attach-ex="${exId}"][data-attach-del]`);if(!box)return;
+  let st=box.querySelector('.attach-status');
+  if(!text){st?.remove();return;}
+  if(!st){st=document.createElement('div');st.className='attach-status';box.prepend(st);}
+  st.textContent=text;
+}
 async function aHandleFileUpload(event){
   const files=Array.from(event.target.files||[]);event.target.value='';
   const exId=aCurrentExIdForFile;if(!files.length||!exId||!aCurrentCliente)return;
   const fecha=aSelectedDate;
-  const imgs=files.filter(f=>f.type.startsWith('image/'));
-  if(!imgs.length){showToast('Por ahora solo se pueden adjuntar fotos',true);return;}
-  showToast(imgs.length>1?'Subiendo fotos…':'Subiendo foto…');
-  let ok=0;
-  for(const f of imgs){
+  const validos=files.filter(f=>f.type.startsWith('image/')||f.type.startsWith('video/'));
+  if(!validos.length){showToast('Solo se pueden adjuntar fotos o videos',true);return;}
+  let ok=0,fallos=[];
+  for(const f of validos){
+    const esVideo=f.type.startsWith('video/');
     try{
-      const url=await compressImage(f);
-      const res=await dbPost('sesion_archivos',{cliente_id:aCurrentCliente.id,ejercicio_id:exId,fecha,url,tipo:'imagen'});
+      let url;
+      if(esVideo){
+        if(f.size>ARCH_MAX_VIDEO_MB*1024*1024){fallos.push(`El video pesa más de ${ARCH_MAX_VIDEO_MB} MB`);continue;}
+        const ext=((f.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,''))||'mp4';
+        const path=`${aCurrentCliente.id}/${fecha}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+        aSetUploadStatus(exId,'Subiendo video… 0%');
+        url=await uploadVideo(f,path,pct=>aSetUploadStatus(exId,`Subiendo video… ${pct}%`));
+      }else{
+        aSetUploadStatus(exId,'Subiendo foto…');
+        url=await compressImage(f);
+      }
+      const res=await dbPost('sesion_archivos',{cliente_id:aCurrentCliente.id,ejercicio_id:exId,fecha,url,tipo:esVideo?'video':'imagen'});
       (aArchivosCache[fecha]=aArchivosCache[fecha]||[]).push(res[0]);ok++;
-    }catch(e){console.error(e);}
+    }catch(e){
+      console.error(e);
+      fallos.push(esVideo&&/bucket|404|400/i.test(e.message)?'Falta activar el almacenamiento de videos en Supabase':'No se pudo subir un archivo');
+    }
   }
+  aSetUploadStatus(exId,'');
   aFillAttachBoxes();
-  if(ok===imgs.length)showToast(ok>1?ok+' fotos guardadas ✓':'Foto guardada ✓');
-  else showToast(ok?`Se guardaron ${ok} de ${imgs.length} fotos`:'No se pudo subir la foto',true);
+  if(!fallos.length)showToast(ok>1?`${ok} archivos guardados ✓`:'Archivo guardado ✓');
+  else showToast(fallos[0],true);
 }
 async function aDeleteArchivo(id){
-  if(!confirm('¿Quitar esta foto?'))return;
+  if(!confirm('¿Quitar este archivo?'))return;
   try{
+    let row=null;for(const k in aArchivosCache){row=row||aArchivosCache[k].find(r=>r.id===id);}
     await dbDelete('sesion_archivos',id);
+    if(row&&row.url&&row.url.startsWith(ARCH_PUBLIC_PREFIX)){
+      const path=row.url.slice(ARCH_PUBLIC_PREFIX.length);
+      fetch(`${SB_URL}/storage/v1/object/${ARCH_BUCKET}/${path}`,{method:'DELETE',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}}).catch(()=>{});
+    }
     for(const k in aArchivosCache)aArchivosCache[k]=aArchivosCache[k].filter(r=>r.id!==id);
-    aFillAttachBoxes();showToast('Foto quitada');
+    aFillAttachBoxes();showToast('Archivo quitado');
   }catch(e){console.error(e);showToast('Error al quitar la foto',true);}
 }
-function openImgViewer(src){
+function openMediaViewer(src,tipo){
   if(!archivoSrcOk(src))return;
-  const v=document.createElement('div');v.id='img-viewer';v.onclick=()=>v.remove();
-  const img=document.createElement('img');img.src=src;img.alt='Foto adjunta';v.appendChild(img);
-  document.body.appendChild(v);
+  const v=document.createElement('div');v.id='img-viewer';
+  v.onclick=e=>{if(e.target===v)v.remove();};
+  const close=document.createElement('button');close.className='viewer-close';close.textContent='✕';close.setAttribute('aria-label','Cerrar');close.onclick=()=>v.remove();
+  let el;
+  if(tipo==='video'){el=document.createElement('video');el.src=src;el.controls=true;el.autoplay=true;el.playsInline=true;}
+  else{el=document.createElement('img');el.src=src;el.alt='Foto adjunta';el.onclick=()=>v.remove();}
+  v.appendChild(el);v.appendChild(close);document.body.appendChild(v);
 }
 function aSummaryGoTo(idx){
   // Volver a la sesión en el ejercicio específico
@@ -2637,7 +2698,7 @@ async function pFillAttachBoxes(cid,fecha){
   const rows=pArchivosCache[key];
   document.querySelectorAll('[data-p-attach-ex]').forEach(box=>{
     const mine=rows.filter(r=>String(r.ejercicio_id)===box.dataset.pAttachEx);
-    box.innerHTML=mine.length?`<div class="attach-label">📎 Fotos del alumno</div><div class="attach-preview" style="margin-bottom:0.5rem">${archivosThumbsHtml(mine,false)}</div>`:'';
+    box.innerHTML=mine.length?`<div class="attach-label">📎 Archivos del alumno</div><div class="attach-preview" style="margin-bottom:0.5rem">${archivosThumbsHtml(mine,false)}</div>`:'';
   });
 }
 function rutToggleDetail(id){rutOpenDetails[id]=!rutOpenDetails[id];rutRenderDay();}
@@ -2781,7 +2842,12 @@ function rutSaveOrder(clientId, fecha, ids){
   try{ localStorage.setItem(rutOrderKey(clientId,fecha), JSON.stringify(ids)); }catch(e){}
 }
 
+// El orden se guarda en la columna ejercicios.orden (lo ven profe y alumno).
+// Si la columna todavía no existe en Supabase, se usa el orden guardado en este navegador (localStorage).
+function ordenColExists(){return pAllEjercicios.length>0&&('orden' in pAllEjercicios[0]);}
+const rutOrdenSynced={};
 function rutApplyOrder(exs, clientId, fecha){
+  if(exs.some(e=>e.orden!=null)) return sortExs(exs);
   const saved = rutGetOrder(clientId, fecha);
   if(!saved || !saved.length) return exs;
   const map = {};
@@ -2789,20 +2855,48 @@ function rutApplyOrder(exs, clientId, fecha){
   const ordered = saved.map(id => map[id]).filter(Boolean);
   // Agregar los que no estaban en el orden guardado (nuevos) al final
   exs.forEach(e => { if(!saved.includes(e.id)) ordered.push(e); });
+  // Pasar a la base un orden que solo estaba en este navegador (una vez por día)
+  const key=clientId+'_'+fecha;
+  if(ordenColExists()&&!rutOrdenSynced[key]){rutOrdenSynced[key]=true;rutPersistOrder(ordered);}
   return ordered;
 }
-
-function rutMoveEx(id, dir){
+async function rutPersistOrder(ordered){
+  const cambios=ordered.map((e,i)=>({e,i})).filter(({e,i})=>e.orden!==i);
+  if(!cambios.length)return true;
+  try{
+    await Promise.all(cambios.map(({e,i})=>dbPatch('ejercicios',e.id,{orden:i})));
+    cambios.forEach(({e,i})=>{e.orden=i;});
+    return true;
+  }catch(err){console.error(err);return false;}
+}
+// Orden para un ejercicio nuevo: al final del día (solo si ese día ya tiene orden guardado)
+function rutNextOrden(cid,fecha){
+  if(!ordenColExists())return {};
+  const exs=pAllEjercicios.filter(e=>String(e._clientId)===String(cid)&&e.fecha_sesion===fecha);
+  if(!exs.some(e=>e.orden!=null))return {};
+  return {orden:Math.max(...exs.map(e=>e.orden??-1))+1};
+}
+let rutOrdenAvisado=false;
+async function rutMoveEx(id, dir){
   const exs = pAllEjercicios.filter(e=>String(e._clientId)===String(rutCurrentClientId)&&e.fecha_sesion===rutSelectedDate);
   const ordered = rutApplyOrder(exs, rutCurrentClientId, rutSelectedDate);
   const idx = ordered.findIndex(e=>e.id===id);
   if(idx<0) return;
   const newIdx = idx+dir;
   if(newIdx<0||newIdx>=ordered.length) return;
-  // Swap
   [ordered[idx],ordered[newIdx]]=[ordered[newIdx],ordered[idx]];
-  rutSaveOrder(rutCurrentClientId, rutSelectedDate, ordered.map(e=>e.id));
+  rutSaveOrder(rutCurrentClientId, rutSelectedDate, ordered.map(e=>e.id)); // respaldo local
+  if(!ordenColExists()){
+    rutRenderDay();
+    if(!rutOrdenAvisado){rutOrdenAvisado=true;showToast('Orden guardado solo en este dispositivo: falta activar la columna "orden" en Supabase',true);}
+    return;
+  }
+  const prev=ordered.map(e=>e.orden);
+  ordered.forEach((e,i)=>{e.orden=i;}); // se ve al instante
   rutRenderDay();
+  ordered.forEach((e,i)=>{e.orden=prev[i];});
+  const ok=await rutPersistOrder(ordered);
+  if(!ok){ordered.forEach((e,i)=>{e.orden=i;});showToast('No se pudo guardar el orden para el alumno',true);}
 }
 async function rutRemoveEx(id){
   if(!confirm('¿Eliminar?'))return;
@@ -2903,14 +2997,14 @@ async function addExercise(){
     const dataB={series:document.getElementById('ex-f-series-b').value.trim(),peso:document.getElementById('ex-f-peso-b').value.trim(),tiempo:document.getElementById('ex-f-tiempo-b').value.trim(),nota:document.getElementById('ex-f-nota-b').value.trim(),yt:ytB};
     const {nombre:bsNombre,nota:bsNota}=serializeBiserie(nombre,dataA,nombreB,dataB);
     try{
-      const res=await dbPost('ejercicios',{rutina_id:rutina.id,nombre:bsNombre,series:null,peso:null,tiempo:null,nota:bsNota,link_youtube:null,completado:false,devolucion:null,fecha_sesion:rutSelectedDate});
+      const res=await dbPost('ejercicios',{rutina_id:rutina.id,nombre:bsNombre,series:null,peso:null,tiempo:null,nota:bsNota,link_youtube:null,completado:false,devolucion:null,fecha_sesion:rutSelectedDate,...rutNextOrden(cid,rutSelectedDate)});
       const nuevo=res[0];nuevo._clientId=cid;pAllEjercicios.push(nuevo);closeExModal();rutBuildCalStrip();rutRenderDay();showToast('Biserie agregada ✓');
     }catch(e){showToast('Error: '+e.message.slice(0,60),true);}
     return;
   }
 
   try{
-    const res=await dbPost('ejercicios',{rutina_id:rutina.id,nombre,series:document.getElementById('ex-f-series').value.trim()||null,peso:document.getElementById('ex-f-peso').value.trim()||null,tiempo:document.getElementById('ex-f-tiempo').value.trim()||null,nota:document.getElementById('ex-f-nota').value.trim()||null,link_youtube:yt||null,completado:false,devolucion:null,fecha_sesion:rutSelectedDate});
+    const res=await dbPost('ejercicios',{rutina_id:rutina.id,nombre,series:document.getElementById('ex-f-series').value.trim()||null,peso:document.getElementById('ex-f-peso').value.trim()||null,tiempo:document.getElementById('ex-f-tiempo').value.trim()||null,nota:document.getElementById('ex-f-nota').value.trim()||null,link_youtube:yt||null,completado:false,devolucion:null,fecha_sesion:rutSelectedDate,...rutNextOrden(cid,rutSelectedDate)});
     const nuevo=res[0];nuevo._clientId=cid;pAllEjercicios.push(nuevo);closeExModal();rutBuildCalStrip();rutRenderDay();showToast('Ejercicio agregado ✓');
   }catch(e){showToast('Error: '+e.message.slice(0,60),true);}
 }
@@ -3008,7 +3102,7 @@ async function saveCircuit(){
   try{const rutinas=await dbGet('rutinas',`cliente_id=eq.${cid}&limit=1`);if(rutinas.length){rutina=rutinas[0];}else{const cl=pClientes.find(c=>c.id==cid);const n=await dbPost('rutinas',{cliente_id:cid,nombre:'Rutina de '+(cl?cl.nombre:''),fecha:TODAY});rutina=n[0];}}catch(e){showToast('Error: '+e.message.slice(0,60),true);return;}
   const {nombre:circNombre,nota}=serializeCircuit(nombre,modalidad,items);
   try{
-    const res=await dbPost('ejercicios',{rutina_id:rutina.id,nombre:circNombre,series:null,peso:null,tiempo:null,nota,link_youtube:null,completado:false,devolucion:null,fecha_sesion:rutSelectedDate});
+    const res=await dbPost('ejercicios',{rutina_id:rutina.id,nombre:circNombre,series:null,peso:null,tiempo:null,nota,link_youtube:null,completado:false,devolucion:null,fecha_sesion:rutSelectedDate,...rutNextOrden(cid,rutSelectedDate)});
     const nuevo=res[0];nuevo._clientId=cid;pAllEjercicios.push(nuevo);
     closeCircuitModal();rutBuildCalStrip();rutRenderDay();showToast('Circuito agregado ✓');
   }catch(e){showToast('Error: '+e.message.slice(0,60),true);}
