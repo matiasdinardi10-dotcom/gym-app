@@ -4,8 +4,8 @@
   "description": "Tu entrenamiento personal con MD Pro Training",
   "start_url": "/app.html",
   "display": "standalone",
-  "background_color": "#080C0A",
-  "theme_color": "#00E676",
+  "background_color": "#0B0B0B",
+  "theme_color": "#0B0B0B",
   "orientation": "portrait",
   "icons": [
     {

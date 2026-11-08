@@ -1,4 +1,4 @@
-const CACHE_NAME = 'md-pro-training-v4';
+const CACHE_NAME = 'md-pro-training-v5';
 const ASSETS = [
   '/app.html',
   '/manifest.json'
