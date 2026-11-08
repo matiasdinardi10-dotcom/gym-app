@@ -1,12 +1,13 @@
 // Service worker de MD Pro Training.
 // Estrategia: primero la red; si no hay conexión, lo último guardado. Así la app abre aunque no haya señal.
 // Si se agregan archivos, sumarlos a ASSETS y subir la versión de CACHE_NAME.
-const CACHE_NAME = 'md-pro-training-v8';
+const CACHE_NAME = 'md-pro-training-v9';
 const ASSETS = [
   '/app.html',
   '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
+  '/icon-md-192.png',
+  '/icon-md-512.png',
+  '/apple-touch-icon-md.png',
   '/logo-md.jpg'
 ];
 
