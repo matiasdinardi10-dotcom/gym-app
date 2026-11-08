@@ -45,11 +45,11 @@ Navegación inferior con 4 pestañas (`aSwitchTab`): **Inicio**, **Timer**, **Pr
 | Archivo | Qué es |
 |---|---|
 | `app.html` | Toda la app (≈3580 líneas). |
-| `sw.js` | Service worker. `CACHE_NAME` (hoy `md-pro-training-v8`). Maneja el toque en la notificación de descanso (`notificationclick`). Precachea `ASSETS` (app, manifest, íconos) y guarda al vuelo archivos propios y Google Fonts. Network-first. **Nunca** cachea Supabase. |
-| `manifest.json` | Manifest PWA. `start_url: /app.html`, íconos `icon-192.png` / `icon-512.png`. |
+| `sw.js` | Service worker. `CACHE_NAME` (hoy `md-pro-training-v9`). Maneja el toque en la notificación de descanso (`notificationclick`). Precachea `ASSETS` (app, manifest, íconos) y guarda al vuelo archivos propios y Google Fonts. Network-first. **Nunca** cachea Supabase. |
+| `manifest.json` | Manifest PWA. `start_url: /app.html`, íconos `icon-md-192.png` / `icon-md-512.png`. |
 | `vercel.json` | Un solo rewrite: `/` → `/app.html`. |
 | `logo-md.jpg` | Logo "MD" dorado (pantalla de ingreso, `.login-logo-img`). Está en `ASSETS` del SW. |
-| `icon-192.png`, `icon-512.png` | Íconos de la PWA y favicon: el logo MD centrado sobre negro (zona segura para íconos *maskable*). |
+| `icon-md-192.png`, `icon-md-512.png`, `apple-touch-icon-md.png` | Íconos de la PWA, favicon e ícono de iPhone (180 px). Si se cambia el ícono, **cambiar también el nombre del archivo** (así Android detecta el cambio y actualiza el acceso directo): el logo MD centrado sobre negro (zona segura para íconos *maskable*). |
 | `supabase/configurar.sql` | SQL a correr en el SQL Editor de Supabase (idempotente): RLS de todas las tablas, trigger de alta de alumnos, trigger que limita cambios del alumno, columnas `ejercicios.orden` y `clientes.avatar`, bucket privado `sesion-archivos` y sus permisos. |
 | `README.md` | Solo dice `# gym-app`. |
 
