@@ -2400,7 +2400,7 @@ async function aDeleteArchivo(id){
     await dbDelete('sesion_archivos',id);
     if(row&&row.url&&row.url.startsWith(ARCH_REF_PREFIX)){
       const path=row.url.slice(ARCH_REF_PREFIX.length);
-      sbFetch(`${SB_URL}/storage/v1/object/${ARCH_BUCKET}/${path}`,{method:'DELETE'}).catch(()=>{});
+      sbFetch(`${SB_URL}/storage/v1/object/${ARCH_BUCKET}`,{method:'DELETE',body:JSON.stringify({prefixes:[path]})}).catch(()=>{});
     }
     for(const k in aArchivosCache)aArchivosCache[k]=aArchivosCache[k].filter(r=>r.id!==id);
     aFillAttachBoxes();showToast('Archivo quitado');
