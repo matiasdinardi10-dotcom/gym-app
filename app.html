@@ -839,6 +839,11 @@ body::before, body::after { display:none; }
 .nov-date { font-family:var(--font-mono); font-size:10px; color:var(--text3); white-space:nowrap; }
 .nav-btn { position:relative; }
 .nav-btn.has-badge::after { content:''; position:absolute; top:10px; left:calc(50% + 8px); width:8px; height:8px; border-radius:50%; background:var(--gold); }
+
+.hist-comment { display:flex; gap:6px; align-items:flex-start; margin-top:4px; font-size:12px; line-height:1.45; color:var(--text); font-style:italic; }
+.hist-comment .i { color:var(--gold); margin-top:2px; font-style:normal; }
+.modal-load-sub { font-family:var(--font-mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text2); padding:8px 12px 4px; display:flex; gap:6px; align-items:center; }
+#edit-ex-load-history { margin:0.25rem 0 0.75rem; }
 </style>
 </head>
 <body>
@@ -1232,6 +1237,7 @@ body::before, body::after { display:none; }
       <input class="form-input" style="margin-top:0.6rem" type="text" id="edit-ex-f-tiempo" placeholder="Tiempo (ej: 30 min)" />
       <textarea class="form-input" style="resize:none;min-height:60px;margin-top:0.6rem" id="edit-ex-f-nota" placeholder="Indicaciones para el alumno..."></textarea>
       <input class="form-input" type="text" id="edit-ex-f-yt" placeholder="Link de YouTube" />
+      <div id="edit-ex-load-history" style="display:none"></div>
       <button class="btn-primary-p" onclick="saveEditExercise()">Guardar cambios</button>
       <button class="btn-cancel-p" onclick="closeEditExModal()">Cancelar</button>
     </div>
@@ -2265,7 +2271,12 @@ function aSaveCurrentCard(){
   }
   state.comment=document.getElementById('ex-comment')?.value.trim()||'';
 }
-function aSaveCardAndNext(){aSaveCurrentCard();aSessionIdx++;aRenderCard();window.scrollTo(0,0);}
+function aSaveCardAndNext(){
+  aSaveCurrentCard();
+  const st=aSessionState[aSessionExs[aSessionIdx]?.id];
+  if(st&&st.status==='done')restStart(restSecs(),'ejercicio'); // descanso entre ejercicios
+  aSessionIdx++;aRenderCard();window.scrollTo(0,0);
+}
 function aSaveCardAndSummary(){aSaveCurrentCard();aShowSummary();}
 function aNavSession(dir){aSaveCurrentCard();aSessionIdx=Math.max(0,aSessionIdx+dir);aRenderCard();window.scrollTo(0,0);}
 function aExitSession(){aSaveCurrentCard();document.getElementById('a-view-session').style.display='none';aShowHome();}
@@ -2594,34 +2605,65 @@ async function aSincronizarPendientes(){
 }
 window.addEventListener('online',()=>{setOfflineBanner(false);aSincronizarPendientes();});
 
-// ── (5) Descanso entre series: arranca solo al cargar las reps de una serie ──
-let restState={left:0,total:0,iv:null};
+// ── (5) Descanso entre series y entre ejercicios ──
+// Arranca solo al cargar las reps de una serie y al pasar al siguiente ejercicio (si el actual quedó Completado).
+// Cuenta con la hora real (no se atrasa en segundo plano), mantiene la pantalla encendida (Wake Lock)
+// y al terminar suena una alarma + vibra; si la app no está a la vista, manda una notificación.
+let restState={end:0,total:0,iv:null,label:'serie',wake:null,lastBeep:null};
 function restSecs(){let n=90;try{n=+localStorage.getItem('rest_secs')||90;}catch(e){}return n;}
-function restSetSecs(n){try{localStorage.setItem('rest_secs',n);}catch(e){}document.querySelectorAll('.rest-chip').forEach(c=>c.classList.toggle('active',+c.dataset.s===n));}
-function restStart(n){
+function restSetSecs(n){try{localStorage.setItem('rest_secs',n);}catch(e){}document.querySelectorAll('.rest-chip').forEach(c=>c.classList.toggle('active',+c.dataset.s===n));restAskNotif();}
+function restLeft(){return Math.max(0,Math.ceil((restState.end-Date.now())/1000));}
+function restStart(n,label){
   n=n||restSecs();clearInterval(restState.iv);
-  restState={left:n,total:n,iv:setInterval(restTick,1000)};restRender();
+  restState.end=Date.now()+n*1000;restState.total=n;restState.label=label||'serie';restState.lastBeep=null;
+  restState.iv=setInterval(restTick,250);
+  getAudioCtx(); // deja el audio listo mientras hay un toque del usuario
+  restWakeLock(true);restAskNotif();restRender();
 }
 function restTick(){
-  restState.left--;
-  if(restState.left<=0){
-    restStop();playBeep(784,0.25,1,0);playBeep(988,0.4,1,280);
-    try{if(navigator.vibrate)navigator.vibrate([300,100,300]);}catch(e){}
-    showToast('¡A la próxima serie!');return;
-  }
-  if(restState.left<=3)timerCountdownBeep();
+  const left=restLeft();
+  if(left<=0){restFinish();return;}
+  if(left<=3&&restState.lastBeep!==left){restState.lastBeep=left;timerCountdownBeep();}
   restRender();
 }
-function restStop(){clearInterval(restState.iv);restState.iv=null;document.getElementById('rest-pill')?.remove();}
-function restAdd(d){restState.left=Math.max(1,restState.left+d);restState.total=Math.max(restState.total,restState.left);restRender();}
+function restFinish(){const label=restState.label;restStop();restAlarm(label);}
+function restAlarm(label){
+  const msg=label==='ejercicio'?'¡Terminó el descanso! Vamos al próximo ejercicio':'¡Terminó el descanso! A la próxima serie';
+  for(let k=0;k<3;k++){playBeep(880,0.18,1,k*750);playBeep(1175,0.32,1,k*750+220);}
+  try{if(navigator.vibrate)navigator.vibrate([400,150,400,150,700]);}catch(e){}
+  showToast(msg);
+  if(document.visibilityState!=='visible')restNotify(msg);
+}
+function restAskNotif(){try{if('Notification' in window&&Notification.permission==='default')Notification.requestPermission().catch(()=>{});}catch(e){}}
+function restNotify(msg){
+  try{
+    if(!('Notification' in window)||Notification.permission!=='granted')return;
+    const opts={body:msg,tag:'descanso',renotify:true,vibrate:[400,150,400,150,700],icon:'/icon-192.png',badge:'/icon-192.png'};
+    if(navigator.serviceWorker)navigator.serviceWorker.getRegistration().then(reg=>reg?reg.showNotification('MD Pro Training',opts):new Notification('MD Pro Training',opts)).catch(()=>{});
+    else new Notification('MD Pro Training',opts);
+  }catch(e){}
+}
+async function restWakeLock(on){
+  try{
+    if(on&&'wakeLock' in navigator&&!restState.wake){restState.wake=await navigator.wakeLock.request('screen');restState.wake.addEventListener?.('release',()=>{restState.wake=null;});}
+    else if(!on&&restState.wake){const w=restState.wake;restState.wake=null;await w.release();}
+  }catch(e){restState.wake=null;}
+}
+function restStop(){clearInterval(restState.iv);restState.iv=null;restWakeLock(false);document.getElementById('rest-pill')?.remove();}
+function restAdd(d){restState.end+=d*1000;restState.total=Math.max(restState.total,restLeft());restRender();}
 function restRender(){
   let el=document.getElementById('rest-pill');
   if(!el){el=document.createElement('div');el.id='rest-pill';document.body.appendChild(el);}
-  const m=Math.floor(restState.left/60),ss=String(restState.left%60).padStart(2,'0');
-  el.innerHTML=`<span class="i i-timer"></span><div class="rest-info"><div class="rest-lbl">Descanso</div><div class="rest-time">${m}:${ss}</div></div>
-    <div class="rest-bar"><div style="width:${restState.total?restState.left/restState.total*100:0}%"></div></div>
+  const left=restLeft();const m=Math.floor(left/60),ss=String(left%60).padStart(2,'0');
+  el.innerHTML=`<span class="i i-timer"></span><div class="rest-info"><div class="rest-lbl">${restState.label==='ejercicio'?'Descanso · próximo ej.':'Descanso'}</div><div class="rest-time">${m}:${ss}</div></div>
+    <div class="rest-bar"><div style="width:${restState.total?left/restState.total*100:0}%"></div></div>
     <button onclick="restAdd(15)">+15s</button><button onclick="restStop()">Saltar</button>`;
 }
+// Si el descanso terminó mientras la app estaba en segundo plano o con la pantalla bloqueada: avisar al volver
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState!=='visible'||!restState.iv)return;
+  if(restLeft()<=0)restFinish();else{restWakeLock(true);restRender();}
+});
 function restRowHtml(){
   const cur=restSecs();
   return `<div class="rest-row"><span class="rest-row-lbl"><span class="i i-timer"></span> Descanso</span>${[60,90,120,180].map(n=>`<button class="rest-chip${cur===n?' active':''}" data-s="${n}" onclick="restSetSecs(${n})">${n<120?n+'s':(n/60)+' min'}</button>`).join('')}<button class="rest-go" onclick="restStart()" aria-label="Iniciar descanso"><span class="i i-play"></span></button></div>`;
@@ -2853,6 +2895,12 @@ function pGetLoadHistory(clientId,exNombre,limit=5){
   if(!exIds.length)return[];
   return pAllLogs.filter(l=>l.cliente_id===cid&&exIds.includes(l.ejercicio_id)).sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,limit);
 }
+// Comentario que dejó el alumno en ese registro (o, si no quedó en el log, en el ejercicio)
+function pComentarioDe(l){
+  const n=(l.nota||'').trim();if(n)return n;
+  const ex=pAllEjercicios.find(e=>e.id===l.ejercicio_id);return ((ex&&ex.devolucion)||'').trim();
+}
+function pComentarioHtml(txt){return txt?`<div class="hist-comment"><span class="i i-message-square"></span><span>"${escHtml(txt)}"</span></div>`:'';}
 function pRenderLoadHistoryBlock(clientId,exNombre){
   const history=pGetLoadHistory(clientId,exNombre,5);
   if(!history.length)return`<div class="load-history-block"><div class="load-history-title">Historial de cargas</div><div class="load-history-empty">Sin registros previos</div></div>`;
@@ -2869,16 +2917,34 @@ function pRenderLoadHistoryBlock(clientId,exNombre){
       } else { serHtml=formatSeries(l.series_realizadas); }
     } else { serHtml=`<span style="color:var(--green);font-weight:600">${l.peso_usado?l.peso_usado+'kg':'—'}</span>`; }
     const rpe=!l.series_realizadas&&l.rpe?'RPE '+l.rpe:'';
-    return`<div class="load-history-row" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="display:flex;justify-content:space-between;width:100%"><span class="load-history-date">${d}</span>${rpe?`<span class="load-history-rpe">${rpe}</span>`:''}</div><div>${serHtml}</div></div>`;
+    return`<div class="load-history-row" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="display:flex;justify-content:space-between;width:100%"><span class="load-history-date">${d}</span>${rpe?`<span class="load-history-rpe">${rpe}</span>`:''}</div><div>${serHtml}</div>${pComentarioHtml(pComentarioDe(l))}</div>`;
   }).join('');
-  return`<div class="load-history-block"><div class="load-history-title">Historial de cargas</div>${rows}</div>`;
+  return`<div class="load-history-block"><div class="load-history-title">Historial de cargas y comentarios</div>${rows}</div>`;
 }
 function pRenderModalLoadHistory(clientId,exNombre){
-  const history=pGetLoadHistory(clientId,exNombre,3);if(!history.length)return'';
-  const lastLog=history[0];const lastDate=new Date(lastLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});
-  const lastLoad=[lastLog.series_realizadas,lastLog.peso_usado?lastLog.peso_usado+'kg':''].filter(Boolean).join(' · ')||'—';
-  const rows=history.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});const serHtml=l.series_realizadas?formatSeries(l.series_realizadas):`<span class="load">${l.peso_usado?l.peso_usado+'kg':'—'}</span>`;const rpe=!l.series_realizadas&&l.rpe?'RPE '+l.rpe:'';return`<div style="padding:7px 12px;border-bottom:1px solid rgba(201,162,39,0.1)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px"><span class="date">${d}</span>${rpe?`<span style="font-size:11px;color:var(--text2)">${rpe}</span>`:''}</div>${serHtml}</div>`;}).join('');
-  return`<div class="modal-load-history"><div class="modal-load-title"><span class="i i-chart-column"></span> Últimas cargas · ${exNombre}</div><div class="modal-load-last">Última vez (${lastDate}): ${lastLoad}</div>${rows}</div>`;
+  const history=pGetLoadHistory(clientId,exNombre,3);
+  const comentarios=pGetLoadHistory(clientId,exNombre,30).filter(l=>pComentarioDe(l)).slice(0,3);
+  if(!history.length&&!comentarios.length)return'';
+  let html=`<div class="modal-load-history"><div class="modal-load-title"><span class="i i-chart-column"></span> Últimas cargas · ${escHtml(exNombre)}</div>`;
+  if(history.length){
+    const lastLog=history[0];const lastDate=new Date(lastLog.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});
+    const lastLoad=[lastLog.series_realizadas,lastLog.peso_usado?lastLog.peso_usado+'kg':''].filter(Boolean).join(' · ')||'—';
+    html+=`<div class="modal-load-last">Última vez (${lastDate}): ${lastLoad}</div>`;
+    html+=history.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});const serHtml=l.series_realizadas?formatSeries(l.series_realizadas):`<span class="load">${l.peso_usado?l.peso_usado+'kg':'—'}</span>`;const rpe=!l.series_realizadas&&l.rpe?'RPE '+l.rpe:'';return`<div style="padding:7px 12px;border-bottom:1px solid rgba(201,162,39,0.1)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px"><span class="date">${d}</span>${rpe?`<span style="font-size:11px;color:var(--text2)">${rpe}</span>`:''}</div>${serHtml}${pComentarioHtml(pComentarioDe(l))}</div>`;}).join('');
+  }
+  // Comentarios más viejos que no entraron en las últimas 3 cargas
+  const enLista=new Set(history.map(l=>l.id));
+  const extra=comentarios.filter(l=>!enLista.has(l.id));
+  if(extra.length){
+    html+=`<div class="modal-load-sub"><span class="i i-message-square"></span> Comentarios anteriores</div>`+extra.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});return`<div style="padding:6px 12px;border-bottom:1px solid rgba(201,162,39,0.1)"><span class="date">${d}</span>${pComentarioHtml(pComentarioDe(l))}</div>`;}).join('');
+  }
+  return html+`</div>`;
+}
+// Muestra el historial en un contenedor del modal (agregar o editar ejercicio)
+function pMostrarHistorialEn(elId,nombre){
+  const el=document.getElementById(elId);if(!el)return;
+  const html=nombre&&nombre.trim().length>=2?pRenderModalLoadHistory(rutCurrentClientId,nombre.trim()):'';
+  el.innerHTML=html;el.style.display=html?'block':'none';
 }
 
 // CLIENTES
@@ -3145,6 +3211,7 @@ function openEditExModal(id){
   document.getElementById('edit-ex-f-tiempo').value=ex.tiempo||'';
   document.getElementById('edit-ex-f-nota').value=ex.nota||'';
   document.getElementById('edit-ex-f-yt').value=ex.link_youtube||'';
+  pMostrarHistorialEn('edit-ex-load-history',ex.nombre||'');
   document.getElementById('edit-ex-modal').classList.add('open');
 }
 function closeEditExModal(){
@@ -3344,7 +3411,8 @@ async function rutRemoveEx(id){
 // MODAL EJERCICIO
 function onNameInput(val){
   const list=document.getElementById('ex-autocomplete-list');
-  document.getElementById('ex-yt-preview').style.display='none';document.getElementById('ex-modal-load-history').style.display='none';
+  document.getElementById('ex-yt-preview').style.display='none';
+  pMostrarHistorialEn('ex-modal-load-history',val);
   if(!val||val.length<2){list.style.display='none';return;}
   const matches=pBiblioteca.filter(b=>b.nombre.toLowerCase().includes(val.toLowerCase()));
   if(!matches.length){list.style.display='none';return;}
