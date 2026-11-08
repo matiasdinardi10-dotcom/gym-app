@@ -86,7 +86,7 @@ Navegación inferior con 4 pestañas (`aSwitchTab`): **Inicio**, **Timer**, **Pr
   - No cambiar estos formatos: hay datos reales guardados así.
 
 ### JS — Auth (≈1201–1280)
-`switchAuthTab`, `initRegisterAvatars`, `regSelectAvatar`, `doLogin`, `doRegister`, `doLogout`.
+`switchAuthTab`, `initRegisterAvatars` (botón "Foto" de la galería + iniciales + 10 avatares), `regUploadFoto`, `regSelectAvatar` (valor en `#reg-avatar-id`), `doLogin`, `doRegister` (si hay sesión al registrarse, guarda el avatar/foto en `clientes.avatar`; si no, queda en `localStorage` y se sube al entrar), `doLogout`. Foto de perfil: `fotoPerfilDesdeArchivo` (240×240 JPEG), compartida con `aUploadAvatar`.
 
 ### JS — Panel alumno (≈1281–2248)
 - Estado: `aCurrentCliente`, `aEjercicios`, `aLogs`, `aSelectedDate`, `aSessionExs`, `aSessionIdx`, `aSessionState`, `aSessionStateCache` (guarda lo escrito por fecha al cambiar de día).
