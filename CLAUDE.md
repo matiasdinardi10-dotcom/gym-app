@@ -45,7 +45,7 @@ Navegación inferior con 4 pestañas (`aSwitchTab`): **Inicio**, **Timer**, **Pr
 | Archivo | Qué es |
 |---|---|
 | `app.html` | Toda la app (≈3580 líneas). |
-| `sw.js` | Service worker. `CACHE_NAME` (hoy `md-pro-training-v6`). Precachea `ASSETS` (app, manifest, íconos) y guarda al vuelo archivos propios y Google Fonts. Network-first. **Nunca** cachea Supabase. |
+| `sw.js` | Service worker. `CACHE_NAME` (hoy `md-pro-training-v7`). Maneja el toque en la notificación de descanso (`notificationclick`). Precachea `ASSETS` (app, manifest, íconos) y guarda al vuelo archivos propios y Google Fonts. Network-first. **Nunca** cachea Supabase. |
 | `manifest.json` | Manifest PWA. `start_url: /app.html`, íconos `icon-192.png` / `icon-512.png`. |
 | `vercel.json` | Un solo rewrite: `/` → `/app.html`. |
 | `icon-192.png`, `icon-512.png` | Íconos de la PWA (rayo oro sobre negro). |
@@ -96,7 +96,7 @@ Navegación inferior con 4 pestañas (`aSwitchTab`): **Inicio**, **Timer**, **Pr
 - Resumen y guardado: `aShowSummary`, `aSummaryGoTo`, **`aSaveFinalSession(silent)`** (escribe en `logs_entrenamiento` y hace PATCH de `ejercicios.completado` / `devolucion`; `silent` = sin tocar la pantalla, lo usa la sincronización).
 - Sin conexión al guardar: `aGuardarPendiente` (queda en `localStorage` `pend_ses_<cliente>`), `aSincronizarPendientes` (al iniciar y con el evento `online`).
 - Récords: `aMejoresPorEjercicio` (mejor peso histórico por nombre de ejercicio), `aDetectarRecords`, `aMostrarRecords`.
-- Descanso entre series: `restStart` (arranca solo al cargar reps), `restStop`, `restAdd`, `restRowHtml`, duración en `localStorage` `rest_secs`.
+- Descanso entre series y entre ejercicios: `restStart(seg,label)` arranca solo al cargar reps (`'serie'`) y en `aSaveCardAndNext` si el ejercicio quedó Completado (`'ejercicio'`). Cuenta con hora real (`restState.end`, `restLeft`), mantiene la pantalla encendida (`restWakeLock`, Wake Lock API) y al terminar `restAlarm` (3 dobles tonos + vibración) y, si la app no está visible, `restNotify` (notificación vía service worker; permiso con `restAskNotif`). Al volver a la app (`visibilitychange`) avisa si terminó. Duración en `localStorage` `rest_secs`. Limitación: con la pantalla bloqueada o la app cerrada el navegador puede pausar el JS; por eso se mantiene la pantalla encendida.
 - Corregir día cerrado: `aEditExercise`, `aEditBiserie`, `aEditCircuit` (borran el log de ese día y resetean `completado`).
 - **"Mis rutinas"**: `aShowPlantillas()` (≈1558) lee `plantillas` filtrando `cliente_ids` que contenga el id del alumno (`cs.{id}`) y las muestra como `<details>` de solo lectura (nombre, series, link de video). Escape con `aPlEsc`.
 - Progreso: `aBuildProgressView`, `aGetExercisesWithLogs`, `aExtractWeight`, `aGetFilteredLogs`, `aRenderProgressChart`, `aDrawLineChart`, `aFilterProgressChips`, `aSelectFromSearch`, `aSelectProgressEx`, `aPeriod`.
@@ -107,7 +107,7 @@ Navegación inferior con 4 pestañas (`aSwitchTab`): **Inicio**, **Timer**, **Pr
 - **`initProfe()`** (≈2256): carga en paralelo `clientes` y `biblioteca_ejercicios` con `dbGet`, y `sesiones`, `rutinas`, `ejercicios`, `logs_entrenamiento` con `dbGetAll`. Mapea `rutina_id → cliente_id` para poner `_clientId` en cada ejercicio. Llena los `<select>` de cliente y llama `clRenderList`, `rutBuildCalStrip`, `rutRenderDay`, `rutRenderBiblioteca`.
 - **`pSwitchScreen(name)`**: `'clientes' | 'rutinas' | 'biblioteca' | 'plantillas'`. Al entrar a biblioteca llama `rutRenderBiblioteca`; a plantillas, `plRender`.
 - Clientes: `clRenderList`, `clRenderFiltered`, `filterClients`, `clShowDetail`, `showClientList`, `openClientModal`, `openEditClientModal`, `saveClient`, `deleteClient`, `pGetActivityToday`, `activityDot`.
-- Historial de cargas: `pGetLoadHistory`, `pRenderLoadHistoryBlock`, `pRenderModalLoadHistory`.
+- Historial de cargas **y comentarios del alumno**: `pGetLoadHistory` (por nombre de ejercicio), `pComentarioDe` (nota del log o `devolucion`), `pComentarioHtml`, `pRenderLoadHistoryBlock` (rutina del día), `pRenderModalLoadHistory` (últimas 3 cargas + comentarios anteriores), `pMostrarHistorialEn` (al escribir el nombre en Agregar ejercicio y al abrir Editar ejercicio).
 - **Calendario de rutinas del profe**: `rutBuildCalStrip` (tira de 14 días alrededor de hoy + `rutStripOffset`), `rutSelectDate`, `rutShiftStrip(±14)`, `rutPickDate` (input date + botón "Hoy"), `rutOnClientChange`, `rutSwitchTab`.
 - **Rutinas día a día**: `rutRenderDay` (lista los `ejercicios` del alumno con `fecha_sesion === rutSelectedDate`; si hay logs ese día oculta los botones de agregar y muestra "El alumno ya completó esta sesión"), `rutToggleDetail`, `rutRemoveEx`.
   - Agregar: `openExModal` / `addExercise` (ejercicio o biserie con `toggleBiserieField`), `openCircuitModal` / `saveCircuit`. Ambos buscan la primera fila de `rutinas` del alumno (`limit=1`) y si no existe la crean ("Rutina de …"); el ejercicio se inserta con `rutina_id` y `fecha_sesion`.

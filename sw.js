@@ -1,7 +1,7 @@
 // Service worker de MD Pro Training.
 // Estrategia: primero la red; si no hay conexión, lo último guardado. Así la app abre aunque no haya señal.
 // Si se agregan archivos, sumarlos a ASSETS y subir la versión de CACHE_NAME.
-const CACHE_NAME = 'md-pro-training-v6';
+const CACHE_NAME = 'md-pro-training-v7';
 const ASSETS = [
   '/app.html',
   '/manifest.json',
@@ -46,5 +46,15 @@ self.addEventListener('fetch', e => {
       }
       return res;
     }).catch(() => caches.match(req).then(r => r || (req.mode === 'navigate' ? caches.match('/app.html') : undefined)))
+  );
+});
+
+// Tocar la notificación de fin de descanso vuelve a abrir la app
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs =>
+      cs.length ? cs[0].focus() : self.clients.openWindow('/app.html')
+    )
   );
 });
