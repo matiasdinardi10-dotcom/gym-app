@@ -270,6 +270,7 @@ button,input,textarea,select { font-family:var(--font-body); }
 .attach-video { position:relative; cursor:pointer; }
 .attach-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; text-shadow:0 1px 4px rgba(0,0,0,0.8); pointer-events:none; }
 .attach-status { font-size:12px; color:var(--text2); margin-bottom:8px; }
+#offline-banner { position:fixed; top:0; left:0; right:0; z-index:400; background:var(--surface-2); color:var(--text); border-bottom:1px solid var(--gold); font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; text-transform:uppercase; text-align:center; padding:calc(env(safe-area-inset-top) + 6px) 12px 6px; }
 .action-btns { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:1.2rem; }
 .btn-missed { padding:0.85rem; border-radius:var(--radius-sm); border:1px solid rgba(224,82,74,0.2); background:rgba(224,82,74,0.04); color:var(--red); font-size:13px; font-weight:500; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.2s; letter-spacing:0.02em; }
 .btn-missed.active { background:rgba(224,82,74,0.1); border-color:var(--red); box-shadow:0 0 12px rgba(224,82,74,0.12); }
@@ -1201,7 +1202,6 @@ body::before, body::after { display:none; }
 // ════ CONFIG ════
 const SB_URL = 'https://chbrespqluwlmzwhxjgi.supabase.co';
 const SB_KEY = 'sb_publishable_-Jzgkul7Gt4p_dQEnrTXww_6n31yt_D';
-const SBH = {'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
 const PROFE_EMAIL = 'matiasdinardi10@gmail.com';
 // ── Fecha local correcta (evita bug de timezone UTC) ──
 function localDateStr(date){
@@ -1226,19 +1226,97 @@ const CIRCUIT_PREFIX = '__CIRCUIT__';
 // Prefijo para biseries
 const BISERIE_PREFIX = '__BISERIE__';
 
-async function dbGet(t,p=''){const r=await fetch(`${SB_URL}/rest/v1/${t}?${p}`,{headers:SBH});if(!r.ok)throw new Error(await r.text());return r.json();}
-async function dbPost(t,b){const r=await fetch(`${SB_URL}/rest/v1/${t}`,{method:'POST',headers:{...SBH,'Prefer':'return=representation'},body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return r.json();}
-async function dbPatch(t,id,b){const r=await fetch(`${SB_URL}/rest/v1/${t}?id=eq.${id}`,{method:'PATCH',headers:SBH,body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());}
-async function dbDelete(t,id){const r=await fetch(`${SB_URL}/rest/v1/${t}?id=eq.${id}`,{method:'DELETE',headers:SBH});if(!r.ok)throw new Error(await r.text());}
-  async function dbGetAll(t,p=''){
-  const out=[],step=1000;
-  for(let from=0;;from+=step){
-    const r=await fetch(`${SB_URL}/rest/v1/${t}?${p}`,{headers:{...SBH,'Range-Unit':'items','Range':`${from}-${from+step-1}`}});
-    if(!r.ok)throw new Error(await r.text());
-    const rows=await r.json();
-    out.push(...rows);
-    if(rows.length<step)break;
+// ════ SEGURIDAD / SESIÓN ════
+// SB_KEY es la clave PÚBLICA de Supabase (publishable/anon): está pensada para estar en el navegador.
+// Por sí sola NO da acceso a los datos: cada consulta viaja con el token del usuario logueado y
+// Supabase (políticas RLS, ver supabase/seguridad.sql) decide qué puede ver o cambiar cada uno:
+// el profe todo, cada alumno solo lo suyo. La clave SECRETA (service_role) nunca va en este archivo.
+function authSave(d){
+  sessionStorage.setItem('auth_token',d.access_token);
+  if(d.refresh_token)sessionStorage.setItem('auth_refresh',d.refresh_token);
+  sessionStorage.setItem('auth_exp',String(d.expires_at?d.expires_at*1000:Date.now()+(d.expires_in||3600)*1000));
+}
+let _authRefreshing=null;
+async function authRefresh(){
+  const rt=sessionStorage.getItem('auth_refresh');if(!rt)return 'sin-refresh';
+  if(!_authRefreshing)_authRefreshing=(async()=>{
+    try{
+      const r=await fetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY},body:JSON.stringify({refresh_token:rt})});
+      if(!r.ok)return 'invalido';
+      authSave(await r.json());return 'ok';
+    }catch(e){return 'sin-red';}
+    finally{setTimeout(()=>{_authRefreshing=null;},0);}
+  })();
+  return _authRefreshing;
+}
+async function authToken(){
+  const tok=sessionStorage.getItem('auth_token');if(!tok)return null;
+  const exp=+sessionStorage.getItem('auth_exp')||0;
+  if(exp&&exp-Date.now()<90000){
+    const res=await authRefresh();
+    if(res==='invalido'){sessionExpired();throw new Error('sesión vencida');}
   }
+  return sessionStorage.getItem('auth_token');
+}
+function sessionExpired(){
+  if(!sessionStorage.getItem('auth_token'))return;
+  doLogout();showToast('Tu sesión venció. Ingresá de nuevo.',true);
+}
+async function authHeaders(extra){
+  const tok=await authToken();
+  return {'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+(tok||SB_KEY),...(extra||{})};
+}
+// fetch a Supabase con el token del usuario; si el token venció, lo renueva y reintenta una vez
+async function sbFetch(url,opts={},retry=true){
+  const r=await fetch(url,{...opts,headers:await authHeaders(opts.headers)});
+  if(r.status===401&&sessionStorage.getItem('auth_token')){
+    if(retry&&sessionStorage.getItem('auth_refresh')){sessionStorage.setItem('auth_exp','1');return sbFetch(url,opts,false);}
+    sessionExpired();
+  }
+  return r;
+}
+
+// ── Modo sin conexión (alumno): se guarda una copia de lo último leído para poder ver la rutina sin internet ──
+const OFFLINE_TABLES=['rutinas','ejercicios','logs_entrenamiento','plantillas','clientes'];
+function offlineKey(t,p){return 'off_'+t+'?'+p;}
+function offlineSave(t,p,rows){
+  if(sessionStorage.getItem('rol')!=='alumno'||!OFFLINE_TABLES.includes(t))return;
+  try{localStorage.setItem(offlineKey(t,p),JSON.stringify(rows));}catch(e){}
+}
+function offlineLoad(t,p){
+  try{const v=localStorage.getItem(offlineKey(t,p));return v?JSON.parse(v):null;}catch(e){return null;}
+}
+function setOfflineBanner(on){
+  let el=document.getElementById('offline-banner');
+  if(on&&!el){el=document.createElement('div');el.id='offline-banner';el.textContent='Sin conexión · mostrando lo último guardado';document.body.appendChild(el);}
+  if(!on&&el)el.remove();
+}
+
+async function dbGet(t,p=''){
+  let r;
+  try{r=await sbFetch(`${SB_URL}/rest/v1/${t}?${p}`);}
+  catch(e){const c=offlineLoad(t,p);if(c){setOfflineBanner(true);return c;}throw e;}
+  if(!r.ok)throw new Error(await r.text());
+  const rows=await r.json();offlineSave(t,p,rows);setOfflineBanner(false);return rows;
+}
+async function dbPost(t,b){const r=await sbFetch(`${SB_URL}/rest/v1/${t}`,{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function dbPatch(t,id,b){const r=await sbFetch(`${SB_URL}/rest/v1/${t}?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());}
+async function dbDelete(t,id){const r=await sbFetch(`${SB_URL}/rest/v1/${t}?id=eq.${id}`,{method:'DELETE'});if(!r.ok)throw new Error(await r.text());}
+async function dbGetAll(t,p=''){
+  const out=[],step=1000;
+  try{
+    for(let from=0;;from+=step){
+      const r=await sbFetch(`${SB_URL}/rest/v1/${t}?${p}`,{headers:{'Range-Unit':'items','Range':`${from}-${from+step-1}`}});
+      if(!r.ok)throw new Error(await r.text());
+      const rows=await r.json();
+      out.push(...rows);
+      if(rows.length<step)break;
+    }
+  }catch(e){
+    if(e instanceof TypeError){const c=offlineLoad(t,p);if(c){setOfflineBanner(true);return c;}}
+    throw e;
+  }
+  offlineSave(t,p,out);setOfflineBanner(false);
   return out;
 }
   
@@ -1359,7 +1437,7 @@ async function doLogin(){
     const r=await fetch(`${SB_URL}/auth/v1/token?grant_type=password`,{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},body:JSON.stringify({email,password})});
     const data=await r.json();
     if(!r.ok||data.error){errEl.textContent='Email o contraseña incorrectos';errEl.style.display='block';return;}
-    sessionStorage.setItem('auth_token',data.access_token);sessionStorage.setItem('auth_email',email);
+    authSave(data);sessionStorage.setItem('auth_email',email);
     if(email===PROFE_EMAIL){sessionStorage.setItem('rol','profe');await initProfe();}
     else{
       const clientes=await dbGet('clientes',`email=eq.${encodeURIComponent(email)}&limit=1`);
@@ -1381,10 +1459,19 @@ async function doRegister(){
   if(!email){errEl.textContent='Escribí tu email';errEl.style.display='block';return;}
   if(password.length<6){errEl.textContent='La contraseña debe tener al menos 6 caracteres';errEl.style.display='block';return;}
   try{
-    const r=await fetch(`${SB_URL}/auth/v1/signup`,{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},body:JSON.stringify({email,password})});
+    const r=await fetch(`${SB_URL}/auth/v1/signup`,{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},body:JSON.stringify({email,password,data:{nombre,edad,objetivo:objetivo||null}})});
     const data=await r.json();
-    if(!r.ok||data.error){errEl.textContent=data.error?.message||'Error al crear la cuenta.';errEl.style.display='block';return;}
-    await dbPost('clientes',{nombre,email,edad,objetivo:objetivo||null,estado:'nuevo',fecha_alta:TODAY});
+    if(!r.ok||data.error||data.error_code){errEl.textContent=data.msg||data.error_description||data.error?.message||'Error al crear la cuenta.';errEl.style.display='block';return;}
+    // Alta en "clientes". Si Supabase ya la creó (trigger de supabase/seguridad.sql) no se duplica.
+    const alta={nombre,email,edad,objetivo:objetivo||null,estado:'nuevo',fecha_alta:TODAY};
+    if(data.access_token){
+      authSave(data);
+      try{const ya=await dbGet('clientes',`email=eq.${encodeURIComponent(email)}&select=id&limit=1`);if(!ya.length)await dbPost('clientes',alta);}
+      catch(e){console.error(e);}
+      sessionStorage.removeItem('auth_token');sessionStorage.removeItem('auth_refresh');sessionStorage.removeItem('auth_exp');
+    }else{
+      try{await dbPost('clientes',alta);}catch(e){/* con seguridad activa lo crea el trigger */}
+    }
     // Guardar avatar elegido
     const avatarId=document.getElementById('reg-avatar-id')?.value;
     if(avatarId) localStorage.setItem('avatar_'+email.toLowerCase(), avatarId);
@@ -2122,22 +2209,42 @@ function aExitSession(){aSaveCurrentCard();document.getElementById('a-view-sessi
 function aOpenFileInput(exId){aCurrentExIdForFile=exId;document.getElementById('file-input').click();}
 // ════ ADJUNTOS (tabla sesion_archivos) ════
 // Fotos: se comprimen en el navegador y se guardan como data URL en sesion_archivos.url (tipo 'imagen').
-// Videos: se suben al bucket público de Storage ARCH_BUCKET y en url queda su link público (tipo 'video').
+// Videos: se suben al bucket PRIVADO de Storage ARCH_BUCKET; en url queda "sb://sesion-archivos/<ruta>" (tipo 'video')
+// y para verlos se piden links firmados que vencen en 1 hora (solo el dueño y el profe pueden pedirlos).
 const ARCH_BUCKET='sesion-archivos';
 const ARCH_MAX_VIDEO_MB=50;
-const ARCH_PUBLIC_PREFIX=`${SB_URL}/storage/v1/object/public/${ARCH_BUCKET}/`;
+const ARCH_REF_PREFIX=`sb://${ARCH_BUCKET}/`;
+const ARCH_SIGNED_PREFIX=`${SB_URL}/storage/v1/object/sign/${ARCH_BUCKET}/`;
+const archSigned={}; // ruta -> {url, vence}
+async function archSign(paths){
+  const need=[...new Set(paths)].filter(p=>!archSigned[p]||archSigned[p].vence<Date.now()+120000);
+  if(!need.length)return;
+  const r=await sbFetch(`${SB_URL}/storage/v1/object/sign/${ARCH_BUCKET}`,{method:'POST',body:JSON.stringify({expiresIn:3600,paths:need})});
+  if(!r.ok)return;
+  (await r.json()).forEach(x=>{if(x.signedURL&&x.path)archSigned[x.path]={url:SB_URL+'/storage/v1'+x.signedURL,vence:Date.now()+3500000};});
+}
+// Agrega r._src (lo que se puede mostrar) a cada fila
+async function archWithSrc(rows){
+  const paths=rows.filter(r=>(r.url||'').startsWith(ARCH_REF_PREFIX)).map(r=>r.url.slice(ARCH_REF_PREFIX.length));
+  if(paths.length){try{await archSign(paths);}catch(e){console.error(e);}}
+  return rows.map(r=>{
+    const u=r.url||'';
+    const src=u.startsWith('data:image/')?u:u.startsWith(ARCH_REF_PREFIX)?(archSigned[u.slice(ARCH_REF_PREFIX.length)]?.url||null):null;
+    return {...r,_src:src};
+  });
+}
 const aArchivosCache={}; // fecha -> filas del alumno
 async function aLoadArchivos(fecha){
   if(!aArchivosCache[fecha])aArchivosCache[fecha]=await dbGet('sesion_archivos',`cliente_id=eq.${aCurrentCliente.id}&fecha=eq.${fecha}&order=id.asc`);
   return aArchivosCache[fecha];
 }
-function archivoSrcOk(u){return typeof u==='string'&&(u.startsWith('data:image/')||u.startsWith(ARCH_PUBLIC_PREFIX));}
+function archivoSrcOk(u){return typeof u==='string'&&(u.startsWith('data:image/')||u.startsWith(ARCH_SIGNED_PREFIX));}
 function archivoEsVideo(r){return r.tipo==='video';}
 function archivosThumbsHtml(rows,canDelete){
-  return rows.filter(r=>archivoSrcOk(r.url)).map(r=>{
+  return rows.filter(r=>archivoSrcOk(r._src)).map(r=>{
     const media=archivoEsVideo(r)
-      ?`<div class="attach-video" onclick="openMediaViewer('${r.url}','video')"><video class="attach-thumb" src="${r.url}#t=0.1" muted playsinline preload="metadata"></video><span class="attach-play">▶</span></div>`
-      :`<img class="attach-thumb" src="${r.url}" onclick="openMediaViewer(this.src,'imagen')" alt="Foto adjunta"/>`;
+      ?`<div class="attach-video" onclick="openMediaViewer('${r._src}','video')"><video class="attach-thumb" src="${r._src}#t=0.1" muted playsinline preload="metadata"></video><span class="attach-play">▶</span></div>`
+      :`<img class="attach-thumb" src="${r._src}" onclick="openMediaViewer(this.src,'imagen')" alt="Foto adjunta"/>`;
     return `<div class="attach-item">${media}${canDelete?`<button class="attach-del" onclick="aDeleteArchivo(${r.id})" title="Quitar" aria-label="Quitar adjunto">✕</button>`:''}</div>`;
   }).join('');
 }
@@ -2145,7 +2252,7 @@ function archivosThumbsHtml(rows,canDelete){
 async function aFillAttachBoxes(){
   if(!aCurrentCliente||!document.querySelector('[data-attach-ex]'))return;
   const fecha=aSelectedDate;let rows;
-  try{rows=await aLoadArchivos(fecha);}catch(e){console.error(e);return;}
+  try{rows=await archWithSrc(await aLoadArchivos(fecha));}catch(e){console.error(e);return;}
   if(fecha!==aSelectedDate)return;
   document.querySelectorAll('[data-attach-ex]').forEach(box=>{
     const mine=rows.filter(r=>String(r.ejercicio_id)===box.dataset.attachEx);
@@ -2169,15 +2276,16 @@ function compressImage(file,max=1280,quality=0.72){
     reader.readAsDataURL(file);
   });
 }
-// Sube un video a Storage con barra de progreso. Devuelve la URL pública.
-function uploadVideo(file,path,onProgress){
+// Sube un video a Storage (con el token del usuario) mostrando el progreso. Devuelve la referencia sb://
+async function uploadVideo(file,path,onProgress){
+  const tok=await authToken();
   return new Promise((resolve,reject)=>{
     const xhr=new XMLHttpRequest();
     xhr.open('POST',`${SB_URL}/storage/v1/object/${ARCH_BUCKET}/${path}`);
-    xhr.setRequestHeader('apikey',SB_KEY);xhr.setRequestHeader('Authorization','Bearer '+SB_KEY);
+    xhr.setRequestHeader('apikey',SB_KEY);xhr.setRequestHeader('Authorization','Bearer '+(tok||SB_KEY));
     xhr.setRequestHeader('Content-Type',file.type||'video/mp4');xhr.setRequestHeader('x-upsert','false');
     xhr.upload.onprogress=e=>{if(e.lengthComputable)onProgress(Math.round(e.loaded/e.total*100));};
-    xhr.onload=()=>xhr.status>=200&&xhr.status<300?resolve(ARCH_PUBLIC_PREFIX+path):reject(new Error(xhr.status+' '+xhr.responseText));
+    xhr.onload=()=>xhr.status>=200&&xhr.status<300?resolve(ARCH_REF_PREFIX+path):reject(new Error(xhr.status+' '+xhr.responseText));
     xhr.onerror=()=>reject(new Error('red'));
     xhr.send(file);
   });
@@ -2214,7 +2322,7 @@ async function aHandleFileUpload(event){
       (aArchivosCache[fecha]=aArchivosCache[fecha]||[]).push(res[0]);ok++;
     }catch(e){
       console.error(e);
-      fallos.push(esVideo&&/bucket|404|400/i.test(e.message)?'Falta activar el almacenamiento de videos en Supabase':'No se pudo subir un archivo');
+      fallos.push(esVideo&&/bucket|404|400/i.test(e.message)?'Falta activar los videos en Supabase (supabase/configurar.sql)':'No se pudo subir un archivo');
     }
   }
   aSetUploadStatus(exId,'');
@@ -2227,9 +2335,9 @@ async function aDeleteArchivo(id){
   try{
     let row=null;for(const k in aArchivosCache){row=row||aArchivosCache[k].find(r=>r.id===id);}
     await dbDelete('sesion_archivos',id);
-    if(row&&row.url&&row.url.startsWith(ARCH_PUBLIC_PREFIX)){
-      const path=row.url.slice(ARCH_PUBLIC_PREFIX.length);
-      fetch(`${SB_URL}/storage/v1/object/${ARCH_BUCKET}/${path}`,{method:'DELETE',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}}).catch(()=>{});
+    if(row&&row.url&&row.url.startsWith(ARCH_REF_PREFIX)){
+      const path=row.url.slice(ARCH_REF_PREFIX.length);
+      sbFetch(`${SB_URL}/storage/v1/object/${ARCH_BUCKET}/${path}`,{method:'DELETE'}).catch(()=>{});
     }
     for(const k in aArchivosCache)aArchivosCache[k]=aArchivosCache[k].filter(r=>r.id!==id);
     aFillAttachBoxes();showToast('Archivo quitado');
@@ -2813,7 +2921,8 @@ async function pFillAttachBoxes(cid,fecha){
   try{if(!pArchivosCache[key])pArchivosCache[key]=await dbGet('sesion_archivos',`cliente_id=eq.${cid}&fecha=eq.${fecha}&order=id.asc`);}
   catch(e){console.error(e);return;}
   if(String(cid)!==String(rutCurrentClientId)||fecha!==rutSelectedDate)return;
-  const rows=pArchivosCache[key];
+  const rows=await archWithSrc(pArchivosCache[key]);
+  if(String(cid)!==String(rutCurrentClientId)||fecha!==rutSelectedDate)return;
   document.querySelectorAll('[data-p-attach-ex]').forEach(box=>{
     const mine=rows.filter(r=>String(r.ejercicio_id)===box.dataset.pAttachEx);
     box.innerHTML=mine.length?`<div class="attach-label">📎 Archivos del alumno</div><div class="attach-preview" style="margin-bottom:0.5rem">${archivosThumbsHtml(mine,false)}</div>`:'';
@@ -3006,7 +3115,7 @@ async function rutMoveEx(id, dir){
   rutSaveOrder(rutCurrentClientId, rutSelectedDate, ordered.map(e=>e.id)); // respaldo local
   if(!ordenColExists()){
     rutRenderDay();
-    if(!rutOrdenAvisado){rutOrdenAvisado=true;showToast('Orden guardado solo en este dispositivo: falta activar la columna "orden" en Supabase',true);}
+    if(!rutOrdenAvisado){rutOrdenAvisado=true;showToast('Orden guardado solo en este dispositivo: falta correr supabase/configurar.sql',true);}
     return;
   }
   const prev=ordered.map(e=>e.orden);
