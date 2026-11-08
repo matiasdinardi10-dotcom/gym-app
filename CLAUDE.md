@@ -45,10 +45,11 @@ Navegación inferior con 4 pestañas (`aSwitchTab`): **Inicio**, **Timer**, **Pr
 | Archivo | Qué es |
 |---|---|
 | `app.html` | Toda la app (≈3580 líneas). |
-| `sw.js` | Service worker. `CACHE_NAME` (hoy `md-pro-training-v7`). Maneja el toque en la notificación de descanso (`notificationclick`). Precachea `ASSETS` (app, manifest, íconos) y guarda al vuelo archivos propios y Google Fonts. Network-first. **Nunca** cachea Supabase. |
+| `sw.js` | Service worker. `CACHE_NAME` (hoy `md-pro-training-v8`). Maneja el toque en la notificación de descanso (`notificationclick`). Precachea `ASSETS` (app, manifest, íconos) y guarda al vuelo archivos propios y Google Fonts. Network-first. **Nunca** cachea Supabase. |
 | `manifest.json` | Manifest PWA. `start_url: /app.html`, íconos `icon-192.png` / `icon-512.png`. |
 | `vercel.json` | Un solo rewrite: `/` → `/app.html`. |
-| `icon-192.png`, `icon-512.png` | Íconos de la PWA (rayo oro sobre negro). |
+| `logo-md.jpg` | Logo "MD" dorado (pantalla de ingreso, `.login-logo-img`). Está en `ASSETS` del SW. |
+| `icon-192.png`, `icon-512.png` | Íconos de la PWA y favicon: el logo MD centrado sobre negro (zona segura para íconos *maskable*). |
 | `supabase/configurar.sql` | SQL a correr en el SQL Editor de Supabase (idempotente): RLS de todas las tablas, trigger de alta de alumnos, trigger que limita cambios del alumno, columnas `ejercicios.orden` y `clientes.avatar`, bucket privado `sesion-archivos` y sus permisos. |
 | `README.md` | Solo dice `# gym-app`. |
 
@@ -100,12 +101,13 @@ Navegación inferior con 4 pestañas (`aSwitchTab`): **Inicio**, **Timer**, **Pr
 - Corregir día cerrado: `aEditExercise`, `aEditBiserie`, `aEditCircuit` (borran el log de ese día y resetean `completado`).
 - **"Mis rutinas"**: `aShowPlantillas()` (≈1558) lee `plantillas` filtrando `cliente_ids` que contenga el id del alumno (`cs.{id}`) y las muestra como `<details>` de solo lectura (nombre, series, link de video). Escape con `aPlEsc`.
 - Progreso: `aBuildProgressView`, `aGetExercisesWithLogs`, `aExtractWeight`, `aGetFilteredLogs`, `aRenderProgressChart`, `aDrawLineChart`, `aFilterProgressChips`, `aSelectFromSearch`, `aSelectProgressEx`, `aPeriod`.
-- Perfil/avatar: `aRenderPerfil`, `aRenderAvatar`, `aRenderHeaderAvatar`, `openAvatarModal`, `aChooseAvatar`, `aUploadAvatar`, `aMiAvatar`, `avatarInner`, `avatarValido`, `escHtml`. `AVATARS` = 10 ilustraciones Notionists de DiceBear (CC0) con ids `n1`..`n10`; `AVATAR_EMOJIS`. Valor: `nX`, `e:<emoji>` o `''` (iniciales). **La foto propia queda solo en el teléfono** (`localStorage` `avatar_<email>`); la ilustración/emoji se guarda también en `clientes.avatar` (si existe la columna) y el profe la ve en la lista.
+- Perfil/avatar: `aRenderPerfil`, `aRenderAvatar`, `aRenderHeaderAvatar`, `openAvatarModal`, `aChooseAvatar`, `aUploadAvatar`, `aMiAvatar`, `avatarInner`, `avatarValido`, `escHtml`. `AVATARS` = 10 ilustraciones Notionists de DiceBear (CC0) con ids `n1`..`n10`; `AVATAR_EMOJIS`. Valor: `nX`, `e:<emoji>`, foto (`data:image/...;base64`, validada con `AVATAR_FOTO_RE`, máx. ~150 KB; se guarda a 240×240 px) o `''` (iniciales). Se guarda en `localStorage` `avatar_<email>` y **también en `clientes.avatar`** (`aGuardarAvatarEnFicha`, si existe la columna) para que el profe la vea. Decisión del dueño: el profe sí puede ver la foto; con RLS activa solo la ven el alumno y el profe.
 
 ### JS — Panel profe (≈2250–3140)
 - Estado: `pClientes`, `pAllEjercicios` (cada uno con `_clientId` agregado en memoria), `pAllLogs`, `pAllSesiones`, `pBiblioteca`.
 - **`initProfe()`** (≈2256): carga en paralelo `clientes` y `biblioteca_ejercicios` con `dbGet`, y `sesiones`, `rutinas`, `ejercicios`, `logs_entrenamiento` con `dbGetAll`. Mapea `rutina_id → cliente_id` para poner `_clientId` en cada ejercicio. Llena los `<select>` de cliente y llama `clRenderList`, `rutBuildCalStrip`, `rutRenderDay`, `rutRenderBiblioteca`.
 - **`pSwitchScreen(name)`**: `'clientes' | 'rutinas' | 'biblioteca' | 'plantillas'`. Al entrar a biblioteca llama `rutRenderBiblioteca`; a plantillas, `plRender`.
+- Selector de alumno en Rutinas con foto: botón `#rut-cli-btn` + hoja `#cli-modal` (`openClientPicker`, `renderClientPickerList` con buscador, `pickClient`, `rutRenderClientBtn`, `cliAvatarHtml`). El `<select id="rut-sel-cliente">` sigue existiendo (oculto) porque otras funciones lo usan.
 - Clientes: `clRenderList`, `clRenderFiltered`, `filterClients`, `clShowDetail`, `showClientList`, `openClientModal`, `openEditClientModal`, `saveClient`, `deleteClient`, `pGetActivityToday`, `activityDot`.
 - Historial de cargas **y comentarios del alumno**: `pGetLoadHistory` (por nombre de ejercicio), `pComentarioDe` (nota del log o `devolucion`), `pComentarioHtml`, `pRenderLoadHistoryBlock` (rutina del día), `pRenderModalLoadHistory` (últimas 3 cargas + comentarios anteriores), `pMostrarHistorialEn` (al escribir el nombre en Agregar ejercicio y al abrir Editar ejercicio).
 - **Calendario de rutinas del profe**: `rutBuildCalStrip` (tira de 14 días alrededor de hoy + `rutStripOffset`), `rutSelectDate`, `rutShiftStrip(±14)`, `rutPickDate` (input date + botón "Hoy"), `rutOnClientChange`, `rutSwitchTab`.
@@ -151,7 +153,7 @@ Tipos exactos y restricciones en Supabase: **(no verificado)**. Todas usan `id` 
 - **`sesion_archivos`** (fotos adjuntas del alumno): `id`, `created_at`, `cliente_id`, `ejercicio_id`, `fecha`, `url`, `tipo`. Columnas confirmadas consultando la API; puede tener otras **(no verificado)**. Fotos: se comprimen en el navegador (máx. 1280 px, JPEG) y se guardan como data URL en `url`, `tipo:'imagen'`. Videos: se suben al bucket **privado** `sesion-archivos` (ruta `<cliente_id>/<fecha>/<archivo>`, máx. 50 MB); en `url` queda `sb://sesion-archivos/<ruta>` y para mostrarlos se piden links firmados de 1 h (`archSign`, `archWithSrc` → `r._src`). El bucket lo crea `supabase/configurar.sql`; si no existe, la app avisa.
 
 ### Datos que NO están en la base
-- Foto de perfil del alumno: `localStorage` (`avatar_<email>`), solo en ese teléfono (decisión de privacidad: no se recolectan fotos).
+- Copia local del avatar/foto del alumno: `localStorage` (`avatar_<email>`); la versión que ve el profe está en `clientes.avatar`.
 - Copia sin conexión (`off_*`), sesiones pendientes (`pend_ses_*`), duración de descanso (`rest_secs`), novedades vistas (`nov_vistas`).
 - Orden de ejercicios del profe: `localStorage` (`ex_order_<cliente>_<fecha>`), por dispositivo.
 
@@ -187,7 +189,7 @@ Tipos exactos y restricciones en Supabase: **(no verificado)**. Todas usan `id` 
 - Código muerto ya borrado (no reintroducir): `pRenderDashboard`, `pGoToClient`, `plPickBib`, `rutLoadHistorial` + `#rut-historial`, y las versiones duplicadas de `aShowProgress` / `aShowTimer`. La navegación usa `aSwitchTab` / `pSwitchScreen`.
 - Seguridad: si `supabase/configurar.sql` no se corrió todavía, la base sigue permitiendo leer todo a cualquier usuario logueado (verificado con el alumno de prueba antes del cambio).
 - Mucho HTML viejo se arma con template strings e `innerHTML` sin escapar (las partes nuevas usan `escHtml`, plantillas usan `plEsc` / `aPlEsc`).
-- Logo: hoy es el rayo de siempre (`.login-logo` y los íconos PNG). El dueño va a mandar un logo nuevo para reemplazar "MD".
+- Logo: `logo-md.jpg` (MD dorado) en el ingreso y en los íconos. El título debajo dice "PRO TRAINING".
 
 ---
 
