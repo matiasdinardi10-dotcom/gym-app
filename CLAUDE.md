@@ -17,7 +17,7 @@ La sesión se guarda en `sessionStorage` (`auth_token`, `auth_refresh`, `auth_ex
 ### Seguridad (claves y permisos)
 - `SB_KEY` es la clave **pública** (publishable/anon). Puede estar en el código: sola no da acceso a datos.
 - Cada consulta va con el **token del usuario logueado** (`sbFetch` → `authHeaders` → `authToken`), que dura 1 h y se renueva solo con el refresh token (`authRefresh`). Si no se puede renovar → `sessionExpired()` vuelve al login.
-- Los permisos los aplica Supabase con RLS: **`supabase/configurar.sql`** (profe = email `PROFE_EMAIL` → todo; alumno → solo lo suyo; el alumno solo puede cambiar `completado`/`devolucion` de sus ejercicios y su `avatar`). Hasta que ese SQL se corra, la base sigue abierta como antes.
+- Los permisos los aplica Supabase con RLS: **`supabase/configurar.sql`** (profe = email `PROFE_EMAIL` → todo; alumno → solo lo suyo; el alumno solo puede cambiar `completado`/`devolucion` de sus ejercicios y su `avatar`). **Ya está corrido y verificado (nov. 2026):** sin login no se lee nada; el alumno de prueba solo ve lo suyo; el profe confirmó que ve todo. Si se cambia el SQL, volver a correrlo entero (es idempotente) y revisar que no se pegue texto extra al final (la extensión "Merlin" del navegador del dueño agrega "✕Merlin" al copiar).
 - La clave **secreta** (service_role) nunca va en el repo ni en la app.
 - `PROFE_EMAIL` en el JS solo decide qué panel mostrar; la protección real es RLS. Si cambia el email del profe, cambiarlo también en `configurar.sql` (`es_profe()` y `app_alta_cliente`).
 
@@ -144,10 +144,10 @@ Navegación inferior con 4 pestañas (`aSwitchTab`): **Inicio**, **Timer**, **Pr
 ### Tablas y campos usados en el código
 Tipos exactos y restricciones en Supabase: **(no verificado)**. Todas usan `id` como clave.
 
-- **`clientes`**: `id`, `nombre`, `email`, `edad`, `contacto`, `objetivo`, `estado` (`'activo'` | `'nuevo'`), `fecha_alta`, `avatar` (texto, opcional; solo después del SQL).
+- **`clientes`**: `id`, `nombre`, `email`, `edad`, `contacto`, `objetivo`, `estado` (`'activo'` | `'nuevo'`), `fecha_alta`, `avatar` (texto: ilustración, emoji o foto en data URL).
 - **`biblioteca_ejercicios`**: `id`, `nombre`, `link_youtube`.
 - **`rutinas`**: `id`, `cliente_id`, `nombre`, `fecha`. En la práctica funciona como contenedor por alumno (se usa la primera).
-- **`ejercicios`** (la rutina día a día): `id`, `rutina_id`, `nombre`, `series`, `reps` (sin uso en el código), `peso`, `tiempo`, `nota`, `link_youtube`, `completado` (bool), `devolucion` (comentario del alumno), `fecha_sesion` (`YYYY-MM-DD`), `orden` (int, opcional; solo existe después de correr el SQL). Circuitos y biseries viven acá con los prefijos `__CIRCUIT__` / `__BISERIE__`.
+- **`ejercicios`** (la rutina día a día): `id`, `rutina_id`, `nombre`, `series`, `reps` (sin uso en el código), `peso`, `tiempo`, `nota`, `link_youtube`, `completado` (bool), `devolucion` (comentario del alumno), `fecha_sesion` (`YYYY-MM-DD`), `orden` (int, opcional). Circuitos y biseries viven acá con los prefijos `__CIRCUIT__` / `__BISERIE__`.
 - **`logs_entrenamiento`**: `id`, `cliente_id`, `ejercicio_id`, `fecha`, `series_realizadas` (texto, ej. `S1: 60kg 8 reps | S2: …`; biserie `A-S1: … || B-S1: …`), `peso_usado`, `rpe`, `nota`.
 - **`sesiones`**: el profe la carga con `dbGetAll('sesiones','order=fecha.asc,id.asc')` en `pAllSesiones`, pero **ninguna otra parte del código la usa**. Campos: solo se ve que tiene `fecha` e `id` **(resto no verificado)**.
 - **`plantillas`**: `id`, `nombre`, `ejercicios` (array JSON de `{nombre, series, link}`), `cliente_ids` (array de ids de clientes; se filtra con `cs.{id}`).
@@ -188,7 +188,7 @@ Tipos exactos y restricciones en Supabase: **(no verificado)**. Todas usan `id` 
 
 ### Otras cosas a tener en cuenta (verificadas)
 - Código muerto ya borrado (no reintroducir): `pRenderDashboard`, `pGoToClient`, `plPickBib`, `rutLoadHistorial` + `#rut-historial`, y las versiones duplicadas de `aShowProgress` / `aShowTimer`. La navegación usa `aSwitchTab` / `pSwitchScreen`.
-- Seguridad: si `supabase/configurar.sql` no se corrió todavía, la base sigue permitiendo leer todo a cualquier usuario logueado (verificado con el alumno de prueba antes del cambio).
+- Seguridad: RLS activa (ver sección 1). Las columnas `ejercicios.orden` y `clientes.avatar` y el bucket privado `sesion-archivos` ya existen.
 - Mucho HTML viejo se arma con template strings e `innerHTML` sin escapar (las partes nuevas usan `escHtml`, plantillas usan `plEsc` / `aPlEsc`).
 - Logo: `logo-md.jpg` (MD dorado) en el ingreso y en los íconos. El título debajo dice "PRO TRAINING".
 
