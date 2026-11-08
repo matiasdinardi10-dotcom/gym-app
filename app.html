@@ -881,6 +881,10 @@ body::before, body::after { display:none; }
 .av-foto-ph { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; color:var(--gold); }
 .av-foto-ph .i { width:18px; height:18px; }
 .av-foto-ph small { font-size:9px; font-family:var(--font-mono); letter-spacing:0.06em; text-transform:uppercase; }
+
+.rut-tools { display:flex; flex-direction:column; gap:6px; }
+.rut-tool-danger { color:var(--red); border-color:rgba(224,82,74,0.35); }
+.rut-tool-danger:hover { color:var(--red); border-color:var(--red); }
 </style>
 </head>
 <body>
@@ -1147,7 +1151,8 @@ body::before, body::after { display:none; }
           <button class="btn-add-circuit" onclick="openCircuitModal()">+ Circuito</button>
         </div>
       </div>
-      <div class="rut-tools"><button class="rut-tool-btn" onclick="openCopySheet()"><span class="i i-copy"></span> Copiar día / semana · Cargar plantilla</button></div>
+      <div class="rut-tools"><button class="rut-tool-btn" onclick="openCopySheet()"><span class="i i-copy"></span> Copiar día / semana · Cargar plantilla</button>
+        <button class="rut-tool-btn rut-tool-danger" id="rut-del-all" onclick="rutBorrarTodosDelDia()" style="display:none"><span class="i i-trash-2"></span> Borrar todos los ejercicios del día</button></div>
       <div id="rut-completed-banner"><span class="i i-circle-check-big"></span> El alumno ya completó esta sesión.</div>
       <div id="rut-exercise-list"><div class="loading">Cargando…</div></div>
     </div>
@@ -3128,6 +3133,7 @@ function rutRenderDay(){
   document.getElementById('rut-add-btns').style.display=isCompleted?'none':'flex';
   document.getElementById('rut-completed-banner').style.display=isCompleted?'flex':'none';
   const logByEx={};dayLogs.forEach(l=>{logByEx[l.ejercicio_id]=l;});
+  const delAll=document.getElementById('rut-del-all');if(delAll)delAll.style.display=exs.length?'flex':'none';
   if(!exs.length){document.getElementById('rut-exercise-list').innerHTML='<div class="empty">No hay ejercicios para este día.<br>Usá "+ Ejercicio" o "+ Circuito" para comenzar.</div>';return;}
 
   const total=exs.length;
@@ -3459,6 +3465,28 @@ async function rutMoveEx(id, dir){
   ordered.forEach((e,i)=>{e.orden=prev[i];});
   const ok=await rutPersistOrder(ordered);
   if(!ok){ordered.forEach((e,i)=>{e.orden=i;});showToast('No se pudo guardar el orden para el alumno',true);}
+}
+// Borra de una vez todos los ejercicios (y circuitos/biseries) del día elegido para el alumno elegido
+async function rutBorrarTodosDelDia(){
+  const cid=rutCurrentClientId,fecha=rutSelectedDate;
+  const exs=pAllEjercicios.filter(e=>String(e._clientId)===String(cid)&&e.fecha_sesion===fecha);
+  if(!exs.length)return;
+  const cl=pClientes.find(c=>String(c.id)===String(cid));
+  const fechaTxt=new Date(fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
+  const conRegistros=pAllLogs.some(l=>String(l.cliente_id)===String(cid)&&l.fecha===fecha);
+  let msg=`¿Borrar los ${exs.length} ejercicio(s) del ${fechaTxt}${cl?' de '+cl.nombre:''}?\n\nNo se puede deshacer.`;
+  if(conRegistros)msg+=`\n\nOjo: el alumno ya registró este día. Lo que cargó (series, comentarios) deja de verse.`;
+  if(!confirm(msg))return;
+  const ids=exs.map(e=>e.id);
+  try{
+    const r=await sbFetch(`${SB_URL}/rest/v1/ejercicios?id=in.(${ids.join(',')})`,{method:'DELETE',headers:{'Prefer':'return=representation'}});
+    if(!r.ok)throw new Error(await r.text());
+    const borrados=(await r.json()).map(x=>x.id);
+    if(!borrados.length){showToast('No se pudo borrar (sin permiso)',true);return;}
+    pAllEjercicios=pAllEjercicios.filter(e=>!borrados.includes(e.id));
+    try{localStorage.removeItem(rutOrderKey(cid,fecha));}catch(e){}
+    rutBuildCalStrip();rutRenderDay();showToast(`${borrados.length} ejercicio(s) borrados ✓`);
+  }catch(e){console.error(e);showToast('Error al borrar',true);}
 }
 async function rutRemoveEx(id){
   if(!confirm('¿Eliminar?'))return;
