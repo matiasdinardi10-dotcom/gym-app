@@ -804,6 +804,41 @@ body::before, body::after { display:none; }
 .av-clip { position:absolute; inset:0; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; }
 .av-clip svg { width:100%; height:100%; }
 #reg-avatar-presets { display:grid !important; grid-template-columns:repeat(6,1fr) !important; }
+
+/* ════ MEJORAS ════ */
+.rut-tools { margin:-0.25rem 0 0.65rem; }
+.rut-tool-btn { width:100%; min-height:44px; display:flex; align-items:center; justify-content:center; gap:8px; border:1px dashed var(--border-strong); background:transparent; color:var(--text2); border-radius:var(--radius-sm); font-size:13px; cursor:pointer; }
+.rut-tool-btn:hover { color:var(--gold); border-color:var(--gold); }
+.rest-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:-0.4rem 0 1.1rem; }
+.rest-row-lbl { font-family:var(--font-mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text2); margin-right:4px; display:flex; align-items:center; gap:5px; }
+.rest-chip { font-family:var(--font-mono); font-size:12px; padding:6px 10px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--text2); cursor:pointer; min-height:32px; }
+.rest-chip.active { border-color:var(--gold); color:var(--gold); }
+.rest-go { margin-left:auto; width:36px; height:36px; border-radius:50%; border:none; background:var(--gold); color:#0B0B0B; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+#rest-pill { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 10px); z-index:150; width:calc(100% - 24px); max-width:406px; display:flex; align-items:center; gap:10px; background:var(--surface-2); border:1px solid var(--gold); border-radius:var(--radius); padding:10px 12px; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
+#rest-pill > .i { width:20px; height:20px; color:var(--gold); }
+.rest-lbl { font-family:var(--font-mono); font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text2); }
+.rest-time { font-family:var(--font-display); font-size:26px; line-height:1; color:var(--text); }
+.rest-bar { flex:1; height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+.rest-bar > div { height:100%; background:var(--gold); transition:width 0.95s linear; }
+#rest-pill button { border:1px solid var(--border-strong); background:transparent; color:var(--text); border-radius:20px; padding:6px 10px; font-size:12px; cursor:pointer; min-height:34px; }
+.pr-sheet { text-align:center; }
+.pr-icon { width:64px; height:64px; margin:0 auto 0.75rem; border-radius:50%; background:var(--gold); color:#0B0B0B; display:flex; align-items:center; justify-content:center; }
+.pr-icon .i { width:32px; height:32px; }
+.pr-row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); text-align:left; }
+.pr-val { font-family:var(--font-mono); color:var(--gold); font-weight:600; white-space:nowrap; }
+.pr-val small { display:block; color:var(--text2); font-weight:400; font-size:10px; }
+.nov-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:0.75rem; margin-bottom:0.9rem; }
+.nov-head { display:flex; justify-content:space-between; align-items:center; gap:8px; font-family:var(--font-mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text2); margin-bottom:0.4rem; }
+.nov-mark { border:none; background:transparent; color:var(--gold); font-family:var(--font-mono); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; padding:6px 0; }
+.nov-ok { color:var(--text3); }
+.nov-item { width:100%; display:flex; align-items:center; gap:10px; padding:9px 4px; border:none; border-top:1px solid var(--border); background:transparent; color:var(--text2); text-align:left; cursor:pointer; font-size:13px; }
+.nov-item.nueva { color:var(--text); }
+.nov-item.nueva > .i { color:var(--gold); }
+.nov-txt { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nov-txt b { font-weight:600; }
+.nov-date { font-family:var(--font-mono); font-size:10px; color:var(--text3); white-space:nowrap; }
+.nav-btn { position:relative; }
+.nav-btn.has-badge::after { content:''; position:absolute; top:10px; left:calc(50% + 8px); width:8px; height:8px; border-radius:50%; background:var(--gold); }
 </style>
 </head>
 <body>
@@ -1032,6 +1067,7 @@ body::before, body::after { display:none; }
         <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Sesión pendiente</div>
         <div class="legend-item"><div class="legend-dot" style="background:#333"></div> Sin sesión hoy</div>
       </div>
+      <div id="novedades"></div>
       <input class="p-search" type="text" placeholder="Buscar cliente…" id="cl-search" oninput="filterClients()" />
       <div id="cl-list-items"><div class="loading">Cargando…</div></div>
       <button class="btn-add-p" onclick="openClientModal()">+ Agregar cliente</button>
@@ -1068,6 +1104,7 @@ body::before, body::after { display:none; }
           <button class="btn-add-circuit" onclick="openCircuitModal()">+ Circuito</button>
         </div>
       </div>
+      <div class="rut-tools"><button class="rut-tool-btn" onclick="openCopySheet()"><span class="i i-copy"></span> Copiar día / semana · Cargar plantilla</button></div>
       <div id="rut-completed-banner"><span class="i i-circle-check-big"></span> El alumno ya completó esta sesión.</div>
       <div id="rut-exercise-list"><div class="loading">Cargando…</div></div>
     </div>
@@ -1252,6 +1289,7 @@ body::before, body::after { display:none; }
 
 <input type="file" id="file-input" accept="image/*,video/*" multiple onchange="aHandleFileUpload(event)" style="display:none" />
 <div class="toast" id="toast"></div>
+<div id="copy-modal" class="sheet-overlay" onclick="if(event.target===this)closeCopySheet()"><div class="sheet" id="copy-sheet"></div></div>
 
 <script>
 // ════ CONFIG ════
@@ -1533,6 +1571,7 @@ async function doRegister(){
   }catch(e){errEl.textContent='Error de conexión. Intentá de nuevo.';errEl.style.display='block';}
 }
 function doLogout(){
+  restStop();
   sessionStorage.clear();aCurrentCliente=null;aEjercicios=[];aLogs=[];aSessionState={};
   const ls=document.getElementById('login-screen');
   ls.style.display='flex';ls.classList.remove('hidden');
@@ -1576,19 +1615,22 @@ async function initAlumno(){
   document.getElementById('panel-alumno').style.display='block';
   document.getElementById('panel-profe').style.display='none';
   await aRefreshData();
+  // (9) la ilustración/emoji elegidos en este teléfono se guardan en la ficha (nunca la foto)
+  try{const loc=localStorage.getItem(aGetAvatarKey());if(('avatar' in aCurrentCliente)&&avatarValido(loc)&&aCurrentCliente.avatar!==loc){await dbPatch('clientes',aCurrentCliente.id,{avatar:loc});aCurrentCliente.avatar=loc;}}catch(e){}
+  aSincronizarPendientes();
 }
 
 async function aRefreshData(){
   for(const k in aArchivosCache)delete aArchivosCache[k];
   // Rutinas y logs en paralelo
   const [rutinas, logs] = await Promise.all([
-    dbGet('rutinas', `cliente_id=eq.${aCurrentCliente.id}`),
-    dbGet('logs_entrenamiento', `cliente_id=eq.${aCurrentCliente.id}&order=fecha.asc`)
+    dbGetAll('rutinas', `cliente_id=eq.${aCurrentCliente.id}&order=id.asc`),
+    dbGetAll('logs_entrenamiento', `cliente_id=eq.${aCurrentCliente.id}&order=fecha.asc,id.asc`)
   ]);
   aLogs = logs;
   const rutinaIds = rutinas.map(r => r.id);
   aEjercicios = rutinaIds.length
-    ? await dbGet('ejercicios', `rutina_id=in.(${rutinaIds.join(',')})&order=id.asc`)
+    ? await dbGetAll('ejercicios', `rutina_id=in.(${rutinaIds.join(',')})&order=id.asc`)
     : [];
   aBuildDayStrip(); aSwitchTab('inicio');
 }
@@ -2066,8 +2108,8 @@ function aRenderCard(){
     const numSeriesA=parseInt(dataA.series)||3;
     const numSeriesB=parseInt(dataB.series)||3;
     let seriesHtmlA='',seriesHtmlB='';
-    for(let s=0;s<numSeriesA;s++){const sv=(state.series||[])[s]||{};seriesHtmlA+=`<div class="series-row"><div class="series-num">S${s+1}</div><div class="series-inputs"><input class="series-input" inputmode="decimal" id="bs-a-peso-${s}" placeholder="kg" value="${sv.peso||''}" /><input class="series-input" inputmode="decimal" id="bs-a-reps-${s}" placeholder="reps" value="${sv.reps||''}" /><input class="series-input" inputmode="decimal" id="bs-a-rprir-${s}" placeholder="RPE" value="${sv.rprir||''}" /></div></div>`;}
-    for(let s=0;s<numSeriesB;s++){const sv=(state.seriesB||[])[s]||{};seriesHtmlB+=`<div class="series-row"><div class="series-num">S${s+1}</div><div class="series-inputs"><input class="series-input" inputmode="decimal" id="bs-b-peso-${s}" placeholder="kg" value="${sv.peso||''}" /><input class="series-input" inputmode="decimal" id="bs-b-reps-${s}" placeholder="reps" value="${sv.reps||''}" /><input class="series-input" inputmode="decimal" id="bs-b-rprir-${s}" placeholder="RPE" value="${sv.rprir||''}" /></div></div>`;}
+    for(let s=0;s<numSeriesA;s++){const sv=(state.series||[])[s]||{};seriesHtmlA+=`<div class="series-row"><div class="series-num">S${s+1}</div><div class="series-inputs"><input class="series-input" inputmode="decimal" id="bs-a-peso-${s}" placeholder="kg" value="${sv.peso||''}" /><input class="series-input" inputmode="decimal" id="bs-a-reps-${s}" onchange="if(this.value.trim())restStart()" placeholder="reps" value="${sv.reps||''}" /><input class="series-input" inputmode="decimal" id="bs-a-rprir-${s}" placeholder="RPE" value="${sv.rprir||''}" /></div></div>`;}
+    for(let s=0;s<numSeriesB;s++){const sv=(state.seriesB||[])[s]||{};seriesHtmlB+=`<div class="series-row"><div class="series-num">S${s+1}</div><div class="series-inputs"><input class="series-input" inputmode="decimal" id="bs-b-peso-${s}" placeholder="kg" value="${sv.peso||''}" /><input class="series-input" inputmode="decimal" id="bs-b-reps-${s}" onchange="if(this.value.trim())restStart()" placeholder="reps" value="${sv.reps||''}" /><input class="series-input" inputmode="decimal" id="bs-b-rprir-${s}" placeholder="RPE" value="${sv.rprir||''}" /></div></div>`;}
     const commentOpen=state.status?'open':'';const commentColor=state.status==='done'?'green':state.status==='missed'?'red':'';
     const colHeader=`<div style="display:flex;align-items:center;gap:6px;padding:0 0 6px;border-bottom:1px solid var(--border);margin-bottom:2px"><div style="width:28px"></div><div style="flex:1;font-size:10px;color:var(--text2);text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">KG</div><div style="flex:1;font-size:10px;color:var(--text2);text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">REPS</div><div style="flex:1;font-size:10px;color:var(--text2);text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">RPE</div></div>`;
     document.getElementById('session-body').innerHTML=`
@@ -2139,7 +2181,7 @@ function aRenderCard(){
   const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const prevLog=aLogs.slice().reverse().find(l=>l.ejercicio_id===ex.id&&l.fecha<aSelectedDate);
   const numSeries=parseInt(ex.series)||3;let seriesHtml='';
-  for(let s=0;s<numSeries;s++){const sv=state.series[s]||{};seriesHtml+=`<div class="series-row"><div class="series-num">S${s+1}</div><div class="series-inputs"><input class="series-input" inputmode="decimal" id="s-peso-${s}" placeholder="kg" value="${sv.peso||''}" /><input class="series-input" inputmode="decimal" id="s-reps-${s}" placeholder="reps" value="${sv.reps||''}" /><input class="series-input" inputmode="decimal" id="s-rprir-${s}" placeholder="RPE/RIR" value="${sv.rprir||''}" /></div></div>`;}
+  for(let s=0;s<numSeries;s++){const sv=state.series[s]||{};seriesHtml+=`<div class="series-row"><div class="series-num">S${s+1}</div><div class="series-inputs"><input class="series-input" inputmode="decimal" id="s-peso-${s}" placeholder="kg" value="${sv.peso||''}" /><input class="series-input" inputmode="decimal" id="s-reps-${s}" onchange="if(this.value.trim())restStart()" placeholder="reps" value="${sv.reps||''}" /><input class="series-input" inputmode="decimal" id="s-rprir-${s}" placeholder="RPE/RIR" value="${sv.rprir||''}" /></div></div>`;}
   const rpeVal=state.rpe||'';
   const exLogs=aLogs.filter(l=>l.ejercicio_id===ex.id&&l.fecha<aSelectedDate).slice(-5);
   const histHtml=exLogs.map(l=>{const d=new Date(l.fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'short',day:'numeric',month:'short'});const load=[l.series_realizadas,l.peso_usado,l.rpe?'RPE '+l.rpe:''].filter(Boolean).join(' · ');return`<div class="history-entry"><div class="history-date"><span class="i i-calendar"></span> ${d.toUpperCase()}</div>${load?`<div class="history-load">${load}</div>`:''}</div>`;}).join('');
@@ -2171,6 +2213,7 @@ function aRenderCard(){
         </div>
         ${seriesHtml}
       </div>
+      ${restRowHtml()}
       ${histHtml?`<button class="history-btn" onclick="aToggleHistory('hist-${ex.id}')"><span class="i i-history"></span> Ver historial</button><div class="history-content" id="hist-${ex.id}">${histHtml}</div>`:''}
       <label class="attach-btn" onclick="aOpenFileInput(${ex.id})"><span class="i i-paperclip"></span> Adjuntar foto o video</label>
       <div data-attach-ex="${ex.id}" data-attach-del="1"></div>
@@ -2432,13 +2475,15 @@ function aShowSummary(){
     ${pending>0?`<div style="font-size:13px;color:var(--orange);margin-bottom:1rem;text-align:center;padding:10px;background:rgba(237,230,214,0.06);border:1px solid rgba(237,230,214,0.2);border-radius:10px"><span class="i i-triangle-alert"></span> ${pending} elemento${pending>1?'s':''} sin marcar</div>`:''}
     ${items}`;
 }
-async function aSaveFinalSession(){
-  if(document.getElementById('a-view-session').style.display!=='none')aSaveCurrentCard();
-  aHideAllViews();document.getElementById('a-view-summary').style.display='block';
-  setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}),50);
+async function aSaveFinalSession(silent){
   const btn=document.getElementById('btn-save-session');
-  btn.disabled=false;btn.innerHTML='<span class="i i-save"></span> Guardar sesión del día';
-  btn.disabled=true;btn.textContent='Guardando…';
+  if(!silent){
+    if(document.getElementById('a-view-session').style.display!=='none')aSaveCurrentCard();
+    aHideAllViews();document.getElementById('a-view-summary').style.display='block';
+    setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}),50);
+    btn.disabled=true;btn.textContent='Guardando…';
+  }
+  const mejoresAntes=aMejoresPorEjercicio(aSelectedDate);
   try{
     for(const ex of aSessionExs){
       const st=aSessionState[ex.id];if(!st)continue;
@@ -2477,10 +2522,109 @@ async function aSaveFinalSession(){
       await dbPatch('ejercicios',ex.id,{completado:isCompleted,devolucion:st.comment||null});
       const localEx=aEjercicios.find(e=>e.id===ex.id);if(localEx){localEx.completado=isCompleted;localEx.devolucion=st.comment||null;}
     }
+    aLogs=await dbGetAll('logs_entrenamiento',`cliente_id=eq.${aCurrentCliente.id}&order=fecha.asc,id.asc`);
+    if(silent)return;
     showToast('Sesión guardada ✓');btn.textContent='✓ Sesión guardada';
-    aLogs=await dbGet('logs_entrenamiento',`cliente_id=eq.${aCurrentCliente.id}&order=fecha.asc`);
     aRenderStreakBadge();aBuildDayStrip();setTimeout(()=>aSwitchTab('inicio'),1500);
-  }catch(e){console.error(e);btn.disabled=false;btn.innerHTML='<span class="i i-save"></span> Guardar sesión del día';showToast('Error al guardar',true);}
+    const prs=aDetectarRecords(mejoresAntes);if(prs.length)aMostrarRecords(prs);
+  }catch(e){
+    if(silent)throw e;
+    console.error(e);
+    btn.disabled=false;btn.innerHTML='<span class="i i-save"></span> Guardar sesión del día';
+    if(e instanceof TypeError||!navigator.onLine){aGuardarPendiente();return;}
+    showToast('Error al guardar',true);
+  }
+}
+
+// ── (4) Récords personales: compara contra el mejor peso histórico del mismo ejercicio (por nombre) ──
+function aMejoresPorEjercicio(excluirFecha){
+  const nombrePorId={};aEjercicios.forEach(e=>{if(!isCircuit(e)&&!isBiserie(e))nombrePorId[e.id]=e.nombre.trim().toLowerCase();});
+  const best={};
+  aLogs.forEach(l=>{if(l.fecha===excluirFecha)return;const n=nombrePorId[l.ejercicio_id];if(!n)return;const w=aExtractWeight(l);if(w&&w>(best[n]||0))best[n]=w;});
+  return best;
+}
+function aDetectarRecords(antes){
+  const out=[];
+  aSessionExs.forEach(ex=>{
+    if(isCircuit(ex)||isBiserie(ex))return;
+    const st=aSessionState[ex.id];if(!st||st.status!=='done')return;
+    const w=Math.max(0,...(st.series||[]).map(s=>parseFloat(String(s.peso).replace(',','.'))||0));
+    const n=ex.nombre.trim().toLowerCase();
+    if(w>0&&antes[n]>0&&w>antes[n])out.push({nombre:ex.nombre,peso:w,antes:antes[n]});
+  });
+  return out;
+}
+function aMostrarRecords(prs){
+  const v=document.createElement('div');v.className='sheet-overlay open';v.onclick=()=>v.remove();
+  v.innerHTML=`<div class="sheet pr-sheet"><div class="pr-icon"><span class="i i-trophy"></span></div>
+    <div class="sheet-title" style="text-align:center">${prs.length>1?'Nuevos récords':'Nuevo récord'}</div>
+    ${prs.map(r=>`<div class="pr-row"><span>${escHtml(r.nombre)}</span><span class="pr-val">${r.peso} kg <small>antes ${r.antes} kg</small></span></div>`).join('')}
+    <button class="btn-primary-p" style="margin-top:1rem">Seguir</button></div>`;
+  document.body.appendChild(v);
+  try{if(navigator.vibrate)navigator.vibrate([120,60,120]);}catch(e){}
+}
+
+// ── (10) Sin conexión: la sesión queda guardada en el teléfono y se sube sola al volver internet ──
+function aPendKey(){return 'pend_ses_'+(aCurrentCliente?.id||'');}
+function aGuardarPendiente(){
+  let pend={};try{pend=JSON.parse(localStorage.getItem(aPendKey())||'{}');}catch(e){}
+  const st={};aSessionExs.forEach(ex=>{if(aSessionState[ex.id])st[ex.id]=aSessionState[ex.id];});
+  pend[aSelectedDate]={state:JSON.parse(JSON.stringify(st))};
+  try{localStorage.setItem(aPendKey(),JSON.stringify(pend));}catch(e){}
+  const btn=document.getElementById('btn-save-session');if(btn){btn.disabled=true;btn.textContent='Guardada en el teléfono';}
+  showToast('Sin conexión: la sesión se sube sola cuando vuelva internet');
+}
+let aSincronizando=false;
+async function aSincronizarPendientes(){
+  if(aSincronizando||!aCurrentCliente||!navigator.onLine)return;
+  let pend={};try{pend=JSON.parse(localStorage.getItem(aPendKey())||'{}');}catch(e){}
+  const fechas=Object.keys(pend);if(!fechas.length)return;
+  aSincronizando=true;
+  const guard={fecha:aSelectedDate,exs:aSessionExs,state:aSessionState};let ok=0;
+  for(const f of fechas){
+    const exs=sortExs(aEjercicios.filter(e=>e.fecha_sesion===f));
+    if(!exs.length){delete pend[f];continue;}
+    aSelectedDate=f;aSessionExs=exs;aSessionState=pend[f].state;
+    try{await aSaveFinalSession(true);delete pend[f];ok++;}catch(e){console.error(e);break;}
+  }
+  aSelectedDate=guard.fecha;aSessionExs=guard.exs;aSessionState=guard.state;
+  try{localStorage.setItem(aPendKey(),JSON.stringify(pend));}catch(e){}
+  aSincronizando=false;
+  if(ok){showToast(ok>1?`${ok} sesiones guardadas sin conexión se subieron ✓`:'La sesión guardada sin conexión se subió ✓');aBuildDayStrip();aRenderStreakBadge();if(document.getElementById('a-view-home').style.display!=='none')aRenderHome();}
+}
+window.addEventListener('online',()=>{setOfflineBanner(false);aSincronizarPendientes();});
+
+// ── (5) Descanso entre series: arranca solo al cargar las reps de una serie ──
+let restState={left:0,total:0,iv:null};
+function restSecs(){let n=90;try{n=+localStorage.getItem('rest_secs')||90;}catch(e){}return n;}
+function restSetSecs(n){try{localStorage.setItem('rest_secs',n);}catch(e){}document.querySelectorAll('.rest-chip').forEach(c=>c.classList.toggle('active',+c.dataset.s===n));}
+function restStart(n){
+  n=n||restSecs();clearInterval(restState.iv);
+  restState={left:n,total:n,iv:setInterval(restTick,1000)};restRender();
+}
+function restTick(){
+  restState.left--;
+  if(restState.left<=0){
+    restStop();playBeep(784,0.25,1,0);playBeep(988,0.4,1,280);
+    try{if(navigator.vibrate)navigator.vibrate([300,100,300]);}catch(e){}
+    showToast('¡A la próxima serie!');return;
+  }
+  if(restState.left<=3)timerCountdownBeep();
+  restRender();
+}
+function restStop(){clearInterval(restState.iv);restState.iv=null;document.getElementById('rest-pill')?.remove();}
+function restAdd(d){restState.left=Math.max(1,restState.left+d);restState.total=Math.max(restState.total,restState.left);restRender();}
+function restRender(){
+  let el=document.getElementById('rest-pill');
+  if(!el){el=document.createElement('div');el.id='rest-pill';document.body.appendChild(el);}
+  const m=Math.floor(restState.left/60),ss=String(restState.left%60).padStart(2,'0');
+  el.innerHTML=`<span class="i i-timer"></span><div class="rest-info"><div class="rest-lbl">Descanso</div><div class="rest-time">${m}:${ss}</div></div>
+    <div class="rest-bar"><div style="width:${restState.total?restState.left/restState.total*100:0}%"></div></div>
+    <button onclick="restAdd(15)">+15s</button><button onclick="restStop()">Saltar</button>`;
+}
+function restRowHtml(){
+  const cur=restSecs();
+  return `<div class="rest-row"><span class="rest-row-lbl"><span class="i i-timer"></span> Descanso</span>${[60,90,120,180].map(n=>`<button class="rest-chip${cur===n?' active':''}" data-s="${n}" onclick="restSetSecs(${n})">${n<120?n+'s':(n/60)+' min'}</button>`).join('')}<button class="rest-go" onclick="restStart()" aria-label="Iniciar descanso"><span class="i i-play"></span></button></div>`;
 }
 
 // PROGRESS ALUMNO
@@ -2634,9 +2778,50 @@ async function initProfe(){
     const opts=pClientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
     ['rut-sel-cliente','rut-sel-sesiones'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
     if(pClientes.length){rutCurrentClientId=pClientes[0].id;}
-    clRenderList();rutBuildCalStrip();rutRenderDay();rutRenderBiblioteca();
+    clRenderList();rutBuildCalStrip();rutRenderDay();rutRenderBiblioteca();pCargarNovedades();
     
   }catch(e){showToast('Error al conectar',true);console.error(e);}
+}
+// ════ NOVEDADES (últimos 7 días): quién entrenó, comentó o subió archivos ════
+let pNovedades=[];
+function pNovVistas(){try{return new Set(JSON.parse(localStorage.getItem('nov_vistas')||'[]'));}catch(e){return new Set();}}
+async function pCargarNovedades(){
+  const desde=localDateStr(new Date(Date.now()-6*86400000));
+  const nombre=id=>(pClientes.find(c=>c.id===id)||{}).nombre||'Alumno';
+  const items=[];const porDia={};
+  pAllLogs.filter(l=>l.fecha>=desde).forEach(l=>{
+    const k=l.cliente_id+'_'+l.fecha;(porDia[k]=porDia[k]||{cid:l.cliente_id,fecha:l.fecha,n:0}).n++;
+    if(l.nota&&l.nota.trim())items.push({key:'c'+l.id,tipo:'comentario',cid:l.cliente_id,fecha:l.fecha,txt:l.nota.trim()});
+  });
+  Object.values(porDia).forEach(d=>items.push({key:'s'+d.cid+'_'+d.fecha+'_'+d.n,tipo:'sesion',cid:d.cid,fecha:d.fecha,txt:`${d.n} ejercicio(s) registrados`}));
+  try{
+    const arch=await dbGet('sesion_archivos',`select=id,cliente_id,fecha,tipo&fecha=gte.${desde}&order=id.desc`);
+    const g={};arch.forEach(a=>{const k=a.cliente_id+'_'+a.fecha;(g[k]=g[k]||{cid:a.cliente_id,fecha:a.fecha,f:0,v:0,max:0});a.tipo==='video'?g[k].v++:g[k].f++;g[k].max=Math.max(g[k].max,a.id);});
+    Object.values(g).forEach(x=>items.push({key:'a'+x.max,tipo:'archivo',cid:x.cid,fecha:x.fecha,txt:[x.f?`${x.f} foto(s)`:'',x.v?`${x.v} video(s)`:''].filter(Boolean).join(' y ')}));
+  }catch(e){console.error(e);}
+  const orden={sesion:0,comentario:1,archivo:2};
+  pNovedades=items.map(i=>({...i,nombre:nombre(i.cid)})).sort((a,b)=>b.fecha.localeCompare(a.fecha)||orden[a.tipo]-orden[b.tipo]);
+  pRenderNovedades();
+}
+function pRenderNovedades(){
+  const el=document.getElementById('novedades');if(!el)return;
+  const vistas=pNovVistas();const nuevas=pNovedades.filter(n=>!vistas.has(n.key)).length;
+  const dot=document.getElementById('nav-clientes');if(dot)dot.classList.toggle('has-badge',nuevas>0);
+  if(!pNovedades.length){el.innerHTML='';return;}
+  const ic={sesion:'dumbbell',comentario:'message-square',archivo:'paperclip'};
+  const lbl={sesion:'Entrenó',comentario:'Comentó',archivo:'Subió'};
+  el.innerHTML=`<div class="nov-card"><div class="nov-head"><span><span class="i i-bell"></span> Novedades · 7 días</span>${nuevas?`<button class="nov-mark" onclick="pMarcarNovedadesVistas()">${nuevas} nueva(s) · marcar vistas</button>`:'<span class="nov-ok">Al día</span>'}</div>
+    ${pNovedades.slice(0,12).map(n=>{const d=new Date(n.fecha+'T00:00:00').toLocaleDateString('es-UY',{weekday:'short',day:'numeric',month:'short'});
+      return `<button class="nov-item${vistas.has(n.key)?'':' nueva'}" onclick="pIrANovedad(${n.cid},'${n.fecha}')"><span class="i i-${ic[n.tipo]}"></span><span class="nov-txt"><b>${escHtml(n.nombre)}</b> · ${lbl[n.tipo]} ${n.tipo==='comentario'?`"${escHtml(n.txt.slice(0,60))}${n.txt.length>60?'…':''}"`:escHtml(n.txt)}</span><span class="nov-date">${d}</span></button>`;}).join('')}</div>`;
+}
+function pMarcarNovedadesVistas(){
+  try{localStorage.setItem('nov_vistas',JSON.stringify(pNovedades.map(n=>n.key)));}catch(e){}
+  pRenderNovedades();
+}
+function pIrANovedad(cid,fecha){
+  pSwitchScreen('rutinas');rutSwitchTab('sesion');
+  const sel=document.getElementById('rut-sel-cliente');if(sel)sel.value=cid;
+  rutOnClientChange(cid);rutPickDate(fecha);
 }
 function pSwitchScreen(name){
   document.querySelectorAll('.p-screen').forEach(s=>s.classList.remove('active'));
@@ -3366,6 +3551,83 @@ async function addToBiblioteca(){
   try{const res=await dbPost('biblioteca_ejercicios',{nombre,link_youtube:yt||null});pBiblioteca.push(res[0]);document.getElementById('bib-nombre').value='';document.getElementById('bib-yt').value='';rutRenderBiblioteca();showToast(nombre+' guardado ✓');}catch(e){showToast('Error',true);}
 }
 async function deleteBib(id){if(!confirm('¿Eliminar de la biblioteca?'))return;try{await dbDelete('biblioteca_ejercicios',id);pBiblioteca=pBiblioteca.filter(b=>b.id!==id);rutRenderBiblioteca();showToast('Eliminado');}catch(e){showToast('Error',true);}}
+// ════ COPIAR DÍA / SEMANA · CARGAR PLANTILLA ════
+async function rutGetOrCreateRutina(cid){
+  const rutinas=await dbGet('rutinas',`cliente_id=eq.${cid}&limit=1`);
+  if(rutinas.length)return rutinas[0];
+  const cl=pClientes.find(c=>c.id==cid);
+  const n=await dbPost('rutinas',{cliente_id:cid,nombre:'Rutina de '+(cl?cl.nombre:''),fecha:TODAY});return n[0];
+}
+function rutLunes(ds){const d=new Date(ds+'T00:00:00');const dow=d.getDay();d.setDate(d.getDate()-(dow===0?6:dow-1));return d;}
+function rutSumarDias(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return localDateStr(x);}
+function rutExsDe(cid,fecha){return sortExs(pAllEjercicios.filter(e=>String(e._clientId)===String(cid)&&e.fecha_sesion===fecha));}
+async function openCopySheet(){
+  if(!rutCurrentClientId)return;
+  const fechaTxt=new Date(rutSelectedDate+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
+  const lun=rutLunes(rutSelectedDate);const semTxt=lun.toLocaleDateString('es-UY',{day:'numeric',month:'short'})+' – '+new Date(rutSumarDias(lun,6)+'T00:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'});
+  let pls=[];try{pls=await dbGet('plantillas','order=id.desc');}catch(e){}
+  const opts=pClientes.map(c=>`<option value="${c.id}" ${String(c.id)===String(rutCurrentClientId)?'selected':''}>${escHtml(c.nombre)}</option>`).join('');
+  document.getElementById('copy-sheet').innerHTML=`
+    <div class="sheet-title">Copiar y planificar</div>
+    <div class="sheet-label">Copiar este día (${escHtml(fechaTxt)})</div>
+    <div class="row2"><input type="date" class="form-input" id="cp-dia-dest" value="${rutSumarDias(new Date(rutSelectedDate+'T00:00:00'),7)}"><select class="form-input" id="cp-dia-cli">${opts}</select></div>
+    <button class="btn-green-p" onclick="rutCopiarDia()"><span class="i i-copy"></span> Copiar día</button>
+    <div class="sheet-label">Copiar esta semana (${escHtml(semTxt)})</div>
+    <div class="row2"><input type="date" class="form-input" id="cp-sem-dest" value="${rutSumarDias(lun,7)}"><select class="form-input" id="cp-sem-cli">${opts}</select></div>
+    <div class="sheet-note" style="margin:-0.2rem 0 0.6rem">Se copia a la semana que contiene la fecha elegida (de lunes a domingo).</div>
+    <button class="btn-green-p" onclick="rutCopiarSemana()"><span class="i i-calendar-plus"></span> Copiar semana</button>
+    <div class="sheet-label">Cargar una plantilla en este día</div>
+    ${pls.length?`<select class="form-input" id="cp-pl">${pls.map(p=>`<option value="${p.id}">${escHtml(p.nombre)} · ${(p.ejercicios||[]).length} ej.</option>`).join('')}</select>
+    <button class="btn-green-p" onclick="rutCargarPlantilla()"><span class="i i-layers"></span> Cargar plantilla</button>`:'<div class="sheet-note">Todavía no hay plantillas.</div>'}
+    <button class="btn-cancel-p" onclick="closeCopySheet()">Cerrar</button>`;
+  window._copyPls=pls;
+  document.getElementById('copy-modal').classList.add('open');
+}
+function closeCopySheet(){document.getElementById('copy-modal').classList.remove('open');}
+// Crea copias de ejercicios (sin lo que registró el alumno) en otra fecha / alumno
+async function rutInsertarCopias(origen,cid,fecha){
+  const rutina=await rutGetOrCreateRutina(cid);
+  const yaHay=rutExsDe(cid,fecha);
+  const base=yaHay.length?Math.max(-1,...yaHay.map(e=>e.orden??-1))+1:0;
+  const conOrden=ordenColExists();
+  let i=0;
+  for(const ex of origen){
+    const body={rutina_id:rutina.id,nombre:ex.nombre,series:ex.series??null,peso:ex.peso??null,tiempo:ex.tiempo??null,nota:ex.nota??null,link_youtube:ex.link_youtube??null,completado:false,devolucion:null,fecha_sesion:fecha};
+    if(conOrden)body.orden=base+i;
+    const res=await dbPost('ejercicios',body);const nuevo=res[0];nuevo._clientId=parseInt(cid);pAllEjercicios.push(nuevo);i++;
+  }
+  return i;
+}
+async function rutCopiarDia(){
+  const dest=document.getElementById('cp-dia-dest').value;const cid=document.getElementById('cp-dia-cli').value;
+  const origen=rutExsDe(rutCurrentClientId,rutSelectedDate);
+  if(!dest){showToast('Elegí una fecha',true);return;}
+  if(!origen.length){showToast('Este día no tiene ejercicios',true);return;}
+  const ya=rutExsDe(cid,dest).length;
+  if(ya&&!confirm(`Ese día ya tiene ${ya} ejercicio(s). Los nuevos se agregan al final. ¿Seguimos?`))return;
+  try{const n=await rutInsertarCopias(origen,cid,dest);closeCopySheet();rutBuildCalStrip();rutRenderDay();showToast(`${n} ejercicio(s) copiados ✓`);}
+  catch(e){console.error(e);showToast('Error al copiar',true);}
+}
+async function rutCopiarSemana(){
+  const destVal=document.getElementById('cp-sem-dest').value;const cid=document.getElementById('cp-sem-cli').value;
+  if(!destVal){showToast('Elegí una fecha',true);return;}
+  const lunO=rutLunes(rutSelectedDate),lunD=rutLunes(destVal);
+  let total=0,dias=[];
+  for(let k=0;k<7;k++){const o=rutSumarDias(lunO,k);const ex=rutExsDe(rutCurrentClientId,o);if(ex.length)dias.push({ex,dest:rutSumarDias(lunD,k)});}
+  if(!dias.length){showToast('Esta semana no tiene ejercicios',true);return;}
+  const choques=dias.filter(d=>rutExsDe(cid,d.dest).length).length;
+  if(choques&&!confirm(`${choques} día(s) de destino ya tienen ejercicios. Los nuevos se agregan al final. ¿Seguimos?`))return;
+  try{for(const d of dias)total+=await rutInsertarCopias(d.ex,cid,d.dest);closeCopySheet();rutBuildCalStrip();rutRenderDay();showToast(`Semana copiada: ${total} ejercicio(s) ✓`);}
+  catch(e){console.error(e);showToast('Error al copiar la semana',true);}
+}
+async function rutCargarPlantilla(){
+  const pl=(window._copyPls||[]).find(p=>String(p.id)===document.getElementById('cp-pl').value);
+  if(!pl||!(pl.ejercicios||[]).length){showToast('La plantilla está vacía',true);return;}
+  const origen=pl.ejercicios.map(e=>({nombre:e.nombre,series:e.series||null,link_youtube:e.link||null}));
+  try{const n=await rutInsertarCopias(origen,rutCurrentClientId,rutSelectedDate);closeCopySheet();rutBuildCalStrip();rutRenderDay();showToast(`Plantilla cargada: ${n} ejercicio(s) ✓`);}
+  catch(e){console.error(e);showToast('Error al cargar la plantilla',true);}
+}
+
 // ════ PLANTILLAS ════
 let plData=[],plEjs=[{nombre:'',series:'',link:''}],plClientes=[],plEditingId=null;
 function plEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
