@@ -10,6 +10,7 @@
 <title>MD Pro Training</title>
 <link rel="manifest" href="/manifest.json" />
 <link rel="apple-touch-icon" href="/icon-192.png" />
+<link rel="icon" type="image/png" href="/icon-192.png" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -844,16 +845,29 @@ body::before, body::after { display:none; }
 .hist-comment .i { color:var(--gold); margin-top:2px; font-style:normal; }
 .modal-load-sub { font-family:var(--font-mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text2); padding:8px 12px 4px; display:flex; gap:6px; align-items:center; }
 #edit-ex-load-history { margin:0.25rem 0 0.75rem; }
+.i-chevron-down { --ic:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 %3E%3Cpath d=%22m6 9 6 6 6-6%22 /%3E%3C/svg%3E"); }
+/* Logo */
+.login-logo-img { width:210px; max-width:62vw; height:auto; display:block; margin:0 auto 0.6rem; -webkit-mask-image:radial-gradient(ellipse 72% 72% at center,#000 62%,transparent 100%); mask-image:radial-gradient(ellipse 72% 72% at center,#000 62%,transparent 100%); }
+.login-title { font-size:30px !important; letter-spacing:0.18em !important; margin-bottom:0.6rem; }
+/* Selector de alumno con foto */
+.cli-picker-btn { width:100%; min-height:56px; display:flex; align-items:center; gap:12px; padding:8px 14px; margin-bottom:0.75rem; border:1px solid var(--border); background:var(--bg2); color:var(--text); border-radius:var(--radius-sm); cursor:pointer; font-size:16px; text-align:left; }
+.cli-picker-btn .i { margin-left:auto; color:var(--text2); }
+.cli-av { width:38px; height:38px; border-radius:50%; overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:var(--gold); color:#0B0B0B; font-size:15px; }
+.cli-av svg, .cli-av img { width:100%; height:100%; display:block; object-fit:cover; }
+.cli-av .av-emoji { background:var(--surface-2); font-size:20px; }
+.cli-name { font-weight:500; }
+.cli-opt { width:100%; display:flex; align-items:center; gap:12px; padding:10px 6px; border:none; border-bottom:1px solid var(--border); background:transparent; color:var(--text); cursor:pointer; text-align:left; font-size:15px; min-height:56px; }
+.cli-opt.selected { background:var(--gold-soft); }
+.cli-sub { margin-left:auto; font-size:11px; color:var(--text2); max-width:40%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#cli-list { max-height:55vh; overflow-y:auto; margin:0.5rem 0; }
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
 <div id="login-screen">
-  <div class="login-logo">
-    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-  </div>
-  <div class="login-title"><span class="accent">MD</span> Pro Training</div>
+  <img class="login-logo-img" src="/logo-md.jpg" alt="MD" width="720" height="482" />
+  <div class="login-title">Pro Training</div>
   <div class="login-sub" id="login-sub-text">Ingresá con tu cuenta</div>
   <div class="auth-tabs" style="max-width:360px">
     <button id="tab-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">Ingresar</button>
@@ -1086,7 +1100,8 @@ body::before, body::after { display:none; }
   <!-- RUTINAS -->
   <div class="p-screen" id="p-screen-rutinas">
     <h1 class="page-title">Rutinas</h1>
-    <select class="client-selector-p form-input" id="rut-sel-cliente" onchange="rutOnClientChange(this.value)"></select>
+    <select class="client-selector-p form-input" id="rut-sel-cliente" onchange="rutOnClientChange(this.value)" style="display:none" aria-hidden="true"></select>
+    <button type="button" class="cli-picker-btn" id="rut-cli-btn" onclick="openClientPicker()">Elegí un alumno</button>
     <div class="sub-tab-bar">
       <button class="sub-tab active" onclick="rutSwitchTab('sesion')">Rutina</button>
       <button class="sub-tab" onclick="rutSwitchTab('sesiones')">Sesiones</button>
@@ -1295,6 +1310,7 @@ body::before, body::after { display:none; }
 
 <input type="file" id="file-input" accept="image/*,video/*" multiple onchange="aHandleFileUpload(event)" style="display:none" />
 <div class="toast" id="toast"></div>
+<div id="cli-modal" class="sheet-overlay" onclick="if(event.target===this)closeClientPicker()"><div class="sheet" id="cli-sheet"></div></div>
 <div id="copy-modal" class="sheet-overlay" onclick="if(event.target===this)closeCopySheet()"><div class="sheet" id="copy-sheet"></div></div>
 
 <script>
@@ -1746,9 +1762,10 @@ const AVATAR_EMOJIS=['🏋️','💪','🔥','⚡','🦁','🐺','🦅','🐻','
 // teléfono (localStorage) y nunca se sube. La ilustración/emoji elegidos se guardan también en clientes.avatar
 // (si la columna existe) para verlos en cualquier dispositivo y para que el profe los vea en la lista.
 function escHtml(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
-function avatarValido(v){return typeof v==='string'&&(AVATARS.some(a=>a.id===v)||(v.startsWith('e:')&&v.length>2&&v.length<=12));}
+const AVATAR_FOTO_RE=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
+function avatarValido(v){return typeof v==='string'&&(AVATARS.some(a=>a.id===v)||(v.startsWith('e:')&&v.length>2&&v.length<=12)||(v.length<=150000&&AVATAR_FOTO_RE.test(v)));}
 function avatarInner(v,nombre){
-  if(typeof v==='string'&&v.startsWith('data:image/'))return `<img src="${v}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`;
+  if(typeof v==='string'&&v.startsWith('data:image/'))return AVATAR_FOTO_RE.test(v)?`<img src="${v}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`:`<span class="av-ini">${escHtml(initials(nombre||'?'))}</span>`;
   const a=AVATARS.find(x=>x.id===v);if(a)return a.svg;
   if(typeof v==='string'&&v.startsWith('e:'))return `<span class="av-emoji">${escHtml(v.slice(2))}</span>`;
   return `<span class="av-ini">${escHtml(initials(nombre||'?'))}</span>`;
@@ -1761,7 +1778,7 @@ function avatarBg(v){
 function aGetAvatarKey(){ return 'avatar_'+(aCurrentCliente?.email||''); }
 function aMiAvatar(){
   let local=null;try{local=localStorage.getItem(aGetAvatarKey());}catch(e){}
-  if(local&&(local.startsWith('data:image/')||avatarValido(local)))return local;
+  if(local&&avatarValido(local))return local;
   return avatarValido(aCurrentCliente?.avatar)?aCurrentCliente.avatar:'';
 }
 function pintarAvatar(el,v){
@@ -1774,11 +1791,14 @@ function aRenderAvatar(){pintarAvatar(document.getElementById('a-perfil-avatar')
 async function aChooseAvatar(v){
   try{if(v)localStorage.setItem(aGetAvatarKey(),v);else localStorage.removeItem(aGetAvatarKey());}catch(e){}
   closeAvatarModal();aRenderAvatar();aRenderHeaderAvatar();
-  // Guardar la elección (nunca la foto) para otros dispositivos
-  if(aCurrentCliente&&('avatar' in aCurrentCliente)&&!String(v).startsWith('data:')){
+  aGuardarAvatarEnFicha(v);
+  showToast('Avatar actualizado ✓');
+}
+// Guarda el avatar (ilustración, emoji o foto) en la ficha: así se ve en otros teléfonos y el profe lo ve.
+async function aGuardarAvatarEnFicha(v){
+  if(aCurrentCliente&&('avatar' in aCurrentCliente)&&(v===''||avatarValido(v))){
     try{await dbPatch('clientes',aCurrentCliente.id,{avatar:v||null});aCurrentCliente.avatar=v||null;}catch(e){console.error(e);}
   }
-  showToast('Avatar actualizado ✓');
 }
 function openAvatarModal(){
   const cur=aMiAvatar();
@@ -1787,7 +1807,7 @@ function openAvatarModal(){
     <div class="sheet-title">Tu avatar</div>
     <div class="sheet-label">Tu foto</div>
     <button class="av-upload" onclick="document.getElementById('avatar-file-input').click()"><span class="i i-image"></span> Elegir foto de la galería</button>
-    <div class="sheet-note">La foto queda solo en este teléfono. No se sube ni se guarda en ningún servidor.</div>
+    <div class="sheet-note">Tu foto la ven solo vos y tu entrenador.</div>
     <div class="sheet-label">Avatares</div>
     <div class="av-grid">${AVATARS.map(a=>`<button class="av-opt${sel(a.id)}" onclick="aChooseAvatar('${a.id}')" aria-label="Avatar ${a.id}">${a.svg}</button>`).join('')}</div>
     <div class="sheet-label">Emoji</div>
@@ -1808,7 +1828,7 @@ function aUploadAvatar(event){
       canvas.getContext('2d').drawImage(img,sx,sy,min,min,0,0,size,size);
       const data=canvas.toDataURL('image/jpeg',0.75);
       try{localStorage.setItem(aGetAvatarKey(),data);}catch(err){showToast('No hay espacio para guardar la foto',true);return;}
-      closeAvatarModal();aRenderAvatar();aRenderHeaderAvatar();showToast('Foto actualizada ✓');
+      closeAvatarModal();aRenderAvatar();aRenderHeaderAvatar();aGuardarAvatarEnFicha(data);showToast('Foto actualizada ✓');
     };
     img.src=e.target.result;
   };
@@ -2820,6 +2840,7 @@ async function initProfe(){
     const opts=pClientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
     ['rut-sel-cliente','rut-sel-sesiones'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
     if(pClientes.length){rutCurrentClientId=pClientes[0].id;}
+    rutRenderClientBtn();
     clRenderList();rutBuildCalStrip();rutRenderDay();rutRenderBiblioteca();pCargarNovedades();
     
   }catch(e){showToast('Error al conectar',true);console.error(e);}
@@ -3015,7 +3036,7 @@ let rutCurrentClientId=null,rutSelectedDate=TODAY,rutOpenDetails={},rutStripOffs
   }
 }
 async function rutOnClientChange(id){
-  rutCurrentClientId=parseInt(id);rutOpenDetails={};
+  rutCurrentClientId=parseInt(id);rutOpenDetails={};rutRenderClientBtn();
   rutBuildCalStrip();rutRenderDay();
   const sesionesTab=document.getElementById('rut-sesiones');
   if(sesionesTab&&sesionesTab.classList.contains('active')){rutLoadSesionesAlumno(rutCurrentClientId);}
@@ -3619,6 +3640,31 @@ async function addToBiblioteca(){
   try{const res=await dbPost('biblioteca_ejercicios',{nombre,link_youtube:yt||null});pBiblioteca.push(res[0]);document.getElementById('bib-nombre').value='';document.getElementById('bib-yt').value='';rutRenderBiblioteca();showToast(nombre+' guardado ✓');}catch(e){showToast('Error',true);}
 }
 async function deleteBib(id){if(!confirm('¿Eliminar de la biblioteca?'))return;try{await dbDelete('biblioteca_ejercicios',id);pBiblioteca=pBiblioteca.filter(b=>b.id!==id);rutRenderBiblioteca();showToast('Eliminado');}catch(e){showToast('Error',true);}}
+// ════ SELECTOR DE ALUMNO CON FOTO (Rutinas) ════
+function cliAvatarHtml(c){return `<span class="cli-av">${avatarValido(c.avatar)?avatarInner(c.avatar,c.nombre):`<span class="av-ini">${escHtml(initials(c.nombre||'?'))}</span>`}</span>`;}
+function rutRenderClientBtn(){
+  const b=document.getElementById('rut-cli-btn');if(!b)return;
+  const c=pClientes.find(x=>String(x.id)===String(rutCurrentClientId));
+  b.innerHTML=c?`${cliAvatarHtml(c)}<span class="cli-name">${escHtml(c.nombre)}</span><span class="i i-chevron-down"></span>`:'Elegí un alumno';
+}
+function openClientPicker(){
+  document.getElementById('cli-sheet').innerHTML=`<div class="sheet-title">Elegí un alumno</div>
+    <input class="p-search" id="cli-search" placeholder="Buscar alumno…" oninput="renderClientPickerList(this.value)" autocomplete="off" />
+    <div id="cli-list"></div><button class="btn-cancel-p" onclick="closeClientPicker()">Cerrar</button>`;
+  renderClientPickerList('');
+  document.getElementById('cli-modal').classList.add('open');
+}
+function renderClientPickerList(q){
+  q=(q||'').trim().toLowerCase();
+  const lista=pClientes.filter(c=>!q||c.nombre.toLowerCase().includes(q));
+  document.getElementById('cli-list').innerHTML=lista.length?lista.map(c=>`<button class="cli-opt${String(c.id)===String(rutCurrentClientId)?' selected':''}" onclick="pickClient(${c.id})">${cliAvatarHtml(c)}<span class="cli-name">${escHtml(c.nombre)}</span>${c.objetivo?`<span class="cli-sub">${escHtml(c.objetivo)}</span>`:''}</button>`).join(''):'<div class="sheet-note">No hay alumnos con ese nombre.</div>';
+}
+function closeClientPicker(){document.getElementById('cli-modal').classList.remove('open');}
+function pickClient(id){
+  const sel=document.getElementById('rut-sel-cliente');if(sel)sel.value=id;
+  closeClientPicker();rutOnClientChange(id);
+}
+
 // ════ COPIAR DÍA / SEMANA · CARGAR PLANTILLA ════
 async function rutGetOrCreateRutina(cid){
   const rutinas=await dbGet('rutinas',`cliente_id=eq.${cid}&limit=1`);
