@@ -126,7 +126,11 @@ Navegación inferior con 4 pestañas (`aSwitchTab`): **Inicio**, **Timer**, **Pr
 
 ### JS — Init, Timer y SW (≈3140–3578)
 - `window.onload`: restaura sesión desde `sessionStorage` o muestra el login.
-- Timer: `timerState`, `TIMER_PHASES`, `timerMode`, `timerSetMode`, `timerRender`, `timerDOMUpdate`, `timerStart/Pause/Resume/Stop/Reset/Skip`, `timerTick`, `timerNextPhase`; cronómetro `sw*`; cuenta regresiva `cd*`; audio `getAudioCtx`, `unlockAudio`, `playBeep`, `timerVibrate`, `timerCountdownBeep`.
+- Timer: `timerState` (`phaseEnd`, `remainingMs`), `TIMER_PHASES`, `timerMode`, `timerSetMode`, `timerRender`, `timerDOMUpdate`, `timerStart/Pause/Resume/Reset/Skip`, `timerTick`, `timerNextPhase(desdeAhora)`; cronómetro `swStart/swTick/swPause/swReset` + `swElapsed` (`accMs`, `startedAt`); cuenta regresiva `cdStart/cdTick/cdPause/cdReset` (`end`).
+  - **Regla:** un solo reloj a la vez. Todo arranque llama antes a `timerClearAll()`; `timerStop()` frena todo. Los tres modos cuentan con la **hora real** (timestamps), no restando 1 por tick: así no saltean segundos ni se atrasan en segundo plano. (Bug viejo: "Saltar" y volver a la pestaña Timer dejaban dos `setInterval` → contaba de a 2 y la pausa no frenaba.)
+  - Al volver a la pestaña Timer con algo corriendo o en pausa, se muestra tal cual (no se reinicia). Pantalla encendida mientras corre (`timerWake`).
+- Sonido: `getAudioCtx` (en iPhone pone `navigator.audioSession.type='transient'` para bajar la música mientras suena), `playBeep(freq Hz, dur s, vol, delay ms)` (onda cuadrada + quinta, 2–3 kHz, compresor + ganancia final ≈0,95 de pico; ~+11 dB respecto de la versión vieja; programado con el reloj de audio), `sonidoFase(phase)`, `sonidoFin()` (también lo usa `restAlarm`), `timerCountdownBeep`, `timerVibrate` (compatibilidad).
+- Zoom en iPhone: todos los campos a 16 px y `touch-action: manipulation` en botones/campos (evita el zoom al tocar y el doble toque).
 - Registro del service worker.
 
 ---
