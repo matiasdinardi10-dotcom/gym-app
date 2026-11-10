@@ -899,6 +899,9 @@ html, body, button, input, select, textarea, a, label { touch-action:manipulatio
 .timer-top .voz-btn { padding:6px 9px; }
 .voz-btn-sm { margin-left:auto; min-height:32px; padding:4px 9px; }
 .voz-btn-sm + .rest-go { margin-left:6px; }
+
+.login-error { font-size:14px !important; font-weight:500; color:#fff !important; background:rgba(224,82,74,0.18); border:1px solid var(--red); border-radius:var(--radius-sm); padding:10px 12px; margin-top:0.75rem; }
+.btn-login:disabled { cursor:default; }
 </style>
 </head>
 <body>
@@ -920,7 +923,7 @@ html, body, button, input, select, textarea, a, label { touch-action:manipulatio
         <button onclick="togglePwd('login-password',this)" type="button" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text2);font-size:18px;padding:4px;line-height:1"><span class="i i-eye"></span></button>
       </div>
     </div>
-    <button class="btn-login" onclick="doLogin()">Ingresar →</button>
+    <button class="btn-login" id="btn-login" onclick="doLogin()">Ingresar →</button>
     <div class="login-error" id="login-error"></div>
   </div>
   <div class="login-card" id="form-register" style="display:none">
@@ -943,7 +946,7 @@ html, body, button, input, select, textarea, a, label { touch-action:manipulatio
       <input type="file" id="reg-foto-input" accept="image/*" onchange="regUploadFoto(event)" style="display:none" />
       <div style="font-size:11px;color:var(--text2);margin-top:4px">Podés subir tu foto o elegir un avatar. La ven solo vos y tu entrenador.</div>
     </div>
-    <button class="btn-login" onclick="doRegister()">Crear cuenta →</button>
+    <button class="btn-login" id="btn-register" onclick="doRegister()">Crear cuenta →</button>
     <div class="login-error" id="reg-error"></div>
     <div id="reg-success" style="font-size:13px;color:var(--green);text-align:center;margin-top:0.75rem;display:none">✓ Cuenta creada. Ya podés ingresar.</div>
   </div>
@@ -1590,26 +1593,65 @@ function regSelectAvatar(id, el){
   document.querySelectorAll('#reg-avatar-presets .av-opt').forEach(d=>d.classList.remove('selected'));
   el.classList.add('selected');
 }
+// ── Mensajes de error claros (en español) y visibles ──
+function authErrorTexto(d,status){
+  const code=(d&&(d.error_code||d.code||d.error))||'';const msg=String((d&&(d.msg||d.error_description||d.message||d.error?.message))||'').toLowerCase();
+  if(code==='user_already_exists'||code==='email_exists'||msg.includes('already registered')||msg.includes('already been registered'))return 'Ese email ya tiene una cuenta. Ingresá con tu contraseña.';
+  if(code==='weak_password'||msg.includes('weak')||msg.includes('password should'))return 'La contraseña es muy débil. Usá al menos 6 caracteres, con letras y números.';
+  if(code==='email_address_invalid'||msg.includes('invalid email')||msg.includes('unable to validate email'))return 'El email no es válido. Revisalo.';
+  if(code==='invalid_credentials'||msg.includes('invalid login credentials'))return 'Email o contraseña incorrectos.';
+  if(code==='email_not_confirmed'||msg.includes('not confirmed'))return 'Tenés que confirmar tu email antes de ingresar (revisá tu correo).';
+  if(code==='over_request_rate_limit'||code==='over_email_send_rate_limit'||status===429||msg.includes('rate limit'))return 'Demasiados intentos. Esperá un minuto y probá de nuevo.';
+  if(code==='signup_disabled')return 'El registro está desactivado. Hablá con tu entrenador.';
+  return d&&(d.msg||d.error_description||d.message)?String(d.msg||d.error_description||d.message):'No se pudo completar. Probá de nuevo.';
+}
+function authMostrarError(elId,texto){
+  const el=document.getElementById(elId);if(el){el.textContent=texto;el.style.display='block';}
+  showToast(texto,true); // el aviso flotante se ve aunque el teclado tape el formulario
+  try{el?.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+}
+function authBoton(id,ocupado,texto){
+  const b=document.getElementById(id);if(!b)return;
+  if(ocupado){b.dataset.txt=b.dataset.txt||b.textContent;b.disabled=true;b.textContent=texto;b.style.opacity='0.7';}
+  else{b.disabled=false;b.textContent=b.dataset.txt||b.textContent;b.style.opacity='';}
+}
+// Busca la ficha del alumno; si la cuenta existe pero quedó sin ficha (registro a medias), la crea con los datos del registro
+async function asegurarFichaAlumno(email,user){
+  let clientes=await dbGet('clientes',`email=eq.${encodeURIComponent(email)}&limit=1`);
+  if(clientes.length)return clientes[0];
+  const md=(user&&user.user_metadata)||{};
+  const alta={nombre:(md.nombre||email.split('@')[0]),email,edad:parseInt(md.edad)||null,objetivo:md.objetivo||null,estado:'nuevo',fecha_alta:TODAY};
+  try{const n=await dbPost('clientes',alta);if(n&&n[0])return n[0];}catch(e){console.error(e);}
+  clientes=await dbGet('clientes',`email=eq.${encodeURIComponent(email)}&limit=1`);
+  return clientes[0]||null;
+}
+async function entrarComoAlumno(email,user){
+  const cli=await asegurarFichaAlumno(email,user);
+  if(!cli)return false;
+  aCurrentCliente=cli;sessionStorage.setItem('rol','alumno');sessionStorage.setItem('cliente_id',cli.id);
+  await initAlumno();return true;
+}
+let _authOcupado=false;
 async function doLogin(){
+  if(_authOcupado)return;
   const email=document.getElementById('login-email').value.trim().toLowerCase();
   const password=document.getElementById('login-password').value;
   const errEl=document.getElementById('login-error');errEl.style.display='none';
-  if(!email||!password){errEl.textContent='Completá email y contraseña';errEl.style.display='block';return;}
+  if(!email||!password){authMostrarError('login-error','Completá email y contraseña');return;}
+  _authOcupado=true;authBoton('btn-login',true,'Ingresando…');
   try{
     const r=await fetch(`${SB_URL}/auth/v1/token?grant_type=password`,{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},body:JSON.stringify({email,password})});
-    const data=await r.json();
-    if(!r.ok||data.error){errEl.textContent='Email o contraseña incorrectos';errEl.style.display='block';return;}
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok||data.error||!data.access_token){authMostrarError('login-error',authErrorTexto(data,r.status));return;}
     authSave(data);sessionStorage.setItem('auth_email',email);
-    if(email===PROFE_EMAIL){sessionStorage.setItem('rol','profe');await initProfe();}
-    else{
-      const clientes=await dbGet('clientes',`email=eq.${encodeURIComponent(email)}&limit=1`);
-      if(!clientes.length){errEl.textContent='No encontramos tu cuenta. Contactá a tu entrenador.';errEl.style.display='block';return;}
-      aCurrentCliente=clientes[0];sessionStorage.setItem('rol','alumno');sessionStorage.setItem('cliente_id',aCurrentCliente.id);
-      await initAlumno();
-    }
-  }catch(e){errEl.textContent='Error de conexión. Intentá de nuevo.';errEl.style.display='block';}
+    if(email===PROFE_EMAIL){sessionStorage.setItem('rol','profe');await initProfe();return;}
+    const ok=await entrarComoAlumno(email,data.user);
+    if(!ok){sessionStorage.clear();authMostrarError('login-error','No encontramos tu ficha de alumno. Escribile a tu entrenador.');}
+  }catch(e){console.error(e);authMostrarError('login-error','Error de conexión. Revisá internet y probá de nuevo.');}
+  finally{_authOcupado=false;authBoton('btn-login',false);}
 }
 async function doRegister(){
+  if(_authOcupado)return;
   const nombre=document.getElementById('reg-nombre').value.trim();
   const email=document.getElementById('reg-email').value.trim().toLowerCase();
   const password=document.getElementById('reg-password').value;
@@ -1617,34 +1659,40 @@ async function doRegister(){
   const objetivo=document.getElementById('reg-objetivo').value.trim();
   const errEl=document.getElementById('reg-error');const successEl=document.getElementById('reg-success');
   errEl.style.display='none';successEl.style.display='none';
-  if(!nombre){errEl.textContent='Escribí tu nombre';errEl.style.display='block';return;}
-  if(!email){errEl.textContent='Escribí tu email';errEl.style.display='block';return;}
-  if(password.length<6){errEl.textContent='La contraseña debe tener al menos 6 caracteres';errEl.style.display='block';return;}
+  if(!nombre){authMostrarError('reg-error','Escribí tu nombre');return;}
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){authMostrarError('reg-error','Escribí un email válido');return;}
+  if(password.length<6){authMostrarError('reg-error','La contraseña debe tener al menos 6 caracteres');return;}
+  _authOcupado=true;authBoton('btn-register',true,'Creando cuenta…');
   try{
     const r=await fetch(`${SB_URL}/auth/v1/signup`,{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},body:JSON.stringify({email,password,data:{nombre,edad,objetivo:objetivo||null}})});
-    const data=await r.json();
-    if(!r.ok||data.error||data.error_code){errEl.textContent=data.msg||data.error_description||data.error?.message||'Error al crear la cuenta.';errEl.style.display='block';return;}
-    // Alta en "clientes". Si Supabase ya la creó (trigger de supabase/seguridad.sql) no se duplica.
-    const alta={nombre,email,edad,objetivo:objetivo||null,estado:'nuevo',fecha_alta:TODAY};
-    const avatarElegido=document.getElementById('reg-avatar-id')?.value||'';
-    if(data.access_token){
-      authSave(data);
-      try{
-        const ya=await dbGet('clientes',`email=eq.${encodeURIComponent(email)}&select=id&limit=1`);
-        let id=ya[0]?.id;if(!id){const n=await dbPost('clientes',alta);id=n[0]?.id;}
-        if(id&&avatarValido(avatarElegido)){try{await dbPatch('clientes',id,{avatar:avatarElegido});}catch(e){/* se sincroniza al entrar */}}
-      }catch(e){console.error(e);}
-      sessionStorage.removeItem('auth_token');sessionStorage.removeItem('auth_refresh');sessionStorage.removeItem('auth_exp');
-    }else{
-      try{await dbPost('clientes',alta);}catch(e){/* con seguridad activa lo crea el trigger */}
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok||data.error||data.error_code){
+      const txt=authErrorTexto(data,r.status);authMostrarError('reg-error',txt);
+      if(txt.startsWith('Ese email ya tiene una cuenta')){setTimeout(()=>{switchAuthTab('login');document.getElementById('login-email').value=email;document.getElementById('login-password').focus();},1800);}
+      return;
     }
-    // Guardar avatar elegido
-    const avatarId=document.getElementById('reg-avatar-id')?.value;
-    if(avatarId) localStorage.setItem('avatar_'+email.toLowerCase(), avatarId);
-    successEl.style.display='block';
+    const avatarElegido=document.getElementById('reg-avatar-id')?.value||'';
+    if(avatarElegido){try{localStorage.setItem('avatar_'+email,avatarElegido);}catch(e){}}
+    if(data.access_token){
+      // La cuenta queda abierta: entra directo, sin volver a escribir la contraseña
+      authSave(data);sessionStorage.setItem('auth_email',email);
+      const cli=await asegurarFichaAlumno(email,data.user);
+      if(cli&&avatarValido(avatarElegido)){try{await dbPatch('clientes',cli.id,{avatar:avatarElegido});cli.avatar=avatarElegido;}catch(e){/* se sincroniza al entrar */}}
+      if(cli){
+        aCurrentCliente=cli;sessionStorage.setItem('rol','alumno');sessionStorage.setItem('cliente_id',cli.id);
+        ['reg-nombre','reg-email','reg-password','reg-edad','reg-objetivo'].forEach(id=>document.getElementById(id).value='');
+        showToast('¡Cuenta creada! Bienvenido/a');
+        await initAlumno();return;
+      }
+      sessionStorage.clear();
+    }
+    // Sin sesión (por ejemplo, si se activa la confirmación por email): que ingrese a mano
+    successEl.textContent=data.access_token?'Cuenta creada. Ingresá con tu email y contraseña.':'Cuenta creada. Revisá tu email para confirmarla y después ingresá.';
+    successEl.style.display='block';showToast('Cuenta creada ✓');
     ['reg-nombre','reg-email','reg-password','reg-edad','reg-objetivo'].forEach(id=>document.getElementById(id).value='');
     setTimeout(()=>{switchAuthTab('login');document.getElementById('login-email').value=email;},2000);
-  }catch(e){errEl.textContent='Error de conexión. Intentá de nuevo.';errEl.style.display='block';}
+  }catch(e){console.error(e);authMostrarError('reg-error','Error de conexión. Revisá internet y probá de nuevo.');}
+  finally{_authOcupado=false;authBoton('btn-register',false);}
 }
 function doLogout(){
   restStop();
