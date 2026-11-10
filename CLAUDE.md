@@ -86,7 +86,7 @@ Navegación inferior con 4 pestañas (`aSwitchTab`): **Inicio**, **Timer**, **Pr
   - No cambiar estos formatos: hay datos reales guardados así.
 
 ### JS — Auth (≈1201–1280)
-`switchAuthTab`, `initRegisterAvatars` (botón "Foto" de la galería + iniciales + 10 avatares), `regUploadFoto`, `regSelectAvatar` (valor en `#reg-avatar-id`), `doLogin`, `doRegister` (si hay sesión al registrarse, guarda el avatar/foto en `clientes.avatar`; si no, queda en `localStorage` y se sube al entrar), `doLogout`. Foto de perfil: `fotoPerfilDesdeArchivo` (240×240 JPEG), compartida con `aUploadAvatar`.
+`switchAuthTab`, `initRegisterAvatars` (botón "Foto" de la galería + iniciales + 10 avatares), `regUploadFoto`, `regSelectAvatar` (valor en `#reg-avatar-id`), `doLogin`, `doRegister`, `doLogout`. Registro e ingreso: botones `#btn-register` / `#btn-login` con estado "Creando cuenta…"/"Ingresando…" y bloqueo de doble toque (`_authOcupado`, `authBoton`); errores de Supabase traducidos (`authErrorTexto`) y mostrados también como aviso flotante (`authMostrarError`), porque el texto bajo el botón quedaba tapado por el teclado. Supabase tiene `mailer_autoconfirm` activo: el registro devuelve sesión y el alumno **entra directo** (sin volver a escribir la contraseña). `asegurarFichaAlumno` crea la fila de `clientes` si la cuenta existe pero quedó sin ficha; `entrarComoAlumno` la usa en el login. El avatar/foto elegido al registrarse se guarda en `clientes.avatar`. Foto de perfil: `fotoPerfilDesdeArchivo` (240×240 JPEG), compartida con `aUploadAvatar`.
 
 ### JS — Panel alumno (≈1281–2248)
 - Estado: `aCurrentCliente`, `aEjercicios`, `aLogs`, `aSelectedDate`, `aSessionExs`, `aSessionIdx`, `aSessionState`, `aSessionStateCache` (guarda lo escrito por fecha al cambiar de día).
