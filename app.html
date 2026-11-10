@@ -890,6 +890,15 @@ body::before, body::after { display:none; }
 html, body, button, input, select, textarea, a, label { touch-action:manipulation; }
 .timer-stepper-input, .series-input, input[type="number"], input[type="text"], input[type="email"], input[type="password"], input[type="date"], select, textarea { font-size:16px !important; }
 .timer-stepper-btn { width:36px; height:36px; }
+
+.i-volume-2 { --ic:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 %3E%3Cpath d=%22M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z%22 /%3E%3Cpath d=%22M16 9a5 5 0 0 1 0 6%22 /%3E%3Cpath d=%22M19.364 18.364a9 9 0 0 0 0-12.728%22 /%3E%3C/svg%3E"); }
+.i-volume-x { --ic:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 %3E%3Cpath d=%22M11 4.702a.7.7 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.7.7 0 0 0 11 19.298z%22 /%3E%3Cpath d=%22m16.5 14.5 5-5%22 /%3E%3Cpath d=%22m16.5 9.5 5 5%22 /%3E%3C/svg%3E"); }
+.voz-btn { display:flex; align-items:center; gap:5px; margin-left:8px; padding:6px 10px; min-height:36px; border-radius:20px; border:1px solid var(--gold); background:transparent; color:var(--gold); font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; flex-shrink:0; }
+.voz-btn.off { border-color:var(--border-strong); color:var(--text2); }
+.timer-back { white-space:nowrap; flex-shrink:0; }
+.timer-top .voz-btn { padding:6px 9px; }
+.voz-btn-sm { margin-left:auto; min-height:32px; padding:4px 9px; }
+.voz-btn-sm + .rest-go { margin-left:6px; }
 </style>
 </head>
 <body>
@@ -2697,7 +2706,7 @@ function restStart(n,label){
   n=n||restSecs();clearInterval(restState.iv);
   restState.end=Date.now()+n*1000;restState.total=n;restState.label=label||'serie';restState.lastBeep=null;
   restState.iv=setInterval(restTick,250);
-  getAudioCtx(); // deja el audio listo mientras hay un toque del usuario
+  getAudioCtx();vozPreparar(); // deja el audio y la voz listos mientras hay un toque del usuario
   restWakeLock(true);restAskNotif();restRender();
 }
 function restTick(){
@@ -2709,7 +2718,7 @@ function restTick(){
 function restFinish(){const label=restState.label;restStop();restAlarm(label);}
 function restAlarm(label){
   const msg=label==='ejercicio'?'¡Terminó el descanso! Vamos al próximo ejercicio':'¡Terminó el descanso! A la próxima serie';
-  sonidoFin();
+  if(vozActiva()&&('speechSynthesis' in window)){playBeep(2900,0.18,1,0);playBeep(2300,0.3,1,200);decir('¡A entrenar!',560);}else sonidoFin();
   try{if(navigator.vibrate)navigator.vibrate([400,150,400,150,700]);}catch(e){}
   showToast(msg);
   if(document.visibilityState!=='visible')restNotify(msg);
@@ -2746,7 +2755,7 @@ document.addEventListener('visibilitychange',()=>{
 });
 function restRowHtml(){
   const cur=restSecs();
-  return `<div class="rest-row"><span class="rest-row-lbl"><span class="i i-timer"></span> Descanso</span>${[60,90,120,180].map(n=>`<button class="rest-chip${cur===n?' active':''}" data-s="${n}" onclick="restSetSecs(${n})">${n<120?n+'s':(n/60)+' min'}</button>`).join('')}<button class="rest-go" onclick="restStart()" aria-label="Iniciar descanso"><span class="i i-play"></span></button></div>`;
+  return `<div class="rest-row"><span class="rest-row-lbl"><span class="i i-timer"></span> Descanso</span>${[60,90,120,180].map(n=>`<button class="rest-chip${cur===n?' active':''}" data-s="${n}" onclick="restSetSecs(${n})">${n<120?n+'s':(n/60)+' min'}</button>`).join('')}<button class="voz-btn voz-btn-sm${vozActiva()?'':' off'}" onclick="vozToggle()" aria-label="${vozActiva()?'Apagar voz':'Activar voz'}">${vozBtnInner()}</button><button class="rest-go" onclick="restStart()" aria-label="Iniciar descanso"><span class="i i-play"></span></button></div>`;
 }
 
 // PROGRESS ALUMNO
@@ -4081,7 +4090,7 @@ function cdAdj(delta){ cdState.total=Math.max(1,cdState.total+delta); cdState.ti
 function cdSetTotal(val){ const n=parseInt(val); if(!isNaN(n)&&n>0){cdState.total=n;cdState.timeLeft=n;} cdRender(); }
 function cdToggle(){ if(cdState.timeLeft===0){cdReset();return;} cdState.running?cdPause():cdStart(); }
 function cdStart(){
-  timerClearAll();getAudioCtx();
+  timerClearAll();getAudioCtx();vozPreparar();
   cdState.running=true;cdState.end=Date.now()+cdState.timeLeft*1000;
   cdRender();timerWake(true);
   cdState.interval=setInterval(cdTick,200);
@@ -4090,7 +4099,7 @@ function cdTick(){
   const left=Math.max(0,Math.ceil((cdState.end-Date.now())/1000));
   if(left<=0){
     cdState.timeLeft=0;cdState.running=false;clearInterval(cdState.interval);cdState.interval=null;timerWake(false);
-    sonidoFin();
+    sonidoFin();decir('Tiempo',2200);
     try{if(navigator.vibrate)navigator.vibrate([400,150,400,150,700]);}catch(e){}
     cdRender();return;
   }
@@ -4120,6 +4129,7 @@ function timerHeaderHtml(activeMode){
   }).join('');
   return`<div class="timer-top">
     <button class="timer-back" onclick="aHideTimer()">← Volver</button>
+    <button class="voz-btn${vozActiva()?'':' off'}" onclick="vozToggle()" aria-label="${vozActiva()?'Apagar voz':'Activar voz'}">${vozBtnInner()}</button>
     <div style="display:flex;gap:3px;flex:1;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px;margin-left:8px">${btns}</div>
   </div>`;
 }
@@ -4255,7 +4265,7 @@ function timerToggle(){
   timerState.running ? timerPause() : timerResume();
 }
 function timerStart(){
-  timerClearAll();getAudioCtx();
+  timerClearAll();getAudioCtx();vozPreparar();
   const s=timerState;
   s.currentRound=1;s.currentCycle=1;
   s.phase='prepare';s.timeLeft=s.prepare;s.phaseEnd=Date.now()+s.prepare*1000;
@@ -4272,7 +4282,7 @@ function timerPause(){
 }
 function timerResume(){
   const s=timerState;
-  timerClearAll();getAudioCtx();
+  timerClearAll();getAudioCtx();vozPreparar();
   s.phaseEnd=Date.now()+(s.remainingMs||s.timeLeft*1000);
   s.running=true;timerWake(true);
   s.interval=setInterval(timerTick,200);
@@ -4374,12 +4384,60 @@ function playBeep(freq=2600, duration=0.2, vol=1.0, delay=0){
   }catch(e){}
 }
 // Sonidos por fase del timer de intervalos
+// ── Voz: dice "Entrenar" / "Descansar" con la voz del teléfono (Web Speech API) ──
+function vozActiva(){try{return localStorage.getItem('timer_voz')!=='0';}catch(e){return true;}}
+function vozToggle(){
+  const on=!vozActiva();
+  try{localStorage.setItem('timer_voz',on?'1':'0');}catch(e){}
+  if(on){vozPreparar();decir('Voz activada');}else{try{speechSynthesis.cancel();}catch(e){}}
+  document.querySelectorAll('.voz-btn').forEach(b=>{b.classList.toggle('off',!on);b.innerHTML=vozBtnInner();b.setAttribute('aria-label',on?'Apagar voz':'Activar voz');});
+}
+function vozBtnInner(){return vozActiva()?'<span class="i i-volume-2"></span> Voz':'<span class="i i-volume-x"></span> Voz';}
+let _voz=null;
+function vozElegir(){
+  try{
+    const vs=speechSynthesis.getVoices().filter(v=>/^es/i.test(v.lang));if(!vs.length)return null;
+    const pref=['es-UY','es-AR','es-419','es-US','es-MX','es-ES'];
+    return pref.map(l=>vs.find(v=>v.lang.replace('_','-')===l)).find(Boolean)||vs[0];
+  }catch(e){return null;}
+}
+try{if('speechSynthesis' in window){_voz=vozElegir();speechSynthesis.addEventListener?.('voiceschanged',()=>{_voz=vozElegir();});}}catch(e){}
+// En iPhone la voz tiene que "despertarse" con un toque del usuario: se llama al arrancar el timer / el descanso
+let _vozLista=false;
+function vozPreparar(){
+  if(_vozLista||!('speechSynthesis' in window))return;
+  try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);_vozLista=true;}catch(e){}
+}
+function decir(texto,delayMs){
+  if(!vozActiva()||!('speechSynthesis' in window))return;
+  const go=()=>{
+    try{
+      speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(texto);
+      u.lang=_voz?.lang||'es-ES';if(_voz)u.voice=_voz;
+      u.rate=1.05;u.pitch=1;u.volume=1;
+      speechSynthesis.speak(u);
+    }catch(e){}
+  };
+  delayMs?setTimeout(go,delayMs):go();
+}
+// Sonidos por fase del timer de intervalos (con voz: un pitido corto y después la palabra)
 function sonidoFase(phase){
-  if(phase==='work'){ [0,170,340].forEach(d=>playBeep(2900,0.13,1,d)); playBeep(2900,0.35,1,510); }      // ¡A trabajar!
-  else if(phase==='rest'){ playBeep(1800,0.4,1,0); playBeep(1500,0.5,1,480); }                            // descanso
-  else if(phase==='rest-cycle'){ [0,380,760].forEach(d=>playBeep(1700,0.28,1,d)); }                        // pausa de ciclo
-  else if(phase==='prepare'){ playBeep(2400,0.15,1,0); }
-  else if(phase==='done'){ sonidoFin(); }
+  const voz=vozActiva()&&('speechSynthesis' in window);
+  if(phase==='work'){
+    if(voz){playBeep(2900,0.22,1,0);decir('Entrenar',260);}
+    else{[0,170,340].forEach(d=>playBeep(2900,0.13,1,d));playBeep(2900,0.35,1,510);}
+  }
+  else if(phase==='rest'){
+    if(voz){playBeep(1800,0.3,1,0);decir('Descansar',340);}
+    else{playBeep(1800,0.4,1,0);playBeep(1500,0.5,1,480);}
+  }
+  else if(phase==='rest-cycle'){
+    if(voz){playBeep(1700,0.3,1,0);decir('Descansar. Fin del ciclo',340);}
+    else{[0,380,760].forEach(d=>playBeep(1700,0.28,1,d));}
+  }
+  else if(phase==='prepare'){ playBeep(2400,0.15,1,0); decir('Preparate',200); }
+  else if(phase==='done'){ sonidoFin(); decir('¡Terminaste!',2200); }
 }
 // Alarma de final (cuenta regresiva, fin del timer)
 function sonidoFin(){
