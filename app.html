@@ -885,6 +885,11 @@ body::before, body::after { display:none; }
 .rut-tools { display:flex; flex-direction:column; gap:6px; }
 .rut-tool-danger { color:var(--red); border-color:rgba(224,82,74,0.35); }
 .rut-tool-danger:hover { color:var(--red); border-color:var(--red); }
+
+/* Evitar zoom en iPhone: sin "doble toque para zoom" en botones y campos de 16 px */
+html, body, button, input, select, textarea, a, label { touch-action:manipulation; }
+.timer-stepper-input, .series-input, input[type="number"], input[type="text"], input[type="email"], input[type="password"], input[type="date"], select, textarea { font-size:16px !important; }
+.timer-stepper-btn { width:36px; height:36px; }
 </style>
 </head>
 <body>
@@ -1775,11 +1780,19 @@ function aSwitchTab(tab){
   } else if(tab==='timer'){
     document.getElementById('a-view-timer').style.display='block';
     document.getElementById('a-nav-timer')?.classList.add('active');
-    timerMode='interval';
-    timerState={work:40,rest:20,restCycle:60,rounds:8,cycles:3,prepare:5,currentRound:1,currentCycle:1,phase:'idle',timeLeft:0,running:false,interval:null};
-    swState={running:false,elapsed:0,interval:null};
-    cdState={running:false,total:60,timeLeft:60,interval:null};
-    timerRender();
+    const pausado=timerMode==='interval'&&timerState.phase!=='idle'&&timerState.phase!=='done';
+    if(timerAnyRunning()||pausado){
+      // hay un timer andando o en pausa: se muestra tal cual, sin reiniciar
+      timerMode==='interval'?timerRender():timerMode==='stopwatch'?swRender():cdRender();
+    }else{
+      timerClearAll();
+      const cfg=timerState||{};
+      timerMode='interval';
+      timerState={work:cfg.work||40,rest:cfg.rest||20,restCycle:cfg.restCycle||60,rounds:cfg.rounds||8,cycles:cfg.cycles||3,prepare:cfg.prepare||5,currentRound:1,currentCycle:1,phase:'idle',timeLeft:0,running:false,interval:null,phaseEnd:0,remainingMs:0};
+      swState={running:false,accMs:0,startedAt:0,interval:null};
+      cdState={running:false,total:cdState?.total||60,timeLeft:cdState?.total||60,end:0,interval:null};
+      timerRender();
+    }
   } else if(tab==='progreso'){
     document.getElementById('a-view-progress').style.display='block';
     document.getElementById('a-nav-progreso')?.classList.add('active');
@@ -2696,7 +2709,7 @@ function restTick(){
 function restFinish(){const label=restState.label;restStop();restAlarm(label);}
 function restAlarm(label){
   const msg=label==='ejercicio'?'¡Terminó el descanso! Vamos al próximo ejercicio':'¡Terminó el descanso! A la próxima serie';
-  for(let k=0;k<3;k++){playBeep(880,0.18,1,k*750);playBeep(1175,0.32,1,k*750+220);}
+  sonidoFin();
   try{if(navigator.vibrate)navigator.vibrate([400,150,400,150,700]);}catch(e){}
   showToast(msg);
   if(document.visibilityState!=='visible')restNotify(msg);
@@ -3929,7 +3942,8 @@ window.onload = async () => {
 let timerState = {
   work:40, rest:20, restCycle:60, rounds:8, cycles:3, prepare:5,
   currentRound:1, currentCycle:1,
-  phase:'idle', timeLeft:0, running:false, interval:null
+  phase:'idle', timeLeft:0, running:false, interval:null,
+  phaseEnd:0, remainingMs:0 // fin de la fase (hora real) y lo que quedaba al pausar
 };
 const TIMER_PHASES = {
   idle:         { color:'#C9A227', label:'Listo' },
@@ -3941,14 +3955,36 @@ const TIMER_PHASES = {
 };
 // ════ MODOS TIMER ════
 let timerMode = 'interval'; // interval | stopwatch | countdown
-let swState = { running:false, elapsed:0, interval:null };
-let cdState = { running:false, total:60, timeLeft:60, interval:null };
+let swState = { running:false, accMs:0, startedAt:0, interval:null };
+let cdState = { running:false, total:60, timeLeft:60, end:0, interval:null };
+// Un solo reloj por modo. Antes de arrancar cualquiera se frenan todos (evita relojes duplicados,
+// que hacían saltear de a 2 segundos y que la pausa no frenara). Todo cuenta con la hora real.
+function timerClearAll(){
+  [timerState,swState,cdState].forEach(st=>{if(st){clearInterval(st.interval);st.interval=null;}});
+}
+function timerAnyRunning(){return !!(timerState?.running||swState?.running||cdState?.running);}
+function timerStop(){
+  timerClearAll();
+  if(timerState)timerState.running=false;
+  if(swState&&swState.running){swState.accMs+=Date.now()-swState.startedAt;swState.running=false;}
+  if(cdState&&cdState.running){cdState.timeLeft=Math.max(0,Math.ceil((cdState.end-Date.now())/1000));cdState.running=false;}
+  timerWake(false);
+}
+// Pantalla encendida mientras corre un timer (así el pitido suena seguro)
+let _timerWake=null;
+async function timerWake(on){
+  try{
+    if(on&&'wakeLock' in navigator&&!_timerWake){_timerWake=await navigator.wakeLock.request('screen');_timerWake.addEventListener?.('release',()=>{_timerWake=null;});}
+    else if(!on&&_timerWake){const w=_timerWake;_timerWake=null;await w.release();}
+  }catch(e){_timerWake=null;}
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&timerAnyRunning())timerWake(true);});
 
 function timerSetMode(mode){
   timerMode = mode;
   timerStop();
-  swState = { running:false, elapsed:0, interval:null };
-  cdState = { running:false, total:cdState.total||60, timeLeft:cdState.total||60, interval:null };
+  swState = { running:false, accMs:0, startedAt:0, interval:null };
+  cdState = { running:false, total:cdState.total||60, timeLeft:cdState.total||60, end:0, interval:null };
   if(mode==='interval'){
     timerState.phase='idle';timerState.running=false;
     timerRender();
@@ -3962,7 +3998,7 @@ function timerSetMode(mode){
 // ── CRONÓMETRO ──
 function swRender(){
   const s=swState;
-  const t=s.elapsed;
+  const t=swElapsed();
   const hh=Math.floor(t/3600),mm=Math.floor((t%3600)/60),ss=t%60;
   const display=hh>0?`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`:`${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
   const pct=s.running?(ss/60)*100:0;
@@ -3985,23 +4021,23 @@ function swRender(){
   </div>`;
 }
 
+function swElapsed(){return Math.floor((swState.accMs+(swState.running?Date.now()-swState.startedAt:0))/1000);}
 function swToggle(){ swState.running ? swPause() : swStart(); }
 function swStart(){
-  swState.running=true;
-  swRender();
-  swState.interval=setInterval(()=>{
-    swState.elapsed++;
-    const t=swState.elapsed;
-    const hh=Math.floor(t/3600),mm=Math.floor((t%3600)/60),ss=t%60;
-    const display=hh>0?`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`:`${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
-    const d=document.getElementById('sw-display');
-    if(d) d.textContent=display;
-    const bar=document.getElementById('sw-bar');
-    if(bar) bar.style.width=((ss/60)*100)+'%';
-  },1000);
+  timerClearAll();getAudioCtx();
+  swState.running=true;swState.startedAt=Date.now();
+  swRender();timerWake(true);
+  swState.interval=setInterval(swTick,250);
 }
-function swPause(){ swState.running=false; clearInterval(swState.interval); swRender(); }
-function swReset(){ clearInterval(swState.interval); swState={running:false,elapsed:0,interval:null}; swRender(); }
+function swTick(){
+  const t=swElapsed();
+  const hh=Math.floor(t/3600),mm=Math.floor((t%3600)/60),ss=t%60;
+  const display=hh>0?`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`:`${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+  const d=document.getElementById('sw-display');if(d&&d.textContent!==display)d.textContent=display;
+  const bar=document.getElementById('sw-bar');if(bar)bar.style.width=((ss/60)*100)+'%';
+}
+function swPause(){ if(swState.running){swState.accMs+=Date.now()-swState.startedAt;} swState.running=false; clearInterval(swState.interval); swState.interval=null; timerWake(false); swRender(); }
+function swReset(){ clearInterval(swState.interval); swState={running:false,accMs:0,startedAt:0,interval:null}; timerWake(false); swRender(); }
 
 // ── CUENTA REGRESIVA ──
 function cdRender(){
@@ -4045,26 +4081,32 @@ function cdAdj(delta){ cdState.total=Math.max(1,cdState.total+delta); cdState.ti
 function cdSetTotal(val){ const n=parseInt(val); if(!isNaN(n)&&n>0){cdState.total=n;cdState.timeLeft=n;} cdRender(); }
 function cdToggle(){ if(cdState.timeLeft===0){cdReset();return;} cdState.running?cdPause():cdStart(); }
 function cdStart(){
-  cdState.running=true;
-  cdRender();
-  cdState.interval=setInterval(()=>{
-    cdState.timeLeft--;
-    if(cdState.timeLeft<=0){
-      cdState.timeLeft=0;cdState.running=false;clearInterval(cdState.interval);
-      playBeep(523,0.15,0.4,0);playBeep(659,0.15,0.4,180);playBeep(784,0.4,0.4,360);
-      try{if(navigator.vibrate)navigator.vibrate([300,100,300]);}catch(e){}
-      cdRender();return;
-    }
-    if(cdState.timeLeft<=3) timerCountdownBeep();
-    const d=document.getElementById('cd-display');
-    if(d){const mm=String(Math.floor(cdState.timeLeft/60)).padStart(2,'0');const ss=String(cdState.timeLeft%60).padStart(2,'0');d.textContent=`${mm}:${ss}`;}
-    const pct=cdState.total>0?Math.round((cdState.timeLeft/cdState.total)*100):0;
-    const bar=document.getElementById('cd-bar');
-    if(bar) bar.style.width=pct+'%';
-  },1000);
+  timerClearAll();getAudioCtx();
+  cdState.running=true;cdState.end=Date.now()+cdState.timeLeft*1000;
+  cdRender();timerWake(true);
+  cdState.interval=setInterval(cdTick,200);
 }
-function cdPause(){ cdState.running=false; clearInterval(cdState.interval); cdRender(); }
-function cdReset(){ clearInterval(cdState.interval); cdState.running=false; cdState.timeLeft=cdState.total; cdRender(); }
+function cdTick(){
+  const left=Math.max(0,Math.ceil((cdState.end-Date.now())/1000));
+  if(left<=0){
+    cdState.timeLeft=0;cdState.running=false;clearInterval(cdState.interval);cdState.interval=null;timerWake(false);
+    sonidoFin();
+    try{if(navigator.vibrate)navigator.vibrate([400,150,400,150,700]);}catch(e){}
+    cdRender();return;
+  }
+  if(left===cdState.timeLeft)return;
+  cdState.timeLeft=left;
+  if(left<=3)timerCountdownBeep();
+  const d=document.getElementById('cd-display');
+  if(d){const mm=String(Math.floor(left/60)).padStart(2,'0');const ss=String(left%60).padStart(2,'0');d.textContent=`${mm}:${ss}`;}
+  const pct=cdState.total>0?Math.round((left/cdState.total)*100):0;
+  const bar=document.getElementById('cd-bar');if(bar)bar.style.width=pct+'%';
+}
+function cdPause(){
+  if(cdState.running)cdState.timeLeft=Math.max(0,Math.ceil((cdState.end-Date.now())/1000));
+  cdState.running=false;clearInterval(cdState.interval);cdState.interval=null;timerWake(false);cdRender();
+}
+function cdReset(){ clearInterval(cdState.interval); cdState.interval=null; cdState.running=false; cdState.timeLeft=cdState.total; timerWake(false); cdRender(); }
 
 function timerHeaderHtml(activeMode){
   const tabs=[
@@ -4213,69 +4255,88 @@ function timerToggle(){
   timerState.running ? timerPause() : timerResume();
 }
 function timerStart(){
-  clearInterval(timerState.interval); // limpiar cualquier interval previo
-  timerState.currentRound=1; timerState.currentCycle=1;
-  timerState.phase='prepare'; timerState.timeLeft=timerState.prepare;
-  timerState.running=true;
-  timerRender(); // reconstruye DOM una sola vez al arrancar
-  timerState.interval=setInterval(timerTick,1000);
+  timerClearAll();getAudioCtx();
+  const s=timerState;
+  s.currentRound=1;s.currentCycle=1;
+  s.phase='prepare';s.timeLeft=s.prepare;s.phaseEnd=Date.now()+s.prepare*1000;
+  s.running=true;
+  timerRender(); // reconstruye el DOM una sola vez al arrancar
+  sonidoFase('prepare');timerWake(true);
+  s.interval=setInterval(timerTick,200);
 }
 function timerPause(){
-  timerState.running=false;
-  clearInterval(timerState.interval);
+  const s=timerState;if(!s.running)return;
+  s.remainingMs=Math.max(0,s.phaseEnd-Date.now());
+  s.running=false;clearInterval(s.interval);s.interval=null;timerWake(false);
   timerDOMUpdate();
 }
 function timerResume(){
-  clearInterval(timerState.interval); // evitar doble interval
-  timerState.running=true;
-  timerState.interval=setInterval(timerTick,1000);
+  const s=timerState;
+  timerClearAll();getAudioCtx();
+  s.phaseEnd=Date.now()+(s.remainingMs||s.timeLeft*1000);
+  s.running=true;timerWake(true);
+  s.interval=setInterval(timerTick,200);
   timerDOMUpdate();
 }
-function timerStop(){ clearInterval(timerState?.interval); if(timerState) timerState.running=false; }
 function timerReset(){
   timerStop();
-  timerState.phase='idle'; timerState.timeLeft=0;
-  timerState.currentRound=1; timerState.currentCycle=1;
-  timerState.running=false;
-  timerRender(); // reconstruye para mostrar config
+  const s=timerState;
+  s.phase='idle';s.timeLeft=0;s.currentRound=1;s.currentCycle=1;s.running=false;s.remainingMs=0;
+  timerRender(); // reconstruye para mostrar la configuración
 }
 function timerSkip(){
-  clearInterval(timerState.interval);
-  timerNextPhase();
-  if(timerState.running){
-    timerState.interval=setInterval(timerTick,1000);
-  }
+  const s=timerState;
+  if(s.phase==='idle'||s.phase==='done')return;
+  timerNextPhase(true);
 }
 function timerTick(){
-  timerState.timeLeft--;
-  if(timerState.timeLeft<=0){ timerNextPhase(); return; }
-  if(timerState.timeLeft<=3){ timerCountdownBeep(); }
-  timerDOMUpdate(); // solo actualiza valores, no reconstruye DOM
-}
-function timerNextPhase(){
-  const s=timerState;
-  clearInterval(s.interval);
-  if(s.phase==='prepare'){ s.phase='work'; s.timeLeft=s.work; }
-  else if(s.phase==='work'){
-    if(s.currentRound<s.rounds){ s.phase='rest'; s.timeLeft=s.rest; }
-    else if(s.currentCycle<s.cycles){ s.phase='rest-cycle'; s.timeLeft=s.restCycle; s.currentCycle++; s.currentRound=1; }
-    else{ s.phase='done'; s.running=false; timerVibrate(); timerRender(); return; }
+  const s=timerState;if(!s.running)return;
+  const left=Math.max(0,Math.ceil((s.phaseEnd-Date.now())/1000));
+  if(left<=0){timerNextPhase(false);return;}
+  if(left!==s.timeLeft){
+    s.timeLeft=left;
+    if(left<=3)timerCountdownBeep();
+    timerDOMUpdate(); // solo actualiza valores, no reconstruye el DOM
   }
-  else if(s.phase==='rest'){ s.currentRound++; s.phase='work'; s.timeLeft=s.work; }
-  else if(s.phase==='rest-cycle'){ s.phase='work'; s.timeLeft=s.work; }
-  timerVibrate();
-  timerDOMUpdate();
-  if(s.running) s.interval=setInterval(timerTick,1000);
 }
-// Audio context persistente
+// Pasa a la fase siguiente. desdeAhora=true cuando se toca "Saltar".
+function timerNextPhase(desdeAhora){
+  const s=timerState;
+  const base=desdeAhora||!s.running?Date.now():Math.max(s.phaseEnd,Date.now()-1000);
+  let dur;
+  if(s.phase==='prepare'){s.phase='work';dur=s.work;}
+  else if(s.phase==='work'){
+    if(s.currentRound<s.rounds){s.phase='rest';dur=s.rest;}
+    else if(s.currentCycle<s.cycles){s.phase='rest-cycle';dur=s.restCycle;s.currentCycle++;s.currentRound=1;}
+    else{
+      s.phase='done';s.running=false;clearInterval(s.interval);s.interval=null;timerWake(false);
+      sonidoFase('done');try{if(navigator.vibrate)navigator.vibrate([400,150,400,150,700]);}catch(e){}
+      timerRender();return;
+    }
+  }
+  else if(s.phase==='rest'){s.currentRound++;s.phase='work';dur=s.work;}
+  else if(s.phase==='rest-cycle'){s.phase='work';dur=s.work;}
+  else return;
+  s.timeLeft=dur;
+  if(s.running)s.phaseEnd=base+dur*1000;else s.remainingMs=dur*1000;
+  sonidoFase(s.phase);
+  try{if(navigator.vibrate)navigator.vibrate(s.phase==='work'?[300,100,300]:[500]);}catch(e){}
+  timerDOMUpdate();
+}
+
+// ════ SONIDO ════
+// Los pitidos usan tonos agudos (2–3 kHz, donde el oído es más sensible) con onda cuadrada y al máximo
+// nivel digital, para que se distingan aunque suene música. En iPhone (Safari 16.4+) se pide al sistema
+// que baje la música mientras suena el pitido (audioSession "transient").
 let _audioCtx = null;
 function getAudioCtx(){
+  try{if(navigator.audioSession&&navigator.audioSession.type!=='transient')navigator.audioSession.type='transient';}catch(e){}
   if(!_audioCtx){
     try{ _audioCtx = new(window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
   }
   // Reactivar si se suspendió (pasa en iOS)
   if(_audioCtx.state==='suspended'||_audioCtx.state==='interrupted'){
-    _audioCtx.resume();
+    _audioCtx.resume().catch?.(()=>{});
   }
   return _audioCtx;
 }
@@ -4288,52 +4349,46 @@ document.addEventListener('touchstart', unlockAudio, {passive:true});
 document.addEventListener('touchend', unlockAudio, {passive:true});
 document.addEventListener('click', unlockAudio);
 
-function playBeep(freq=880, duration=0.2, vol=1.0, delay=0){
+// freq en Hz, duration en segundos, delay en milisegundos (se programa con el reloj de audio: no se atrasa)
+function playBeep(freq=2600, duration=0.2, vol=1.0, delay=0){
   try{
     const ctx=getAudioCtx(); if(!ctx)return;
-    const startFn=()=>{
-      try{
-        const o=ctx.createOscillator(); const g=ctx.createGain();
-        // Compresor para maximizar volumen
-        const comp=ctx.createDynamicsCompressor();
-        comp.threshold.value=-6; comp.knee.value=3;
-        comp.ratio.value=20; comp.attack.value=0; comp.release.value=0.1;
-        o.connect(g); g.connect(comp); comp.connect(ctx.destination);
-        o.frequency.value=freq; o.type='square';
-        g.gain.setValueAtTime(vol, ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+duration);
-        o.start(ctx.currentTime); o.stop(ctx.currentTime+duration+0.05);
-      }catch(e){}
-    };
-    if(delay>0) setTimeout(startFn, delay);
-    else startFn();
+    const t0=ctx.currentTime+0.01+delay/1000;
+    const comp=ctx.createDynamicsCompressor();
+    comp.threshold.value=-30; comp.knee.value=0; comp.ratio.value=20; comp.attack.value=0.001; comp.release.value=0.05;
+    const env=ctx.createGain();
+    const peak=Math.max(0.0002,3*vol);
+    env.gain.setValueAtTime(0.0001,t0);
+    env.gain.exponentialRampToValueAtTime(peak,t0+0.006);
+    env.gain.setValueAtTime(peak,t0+Math.max(0.01,duration-0.02));
+    env.gain.exponentialRampToValueAtTime(0.0001,t0+duration);
+    // tono principal + quinta (más "metálico" y fácil de distinguir sobre la música)
+    [[freq,1],[freq*1.5,0.45]].forEach(([f,g])=>{
+      const o=ctx.createOscillator();o.type='square';o.frequency.value=f;
+      const og=ctx.createGain();og.gain.value=g;
+      o.connect(og);og.connect(env);o.start(t0);o.stop(t0+duration+0.03);
+    });
+    // ganancia final después del compresor: lleva el pitido casi al máximo posible (~0,95) sin distorsionar
+    const out=ctx.createGain();out.gain.value=1.8;
+    env.connect(comp);comp.connect(out);out.connect(ctx.destination);
   }catch(e){}
 }
-
-function timerVibrate(){
-  try{if(navigator.vibrate)navigator.vibrate([200,100,200]);}catch(e){}
-  const phase=timerState.phase;
-  if(phase==='work'){
-    playBeep(880,0.15,1.0,0);
-    playBeep(880,0.15,1.0,200);
-  } else if(phase==='rest'){
-    playBeep(440,0.3,1.0,0);
-  } else if(phase==='rest-cycle'){
-    playBeep(440,0.2,1.0,0);
-    playBeep(440,0.2,1.0,250);
-    playBeep(440,0.2,1.0,500);
-  } else if(phase==='done'){
-    playBeep(523,0.18,1.0,0);
-    playBeep(659,0.18,1.0,200);
-    playBeep(784,0.18,1.0,400);
-    playBeep(1047,0.4,1.0,600);
-  } else if(phase==='prepare'){
-    playBeep(660,0.15,0.8,0);
-  }
+// Sonidos por fase del timer de intervalos
+function sonidoFase(phase){
+  if(phase==='work'){ [0,170,340].forEach(d=>playBeep(2900,0.13,1,d)); playBeep(2900,0.35,1,510); }      // ¡A trabajar!
+  else if(phase==='rest'){ playBeep(1800,0.4,1,0); playBeep(1500,0.5,1,480); }                            // descanso
+  else if(phase==='rest-cycle'){ [0,380,760].forEach(d=>playBeep(1700,0.28,1,d)); }                        // pausa de ciclo
+  else if(phase==='prepare'){ playBeep(2400,0.15,1,0); }
+  else if(phase==='done'){ sonidoFin(); }
 }
-
+// Alarma de final (cuenta regresiva, fin del timer)
+function sonidoFin(){
+  for(let k=0;k<3;k++){ playBeep(2900,0.16,1,k*700); playBeep(2300,0.3,1,k*700+200); }
+}
+// Compatibilidad: otras partes de la app llaman a timerVibrate()
+function timerVibrate(){ sonidoFase(timerState.phase); try{if(navigator.vibrate)navigator.vibrate([200,100,200]);}catch(e){} }
 function timerCountdownBeep(){
-  playBeep(880,0.1,0.9,0);
+  playBeep(2200,0.1,1,0);
 }
 
 if('serviceWorker' in navigator){
