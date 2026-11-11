@@ -902,6 +902,17 @@ html, body, button, input, select, textarea, a, label { touch-action:manipulatio
 
 .login-error { font-size:14px !important; font-weight:500; color:#fff !important; background:rgba(224,82,74,0.18); border:1px solid var(--red); border-radius:var(--radius-sm); padding:10px 12px; margin-top:0.75rem; }
 .btn-login:disabled { cursor:default; }
+
+/* Descanso: espacio extra abajo para que los botones no queden tapados, y versión mini */
+body.rest-on .session-body, body.rest-on #a-view-home, body.rest-on #a-view-summary, body.rest-on #a-view-progress, body.rest-on #a-view-perfil { padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 120px) !important; }
+.rest-info-btn { display:flex; align-items:center; gap:10px; background:none; border:none !important; padding:0 !important; min-height:0 !important; color:var(--text); text-align:left; cursor:pointer; }
+.rest-info-btn > .i { width:20px; height:20px; color:var(--gold); }
+.rest-info-btn .rest-lbl, .rest-info-btn .rest-time { display:block; }
+.rest-chev { width:14px !important; height:14px !important; color:var(--text2); vertical-align:middle; }
+#rest-pill.mini { left:auto; right:12px; transform:none; width:auto; max-width:none; padding:0; border-radius:40px; }
+.rest-mini-btn { display:flex; align-items:center; gap:6px; padding:8px 14px !important; min-height:44px !important; border:none !important; border-radius:40px !important; background:transparent; color:var(--text); cursor:pointer; }
+.rest-mini-btn .i { width:18px; height:18px; color:var(--gold); }
+.rest-mini-btn .rest-time { font-size:22px; }
 </style>
 </head>
 <body>
@@ -2786,13 +2797,20 @@ async function restWakeLock(on){
     else if(!on&&restState.wake){const w=restState.wake;restState.wake=null;await w.release();}
   }catch(e){restState.wake=null;}
 }
-function restStop(){clearInterval(restState.iv);restState.iv=null;restWakeLock(false);document.getElementById('rest-pill')?.remove();}
+function restStop(){clearInterval(restState.iv);restState.iv=null;restWakeLock(false);document.getElementById('rest-pill')?.remove();document.body.classList.remove('rest-on');}
+// Achicar / agrandar el recuadro del descanso (para ver lo que queda debajo)
+let restMini=false;
+function restToggleMini(){restMini=!restMini;restRender();}
 function restAdd(d){restState.end+=d*1000;restState.total=Math.max(restState.total,restLeft());restRender();}
 function restRender(){
   let el=document.getElementById('rest-pill');
   if(!el){el=document.createElement('div');el.id='rest-pill';document.body.appendChild(el);}
+  // deja lugar abajo para poder deslizar y tocar los botones que quedarían tapados
+  document.body.classList.add('rest-on');
   const left=restLeft();const m=Math.floor(left/60),ss=String(left%60).padStart(2,'0');
-  el.innerHTML=`<span class="i i-timer"></span><div class="rest-info"><div class="rest-lbl">${restState.label==='ejercicio'?'Descanso · próximo ej.':'Descanso'}</div><div class="rest-time">${m}:${ss}</div></div>
+  el.classList.toggle('mini',restMini);
+  if(restMini){el.innerHTML=`<button class="rest-mini-btn" onclick="restToggleMini()" aria-label="Agrandar descanso"><span class="i i-timer"></span><span class="rest-time">${m}:${ss}</span></button>`;return;}
+  el.innerHTML=`<button class="rest-info rest-info-btn" onclick="restToggleMini()" aria-label="Achicar descanso"><span class="i i-timer"></span><span><span class="rest-lbl">${restState.label==='ejercicio'?'Descanso · próx. ej.':'Descanso'}</span><span class="rest-time">${m}:${ss} <span class="i i-chevron-down rest-chev"></span></span></span></button>
     <div class="rest-bar"><div style="width:${restState.total?left/restState.total*100:0}%"></div></div>
     <button onclick="restAdd(15)">+15s</button><button onclick="restStop()">Saltar</button>`;
 }
