@@ -913,6 +913,20 @@ body.rest-on .session-body, body.rest-on #a-view-home, body.rest-on #a-view-summ
 .rest-mini-btn { display:flex; align-items:center; gap:6px; padding:8px 14px !important; min-height:44px !important; border:none !important; border-radius:40px !important; background:transparent; color:var(--text); cursor:pointer; }
 .rest-mini-btn .i { width:18px; height:18px; color:var(--gold); }
 .rest-mini-btn .rest-time { font-size:22px; }
+
+.rut-tools-row { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.rut-tools-row .rut-tool-btn:only-child { grid-column:1 / -1; }
+.rut-clip { border:1px solid var(--gold); background:var(--gold-soft); border-radius:var(--radius-sm); padding:10px; }
+.rut-clip-head { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); }
+.rut-clip-head > .i { color:var(--gold); }
+.rut-clip-txt { flex:1; min-width:0; }
+.rut-clip-x { border:none; background:transparent; color:var(--text2); font-size:14px; cursor:pointer; min-width:36px; min-height:36px; }
+.rut-clip-btns { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
+.rut-clip-btns button { min-height:52px; border-radius:var(--radius-sm); cursor:pointer; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+.rut-clip-btns button small { font-family:var(--font-mono); font-weight:400; text-transform:none; letter-spacing:0.02em; font-size:10px; opacity:0.8; }
+.rut-clip-btns button:only-child { grid-column:1 / -1; }
+.rut-clip-paste { background:var(--gold); color:#0B0B0B; border:none; }
+.rut-clip-next { background:transparent; color:var(--gold); border:1px solid var(--gold); }
 </style>
 </head>
 <body>
@@ -1179,7 +1193,12 @@ body.rest-on .session-body, body.rest-on #a-view-home, body.rest-on #a-view-summ
           <button class="btn-add-circuit" onclick="openCircuitModal()">+ Circuito</button>
         </div>
       </div>
-      <div class="rut-tools"><button class="rut-tool-btn" onclick="openCopySheet()"><span class="i i-copy"></span> Copiar día / semana · Cargar plantilla</button>
+      <div class="rut-tools">
+        <div class="rut-tools-row">
+          <button class="rut-tool-btn" id="rut-copy-day" onclick="rutCopiarAlPortapapeles()" style="display:none"><span class="i i-copy"></span> Copiar día</button>
+          <button class="rut-tool-btn" onclick="openCopySheet()"><span class="i i-calendar-plus"></span> Semana · Plantilla</button>
+        </div>
+        <div id="rut-clip" class="rut-clip" style="display:none"></div>
         <button class="rut-tool-btn rut-tool-danger" id="rut-del-all" onclick="rutBorrarTodosDelDia()" style="display:none"><span class="i i-trash-2"></span> Borrar todos los ejercicios del día</button></div>
       <div id="rut-completed-banner"><span class="i i-circle-check-big"></span> El alumno ya completó esta sesión.</div>
       <div id="rut-exercise-list"><div class="loading">Cargando…</div></div>
@@ -3222,6 +3241,8 @@ function rutRenderDay(){
   document.getElementById('rut-completed-banner').style.display=isCompleted?'flex':'none';
   const logByEx={};dayLogs.forEach(l=>{logByEx[l.ejercicio_id]=l;});
   const delAll=document.getElementById('rut-del-all');if(delAll)delAll.style.display=exs.length?'flex':'none';
+  const cpy=document.getElementById('rut-copy-day');if(cpy)cpy.style.display=exs.length?'flex':'none';
+  rutRenderPortapapeles();
   if(!exs.length){document.getElementById('rut-exercise-list').innerHTML='<div class="empty">No hay ejercicios para este día.<br>Usá "+ Ejercicio" o "+ Circuito" para comenzar.</div>';return;}
 
   const total=exs.length;
@@ -3857,6 +3878,49 @@ async function openCopySheet(){
 }
 function closeCopySheet(){document.getElementById('copy-modal').classList.remove('open');}
 // Crea copias de ejercicios (sin lo que registró el alumno) en otra fecha / alumno
+// ── Copiar y pegar un día (entre días y entre alumnos) ──
+let rutPortapapeles=null; // {exs:[copias sin lo registrado], cid, fecha, nombre}
+try{rutPortapapeles=JSON.parse(localStorage.getItem('rut_portapapeles')||'null');}catch(e){}
+function rutFechaCorta(f){return new Date(f+'T00:00:00').toLocaleDateString('es-UY',{weekday:'short',day:'numeric',month:'short'});}
+function rutCopiarAlPortapapeles(){
+  const exs=rutExsDe(rutCurrentClientId,rutSelectedDate);
+  if(!exs.length){showToast('Este día no tiene ejercicios',true);return;}
+  const cl=pClientes.find(c=>String(c.id)===String(rutCurrentClientId));
+  rutPortapapeles={cid:rutCurrentClientId,fecha:rutSelectedDate,nombre:cl?cl.nombre:'',
+    exs:exs.map(e=>({nombre:e.nombre,series:e.series??null,peso:e.peso??null,tiempo:e.tiempo??null,nota:e.nota??null,link_youtube:e.link_youtube??null}))};
+  try{localStorage.setItem('rut_portapapeles',JSON.stringify(rutPortapapeles));}catch(e){}
+  rutRenderPortapapeles();
+  showToast(`Día copiado (${exs.length} ej.). Elegí alumno y día y tocá "Pegar acá"`);
+}
+function rutVaciarPortapapeles(){rutPortapapeles=null;try{localStorage.removeItem('rut_portapapeles');}catch(e){}rutRenderPortapapeles();}
+function rutRenderPortapapeles(){
+  const el=document.getElementById('rut-clip');if(!el)return;
+  if(!rutPortapapeles||!rutPortapapeles.exs?.length){el.style.display='none';el.innerHTML='';return;}
+  const c=rutPortapapeles;const mismo=String(c.cid)===String(rutCurrentClientId)&&c.fecha===rutSelectedDate;
+  const destino=pClientes.find(x=>String(x.id)===String(rutCurrentClientId));
+  el.style.display='block';
+  el.innerHTML=`<div class="rut-clip-head"><span class="i i-clipboard-list"></span><span class="rut-clip-txt">Copiado: <b>${c.exs.length} ej.</b> de ${escHtml(c.nombre||'alumno')} · ${escHtml(rutFechaCorta(c.fecha))}</span><button class="rut-clip-x" onclick="rutVaciarPortapapeles()" aria-label="Vaciar lo copiado">✕</button></div>
+    <div class="rut-clip-btns">
+      ${mismo?'':`<button class="rut-clip-paste" onclick="rutPegar(rutSelectedDate)">Pegar acá<small>${escHtml(destino?destino.nombre:'')} · ${escHtml(rutFechaCorta(rutSelectedDate))}</small></button>`}
+      <button class="rut-clip-next" onclick="rutPegar(rutSumarDias(new Date(rutSelectedDate+'T00:00:00'),7))">Pegar +7 días<small>${escHtml(rutFechaCorta(rutSumarDias(new Date(rutSelectedDate+'T00:00:00'),7)))}</small></button>
+    </div>`;
+}
+let _pegando=false;
+async function rutPegar(fecha){
+  if(_pegando||!rutPortapapeles)return;
+  const cid=rutCurrentClientId;
+  const ya=rutExsDe(cid,fecha).length;
+  const cl=pClientes.find(c=>String(c.id)===String(cid));
+  if(ya&&!confirm(`${cl?cl.nombre:'Ese alumno'} ya tiene ${ya} ejercicio(s) el ${rutFechaCorta(fecha)}. Los copiados se agregan al final. ¿Seguimos?`))return;
+  _pegando=true;
+  try{
+    const n=await rutInsertarCopias(rutPortapapeles.exs,cid,fecha);
+    showToast(`${n} ejercicio(s) pegados ✓`);
+    rutPickDate(fecha); // muestra el día donde se pegó
+  }catch(e){console.error(e);showToast('Error al pegar',true);}
+  finally{_pegando=false;}
+}
+
 async function rutInsertarCopias(origen,cid,fecha){
   const rutina=await rutGetOrCreateRutina(cid);
   const yaHay=rutExsDe(cid,fecha);
