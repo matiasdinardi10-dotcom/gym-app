@@ -2796,7 +2796,7 @@ function restTick(){
 function restFinish(){const label=restState.label;restStop();restAlarm(label);}
 function restAlarm(label){
   const msg=label==='ejercicio'?'¡Terminó el descanso! Vamos al próximo ejercicio':'¡Terminó el descanso! A la próxima serie';
-  if(vozActiva()&&('speechSynthesis' in window)){playBeep(2900,0.18,1,0);playBeep(2300,0.3,1,200);decir('¡A entrenar!',560);}else sonidoFin();
+  if(vozActiva()&&('speechSynthesis' in window)){playBeep(1047,0.3,1,0);playBeep(1568,0.45,1,140);decir('¡A entrenar!',480);}else sonidoFin();
   try{if(navigator.vibrate)navigator.vibrate([400,150,400,150,700]);}catch(e){}
   showToast(msg);
   if(document.visibilityState!=='visible')restNotify(msg);
@@ -4490,27 +4490,34 @@ document.addEventListener('touchend', unlockAudio, {passive:true});
 document.addEventListener('click', unlockAudio);
 
 // freq en Hz, duration en segundos, delay en milisegundos (se programa con el reloj de audio: no se atrasa)
-function playBeep(freq=2600, duration=0.2, vol=1.0, delay=0){
+// Sonido tipo CAMPANA (agradable, no aturde): suma de senoidales (fundamental + armónicos suaves)
+// con ataque corto y caída natural. freq en Hz (notas musicales), duration = largo de la caída en s,
+// vol 0–1, delay en ms (programado con el reloj de audio: no se atrasa).
+let _audioMaster=null;
+function audioMaster(ctx){
+  if(_audioMaster&&_audioMaster.ctx===ctx)return _audioMaster.node;
+  // limitador suave: evita que se sature cuando suenan varias notas juntas
+  const comp=ctx.createDynamicsCompressor();
+  comp.threshold.value=-10;comp.knee.value=8;comp.ratio.value=4;comp.attack.value=0.003;comp.release.value=0.2;
+  const g=ctx.createGain();g.gain.value=0.95;
+  comp.connect(g);g.connect(ctx.destination);
+  _audioMaster={ctx,node:comp};return comp;
+}
+function playBeep(freq=1047, duration=0.4, vol=1.0, delay=0){
   try{
     const ctx=getAudioCtx(); if(!ctx)return;
     const t0=ctx.currentTime+0.01+delay/1000;
-    const comp=ctx.createDynamicsCompressor();
-    comp.threshold.value=-30; comp.knee.value=0; comp.ratio.value=20; comp.attack.value=0.001; comp.release.value=0.05;
-    const env=ctx.createGain();
-    const peak=Math.max(0.0002,3*vol);
-    env.gain.setValueAtTime(0.0001,t0);
-    env.gain.exponentialRampToValueAtTime(peak,t0+0.006);
-    env.gain.setValueAtTime(peak,t0+Math.max(0.01,duration-0.02));
-    env.gain.exponentialRampToValueAtTime(0.0001,t0+duration);
-    // tono principal + quinta (más "metálico" y fácil de distinguir sobre la música)
-    [[freq,1],[freq*1.5,0.45]].forEach(([f,g])=>{
-      const o=ctx.createOscillator();o.type='square';o.frequency.value=f;
-      const og=ctx.createGain();og.gain.value=g;
-      o.connect(og);og.connect(env);o.start(t0);o.stop(t0+duration+0.03);
+    const decay=Math.max(0.35,duration*2.2);
+    const out=audioMaster(ctx);
+    // [multiplicador de frecuencia, nivel, cuánto dura relativo a la fundamental]
+    [[1,0.62,1],[2,0.22,0.6],[3,0.09,0.4],[4.16,0.05,0.25]].forEach(([m,lvl,dk])=>{
+      const o=ctx.createOscillator();o.type='sine';o.frequency.value=freq*m;
+      const g=ctx.createGain();const pk=Math.max(0.0002,lvl*vol);const d=decay*dk;
+      g.gain.setValueAtTime(0.0001,t0);
+      g.gain.exponentialRampToValueAtTime(pk,t0+0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001,t0+d);
+      o.connect(g);g.connect(out);o.start(t0);o.stop(t0+d+0.05);
     });
-    // ganancia final después del compresor: lleva el pitido casi al máximo posible (~0,95) sin distorsionar
-    const out=ctx.createGain();out.gain.value=1.8;
-    env.connect(comp);comp.connect(out);out.connect(ctx.destination);
   }catch(e){}
 }
 // Sonidos por fase del timer de intervalos
@@ -4554,29 +4561,30 @@ function decir(texto,delayMs){
 // Sonidos por fase del timer de intervalos (con voz: un pitido corto y después la palabra)
 function sonidoFase(phase){
   const voz=vozActiva()&&('speechSynthesis' in window);
-  if(phase==='work'){
-    if(voz){playBeep(2900,0.22,1,0);decir('Entrenar',260);}
-    else{[0,170,340].forEach(d=>playBeep(2900,0.13,1,d));playBeep(2900,0.35,1,510);}
+  if(phase==='work'){        // dos notas que suben: ¡a trabajar!
+    playBeep(1047,0.3,1,0);playBeep(1568,0.45,1,140);
+    if(voz)decir('Entrenar',420);else playBeep(2093,0.6,0.9,300);
   }
-  else if(phase==='rest'){
-    if(voz){playBeep(1800,0.3,1,0);decir('Descansar',340);}
-    else{playBeep(1800,0.4,1,0);playBeep(1500,0.5,1,480);}
+  else if(phase==='rest'){   // dos notas que bajan: a descansar
+    playBeep(1319,0.35,0.9,0);playBeep(880,0.55,0.9,170);
+    if(voz)decir('Descansar',480);
   }
   else if(phase==='rest-cycle'){
-    if(voz){playBeep(1700,0.3,1,0);decir('Descansar. Fin del ciclo',340);}
-    else{[0,380,760].forEach(d=>playBeep(1700,0.28,1,d));}
+    [0,220,440].forEach(d=>playBeep(880,0.4,0.9,d));
+    if(voz)decir('Descansar. Fin del ciclo',650);
   }
-  else if(phase==='prepare'){ playBeep(2400,0.15,1,0); decir('Preparate',200); }
-  else if(phase==='done'){ sonidoFin(); decir('¡Terminaste!',2200); }
+  else if(phase==='prepare'){ playBeep(784,0.4,0.9,0); decir('Preparate',300); }
+  else if(phase==='done'){ sonidoFin(); decir('¡Terminaste!',1600); }
 }
 // Alarma de final (cuenta regresiva, fin del timer)
 function sonidoFin(){
-  for(let k=0;k<3;k++){ playBeep(2900,0.16,1,k*700); playBeep(2300,0.3,1,k*700+200); }
+  // arpegio de campana (do-mi-sol-do), dos veces
+  [0,700].forEach(b=>{[1047,1319,1568,2093].forEach((f,i)=>playBeep(f,i===3?0.7:0.3,1,b+i*120));});
 }
 // Compatibilidad: otras partes de la app llaman a timerVibrate()
 function timerVibrate(){ sonidoFase(timerState.phase); try{if(navigator.vibrate)navigator.vibrate([200,100,200]);}catch(e){} }
 function timerCountdownBeep(){
-  playBeep(2200,0.1,1,0);
+  playBeep(880,0.18,0.7,0); // "tic" suave de los últimos 3 segundos
 }
 
 if('serviceWorker' in navigator){
